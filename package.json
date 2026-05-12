@@ -1,0 +1,34 @@
+{
+  "name": "paper-reader",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "bun@1.2.14",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "build:paper-data": "bun scripts/build-paper-data.mjs",
+    "translations:generate": "bun scripts/generate-manual-translations.mjs",
+    "translations:compile": "bun scripts/compile-paragraph-passes.mjs",
+    "paper:save": "bun scripts/save-paper.mjs",
+    "paper:list": "bun scripts/list-saved-papers.mjs",
+    "paper:load": "bun scripts/load-paper.mjs"
+  },
+  "dependencies": {
+    "cheerio": "^1.2.0",
+    "next": "16.1.6",
+    "react": "19.2.3",
+    "react-dom": "19.2.3"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.1.6",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  }
+}

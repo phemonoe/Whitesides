@@ -1,0 +1,891 @@
+S0001	How could machines learn as efficiently as humans and animals?
+S0002	How could machines learn to reason and plan?
+S0003	How could machines learn representations of sensory inputs and action plans at multiple levels of abstraction, enabling them to reason, predict, and plan at multiple time horizons?
+S0004	This position paper proposes an architecture and training paradigms with which to construct autonomous intelligent agents.
+S0005	It combines concepts such as configurable predictive world model, behavior driven through internal motivation, and multi-level joint embedding architectures trained with self-supervised learning. (Self-supervised learning means learning from the structure inside raw data rather than from human-provided labels.)
+S0006	Keywords: Artificial Intelligence, Machine Common Sense, Cognitive Architecture, Deep Learning, Self-Supervised Learning, Energy-Based Model, World Models, Joint Embedding Architecture, internal motivation.
+S0007	This document is not a technical nor scholarly paper in the traditional sense, but a position paper expressing my vision for a path towards intelligent machines that learn more like animals and humans, that can reason and plan, and whose behavior is driven by intrinsic objectives, rather than by hard-wired programs, external supervision, or external rewards.
+S0008	Many ideas described in this paper (almost all of them) have been formulated by many authors in various contexts in various form.
+S0009	The present piece does not claim priority for any of them but presents a proposal for how to assemble them into a consistent whole.
+S0010	In particular, the piece pinpoints the challenges ahead.
+S0011	It also lists a number of avenues that are likely or unlikely to succeed.
+S0012	The text is written with as little jargon as possible, and using as little mathematical prior knowledge as possible, so as to appeal to readers with a wide variety of backgrounds including neuroscience, cognitive science, and philosophy, in addition to machine learning, robotics, and other fields of engineering.
+S0013	I hope that this piece will help contextualize some of the research in AI whose relevance is sometimes difficult to see.
+S0014	Animals and humans exhibit learning abilities and understandings of the world that are far beyond the capabilities of current AI and machine learning (ML) systems.
+S0015	How is it possible for an adolescent to learn to drive a car in about 20 hours of practice and for children to learn language with what amounts to a small exposure.
+S0016	How is it that most humans will know how to act in many situation they have never encountered?
+S0017	By contrast, to be reliable, current ML systems need to be trained with very large numbers of trials so that even the rarest combination of situations will be encountered frequently during training.
+S0018	Still, our best ML systems are still very far from matching human reliability in real-world tasks such as driving, even after being fed with major amounts of supervisory data from human experts, after going through millions of reinforcement learning trials in virtual environments, and after engineers have hardwired hundreds of behaviors into them.
+S0019	The answer may lie in the ability of humans and many animals to learn world models, internal models of how the world works.
+S0020	There are three main challenges that AI research must address today: 1.
+S0021	How can machines learn to represent the world, learn to predict, and learn to act largely by observation?
+S0022	Interactions in the real world are expensive and dangerous, intelligent agents should learn as much as they can about the world without interaction (by observation) so as to minimize the number of expensive and dangerous trials necessary to learn a particular task.
+S0023	2.
+S0024	How can machine reason and plan in ways that are compatible with gradient-based learning?
+S0025	Our best approaches to learning rely on estimating and using the gradient of a loss, which can only be performed with differentiable architectures and is difficult to reconcile with logic-based symbolic reasoning. (Differentiable here means the system is smooth enough for gradient-based learning signals to flow through it.)
+S0026	3.
+S0027	How can machines learn to represent sensory inputs and action plans in a multi-level manner, at multiple levels of abstraction, and multiple time scales?
+S0028	Humans and many animals are able to conceive multilevel abstractions with which long-term predictions and long-term planning can be performed by decomposing complex actions into sequences of lower-level ones.
+S0029	The present piece proposes an architecture for intelligent agents with possible solutions to all three challenges.
+S0030	The main contributions of this paper are the following: 1. an overall cognitive architecture in which all modules are differentiable and many of them are trainable (Section 3, Figure 2).
+S0031	2.
+S0032	JEPA and multi-level JEPA: a non-generative architecture for predictive world models that learn a hierarchy of representations (Sections 4.4 and 4.6, Figures 12 and 15). (JEPA means Joint-Embedding Predictive Architecture, a model that predicts useful internal representations instead of raw output details.)
+S0033	3. a non-contrastive self-supervised learning paradigm that produces representations that are simultaneously informative and predictable (Section 4.5, Figure 13).
+S0034	4.
+S0035	A way to use H-JEPA as the basis of predictive world models for multi-level planning under uncertainty (section 4.7, Figure 16 and 17). (H-JEPA means Hierarchical JEPA, a stacked multi-level version of JEPA for reasoning at different levels of abstraction.)
+S0036	Impatient readers may prefer to jump directly to the aforementioned sections and figures.
+S0037	Human and non-human animals seem able to learn major amounts of background knowledge about how the world works through observation and through an incomprehensibly small amount of interactions in a task-independent, unsupervised way.
+S0038	It can be hypothesized that this accumulated knowledge may constitute the basis for what is often called common sense.
+S0039	Common sense can be seen as a collection of models of the world that can tell an agent what is likely, what is plausible, and what is impossible.
+S0040	Using such world models, animals can learn new skills with very few trials.
+S0041	They can predict the consequences of their actions, they can reason, plan, explore, and imagine new solutions to problems.
+S0042	Importantly, they can also avoid making dangerous mistakes when facing an unknown situation.
+S0043	The idea that humans, animals, and intelligent systems use world models goes back a long time in psychology (Craik, 1943).
+S0044	The use of forward models that predict the next state of the world as a function of the current state and the action being considered has been standard procedure in optimal control since the 1950s (Bryson and Ho, 1969) and bears the name model-predictive control. (Model-predictive control is a planning method that simulates future outcomes before acting.)
+S0045	The use of differentiable world models in reinforcement learning has long been neglected but is making a comeback (see for example (Levine, 2021)) A self-driving system for cars may require thousands of trials of reinforcement learning to learn that driving too fast in a turn will result in a bad outcome, and to learn to slow down to avoid skidding.
+S0046	By contrast, humans can draw on their intimate knowledge of intuitive physics to predict such outcomes, and largely avoid fatal courses of action when learning a new skill.
+S0047	Common sense knowledge does not just allow animals to predict future outcomes, but also to fill in missing information, whether temporally or spatially.
+S0048	It allows them to produce interpretations of sensory inputs that are consistent with common sense.
+S0049	When faced with an ambiguous sensory input, common sense allows animals to dismiss interpretations that are not consistent with their internal world model, and to pay special attention as it may indicate a dangerous situation and an opportunity for learning a refined world model. (A world model is an internal predictive model of how the world changes over time.)
+S0050	I submit that devising learning paradigms and architectures that would allow machines to learn world models in an unsupervised (or self-supervised) fashion, and to use those models to predict, to reason, and to plan is one of the main challenges of AI and ML today.
+S0051	One major technical hurdle is how to devise trainable world models that can deal with complex uncertainty in the predictions.
+S0052	Humans and non-human animals learn basic knowledge about how the world works in the first days, weeks, and months of life.
+S0053	Although major quantities of such knowledge are acquired quite quickly, the knowledge seems so basic that we take it for granted.
+S0054	In the first few months of life, we learn that the world is three-dimensional.
+S0055	We learn that every 9 10 11 12 source of light, sound, and touch in the world has a distance from us.
+S0056	The fact that every point in a visual sensory input has a distance is the best way to explain how our view of the world changes from our left eye to our right eye, or when our head is being moved.
+S0057	Parallax motion makes depth obvious, which in turn makes the notion of object obvious, as well as the fact that objects can occlude more distant ones.
+S0058	Once the existence of objects is established, they can be automatically assigned to broad categories as a function of their appearance or behavior.
+S0059	On top of the notion of object comes the knowledge that objects do not spontaneously appear, disappear, change shape, or teleport: they move smoothly and can only be in one place at any one time.
+S0060	Once such concepts are acquired, it becomes easy to learn that some objects are static, some have predictable trajectories (inanimate objects), some behave in somewhat unpredictable ways (collective phenomena like water, sand, tree leaves in the wind, etc), and some seem to obey different rules (animate objects).
+S0061	Notions of intuitive physics such as stability, gravity, inertia, and others can emerge on top of that.
+S0062	The effect of animate objects on the world (including the effects of the subject’s own actions) can be used to deduce cause-and-effect relationships, on top of which linguistic and social knowledge can be acquired.
+S0063	Figure 1, courtesy of Emmanuel Dupoux, shows at what age infants seem to acquire basic concepts such as object permanence, basic categories, intuitive physics, etc.
+S0064	Concepts at higher levels of abstraction seem to develop on top of lower-level ones.
+S0065	Equipped with this knowledge of the world, combined with simple hard-wired behaviors and intrinsic motivations/objectives, animals can quickly learn new tasks, predict the consequences of their actions and plan ahead, foreseeing successful courses of actions and avoiding dangerous situations.
+S0066	But can a human or animal brain contain all the world models that are necessary for survival?
+S0067	One hypothesis in this paper is that animals and humans have only one world model engine somewhere in their prefrontal cortex.
+S0068	That world model engine is dynamically configurable for the task at hand.
+S0069	With a single, configurable world model engine, rather than a separate model for every situation, knowledge about how the world works may be shared across tasks.
+S0070	This may enable reasoning by analogy, by applying the model configured for one situation to another situation.
+S0071	To make things concrete, I will directly dive into a description of the proposed model. action sensory input Figure 2: A system architecture for autonomous intelligence.
+S0072	All modules in this model are assumed to be “differentiable”, in that a module feeding into another one (through an arrow connecting them) can get gradient estimates of the cost’s scalar output with respect to its own output.
+S0073	The configurator module takes inputs (not represented for clarity) from all other modules and configures them to perform the task at hand. (The configurator is the control module that sets up the other modules for the current task.)
+S0074	The perception module estimates the current state of the world.
+S0075	The world model module predicts possible future world states as a function of imagined actions sequences proposed by the actor.
+S0076	The cost module computes a single scalar output called “energy” that measures the level of discomfort of the agent.
+S0077	It is composed of two sub-modules, the intrinsic cost, which is immutable (not trainable) and computes the immediate energy of the current state (pain, pleasure, hunger, etc), and the critic, a trainable module that predicts future values of the intrinsic cost. (The critic is the part of the system that estimates future cost or future badness/goodness.)
+S0078	The short-term memory module keeps track of the current and predicted world states and associated intrinsic costs.
+S0079	The actor module computes proposals for action sequences.
+S0080	The world model and the critic compute the possible resulting outcomes.
+S0081	The actor can find an optimal action sequence that minimizes the estimated future cost, and output the first action in the optimal sequence.
+S0082	See Section 3 for details.
+S0083	Figure 1: This chart, (courtesy of Emmanuel Dupoux), indicates at what age infants generally acquire various concepts about how the world works.
+S0084	It is consistent with the idea that abstract concepts, such as the fact that objects are subject to gravity and inertia, are acquired on top of less abstract concepts, like object permanence and the assignment of objects to broad categories.
+S0085	Much of this knowledge is acquired mostly by observation, with very little direct intervention, particularly in the first few weeks and months.
+S0086	The proposed architecture for autonomous intelligent agents is depicted in Figure 2.
+S0087	It is composed of a number of modules whose functions are described below.
+S0088	Some of the modules are configurable on the fly, i.e. their precise function is determined by the configurator module.
+S0089	The role of the configurator is executive control: given a task to be executed, it pre-configures the perception, the world model, the cost and the actor for the task at hand.
+S0090	The configurator modulates the parameters of the modules it feeds into.
+S0091	The configurator module takes input from all other modules and configures them for the task at hand by modulating their parameters and their attention circuits.
+S0092	In particular, the configurator may prime the perception, world model, and cost modules to fulfill a particular goal.
+S0093	The perception module receives signals from sensors and estimates the current state of the world.
+S0094	For a given task, only a small subset of the perceived state of the world is relevant and useful.
+S0095	The perception module may represent the state of the world in a multi-level fashion, with multiple levels of abstraction.
+S0096	The configurator primes the perception system to extract the relevant information from the sensory input for the task at hand.
+S0097	The world model module constitutes the most complex piece of the architecture.
+S0098	Its role is twofold: (1) estimate missing information about the state of the world not provided by perception, (2) predict plausible future states of the world.
+S0099	The world model may predict natural evolutions of the world, or may predict future world states resulting from a sequence of actions proposed by the actor module.
+S0100	The world model may predict multiple plausible world states, parameterized by hidden variables that represent the uncertainty about the world state.
+S0101	The world model is a kind of “simulator” of the relevant aspects of world.
+S0102	What aspects of the world state is relevant depends on the task at hand.
+S0103	The configurator configures the world model to handle the situation at hand.
+S0104	The predictions are performed within an abstract representation space that contains information relevant to the task at hand.
+S0105	Ideally, the world model would manipulate representations of the world state at multiple levels of abstraction, allowing it to predict over multiple time scales.
+S0106	A key issue is that the world model must be able to represent multiple possible predictions of the world state.
+S0107	The natural world is not completely predictable.
+S0108	This is particularly true if it contains other intelligent agents that are potentially adversarial.
+S0109	But it is often true even when the world only contains inanimate objects whose behavior is chaotic, or whose state is not fully observable.
+S0110	There are two essential questions to answer when building the proposed architectures: (1) How to allow the world model to make multiple plausible prediction and represent uncertainty in the predictions, and (2) how to train the world model.
+S0111	The cost module measures the level of “discomfort” of the agent, in the form of a scalar quantity called the energy.
+S0112	The energy is the sum of two energy terms computed by two sub-modules: the Intrinsic Cost module and the Trainable Critic module. (Intrinsic cost means the built-in internal scoring function that represents the agent’s basic drives or discomforts.)
+S0113	The overall objective of the agent is to take actions so as to remain in states that minimize the average energy.
+S0114	The Intrinsic Cost module is hard-wired (immutable, non trainable) and computes a single scalar, the intrinsic energy that measures the instantaneous “discomfort” of the agent – think pain (high intrinsic energy), pleasure (low or negative intrinsic energy), hunger, etc.
+S0115	The input to the module is the current state of the world, produced by the perception module, or potential future states predicted by the world model.
+S0116	The ultimate goal of the agent is minimize the intrinsic cost over the long run.
+S0117	This is where basic behavioral drives and intrinsic motivations reside.
+S0118	The design of the intrinsic cost module determines the nature of the agent’s behavior.
+S0119	Basic drives can be hard-wired in this module.
+S0120	This may include feeling “good” (low energy) when standing up to motivate a legged robot to walk, when influencing the state of the world to motivate agency, when interacting with humans to motivate social behavior, when perceiving joy in nearby humans to motivate empathy, when having a full energy supplies (hunger/satiety), when experiencing a new situation to motivate curiosity and exploration, when fulfilling a particular program, etc.
+S0121	Conversely, the energy would be high when facing a painful situation or an easily-recognizable dangerous situation (proximity to extreme heat, fire, etc), or when wielding dangerous tools.
+S0122	The intrinsic cost module may be modulated by the configurator, to drive different behavior at different times.
+S0123	The Trainable Critic module predicts an estimate of future intrinsic energies.
+S0124	Like the intrinsic cost, its input is either the current state of the world or possible states predicted by the world model.
+S0125	For training, the critic retrieves past states and subsequent intrinsic costs stored in the associative memory module, and trains itself to predict the latter from the former.
+S0126	The function of the critic module can be dynamically configured by the configurator to direct the system towards a particular sub-goal, as part of a bigger task.
+S0127	Because both sub-modules of the cost module are differentiable, the gradient of the energy can be back-propagated through the other modules, particularly the world model, the actor and the perception, for planning, reasoning, and learning.
+S0128	The short-term memory module stores relevant information about the past, current, and future states of the world, as well as the corresponding value of the intrinsic cost.
+S0129	The world model accesses and updates the short-term memory while temporally predicting future (or past) states of the world, and while spatially completing missing information or correcting inconsistent information about the current world state.
+S0130	The world model can send queries to the short-term memory and receive retrieved values, or store new values of states.
+S0131	The critic module can be trained by retrieving past states and associated intrinsic costs from the memory.
+S0132	The architecture may be similar to that of Key-Value Memory Networks (Miller et al., 2016) This module can be seen as playing some of same roles as the hippocampus in vertebrates.
+S0133	The actor module computes proposals for sequences of actions and outputs actions to the effectors.
+S0134	The actor proposes a sequence of actions to the world model.
+S0135	The world model predicts future world state sequences from the action sequence, and feeds it to the cost.
+S0136	Given a goal defined by the cost (as configured by the configurator), the cost computes the estimated future energy associated with the proposed action sequence.
+S0137	Since the actor has access to the gradient of the estimated cost with respect to the proposed action sequence, it can compute an optimal action sequence that minimizes the estimated cost using gradientbased methods.
+S0138	If the action space is discrete, dynamic programming may be used to find an optimal action sequence.
+S0139	Once the optimization is completed, the actor outputs the first action (or a short sequence of actions) to the effectors.
+S0140	This process is akin to model-predictive control in optimal control (Bryson and Ho, 1969).
+S0141	The actor may comprise two components: (1) a policy module that directly produces an action from the world state estimate produced by the perception and retrieved from the short-term memory, and (2) the action optimizer, as described above, for model-predictive control.
+S0142	The first mode is similar to Daniel Kahneman’s “System 1”, while the second mode is similar to “System 2” (Kahneman, 2011) In the following, we will use specific symbols to represent various components in architectural diagrams.
+S0143	An brief explanation is given in Appendix 8.3.3.
+S0144	Figure 3: Mode-1 perception-action episode.
+S0145	The perception module estimates the state of the world s[0] = Enc(x).
+S0146	The actor directly computes an action, or a short sequence of actions, through a policy module a[0] = A(s[0]).
+S0147	This reactive process does not make use of the world model nor of the cost.
+S0148	The cost module computes the energy of the initial state f [0] = C(s[0]) and stores the pairs (s[0], f [0]) in the short-term memory.
+S0149	Optionally, it may also predict the next state using the world model s[1] = Pred(s[0], a[0]), and the associated energy f [0] = C(s[0]) so that the world model can be adjusted once the next observation resulting from the action taken becomes available.
+S0150	There are two possible modes that the model can employ for a perception-action episode.
+S0151	The first one involves no complex reasoning, and produces an action directly from the output of the perception and a possible short-term memory access.
+S0152	We will call it “Mode-1”, by analogy with Kahneman’s “System 1”.
+S0153	The second mode involves reasoning and planning through the world model and the cost.
+S0154	It is akin to model-predictive control (MPC), a classical planning and reasoning paradigm in optimal control and robotics.
+S0155	We will call it “Mode-2” by analogy to Kahneman’s “System 2”.
+S0156	We use the term “reasoning” in a broad sense here to mean constraint satisfaction (or energy minimization).
+S0157	Many types of reasoning can be viewed as forms of energy minimization.
+S0158	3.1.1 A perception-action episode for Mode-1 is depicted in Figure 3.
+S0159	The perception module, through an encoder module, extracts a representation of the state of the world s[0] = Enc(x) containing relevant information for the task at hand.
+S0160	A policy module, a component of the actor, produces an action as a function of the state a[0] = A(s[0]).
+S0161	The resulting action is sent to the effectors.
+S0162	The function of the policy module is modulated by the configurator, which configures it for the task at hand.
+S0163	The policy module implements a purely reactive policy that does not involve deliberate planning nor prediction through the world model.
+S0164	Yet, its structure can be quite sophisticated.
+S0165	For example, in addition to the state s[0], the policy module may access the short-term memory to acquire a more complete information about previous world states.
+S0166	It may use the short-term memory for the associative retrieval of an action given the current state.
+S0167	While the cost module is differentiable, its output f [0] = C(s[0]) is indirectly influenced by previous actions through the external world.
+S0168	Since the world is not differentiable, one cannot back-propagate gradients from the cost through the chain cost ← perception ← world ← action.
+S0169	In this mode, gradients of the cost f [0] with respect to actions can only be estimated by polling the world with multiple perturbed actions, but that is slow and potentially dangerous.
+S0170	This process would correspond to classical policy gradient methods in reinforcement learning. (Policy-gradient methods improve an action policy by nudging it toward actions that led to better outcomes.)
+S0171	During Mode-1, the system can optionally adjust the world model.
+S0172	It runs the world model for one step, predicting the next state s[1], then it waits for the next sensory input resulting from the action taken, and uses the observed world state as a target for the predictor.
+S0173	With the use of a world model, the agent can imagine courses of actions and predict their effect and outcome, lessening the need to perform an expensive and dangerous search for good actions and policies by trying multiple actions in the external world and measuring the result.
+S0174	3.1.2 A typical perception-action episode for Mode 2 is depicted in Figure 4.
+S0175	1. perception: the perception system extract a representation of the current state of the world s[0] = P (x).
+S0176	The cost module computes and stores the immediate cost associated with that state.
+S0177	2. action proposal: the actor proposes an initial sequence of actions to be fed to the world model for evaluation (a[0],..., a[t],..., a[T ]).
+S0178	3. simulation: the world model predicts one or several likely sequence of world state representations resulting from the proposed action sequence (s[1],..., s[t],..., s[T ]).
+S0179	4. evaluation: the cost module estimates a total cost from the predicted state sequence, P generally as a sum over time steps F (x) = Tt=1 C(s[t]) 5. planning: the actor proposes a new action sequence with lower cost.
+S0180	This can be done through a gradient-based procedure in which gradients of the cost are back-propagated through the compute graph to the action variables.
+S0181	The resulting minimum-cost action sequence is denoted (ǎ[0],..., ǎ[T ]).
+S0182	Full optimization may require iterating steps 2-5.
+S0183	6. acting: after converging on a low-cost action sequence, the actor sends the first action (or first few actions) in the low-cost sequence to the effectors.
+S0184	The entire process is repeated for the next perception-action episode.
+S0185	7. memory: after every action, the states and associated costs from the intrinsic cost and the critic are stored in the short-term memory.
+S0186	These pairs can be used later to train or adapt the critic.
+S0187	This procedure is essentially what is known as Model-Predictive Control (MPC) with receding horizon in the optimal control literature.
+S0188	The difference with classical optimal control is that the world model and the cost function are learned.
+S0189	In principle, any form of optimization strategy can be used, for step 5.
+S0190	While gradientbased optimization methods can be efficient when the world model and cost are wellbehaved, situations in which the action-cost mapping has discontinuities may require to use other optimization strategies, particularly if the state and/or action spaces can be discretized.
+S0191	These strategies include dynamic programming, combinatorial optimization, simulate annealing and other gradient-free methods, heuristic search techniques (e.g. tree search with pruning), etc.
+S0192	To simplify, the process was described in the deterministic case, i.e. when there is no need to handle the possibility of multiple predictions for s[t + 1] resulting from a given initial state s[t] and action a[t].
+S0193	In real situations, the world is likely to be somewhat unpredictable.
+S0194	Multiple states may result from a single initial state and action due to the fact that the world is intrinsically stochastic (aleatoric uncertainty), or that the state representation s[t] contains incomplete information about the true world state (epistemic uncertainty), or that the world model’s prediction accuracy is imperfect due to limited training data, representational power, or computational constraints.
+S0195	Figure 4: Mode-2 perception-action episode.
+S0196	The perception module estimates the state of the world s[0].
+S0197	The actor proposes a sequence of actions a[0], a[1],..., a[t], a[t + 1],..., a[T ].
+S0198	The world model recursively predicts an estimate of the world state sequence using s[t + 1] = Pred(s[t], a[t]).
+S0199	The cost C(s[t]) computes an energy for each predicted state in the sequence, the total energy being the sum of them.
+S0200	Through an optimization or search procedure, the actor infers a sequence of actions that minimizes the total energy.
+S0201	It then sends the first action in the sequence (or the first few actions) to the effectors.
+S0202	This is, in effect, an instance of classical model-predictive control with recedinghorizon planning.
+S0203	Since the cost and the model are differentiable, gradient-based methods can be used to search for optimal action sequences as in classical optimal control.
+S0204	Since the total energy is additive over time, dynamic programming can also be used, particularly when the action space is small and discretized.
+S0205	Pairs of states (computed by the encoder or predicted by the predictor) and corresponding energies from the intrinsic cost and the trainable critic are stored in the short-term memory for subsequent training of the critic.
+S0206	Figure 5: Training a reactive policy module from the result of Mode-2 reasoning.
+S0207	Using Mode-2 is onerous, because it mobilizes all the resources of the agent for the task at hand.
+S0208	It involves running the world model for multiple time steps repeatedly.
+S0209	This diagram depicts how to train a policy module A(s[t]) to approximate the action that results from Mode-2 optimization.
+S0210	The system first operates in Mode-2 and produces an optimal sequence of actions (ǎ[0],..., ǎ[T ]).
+S0211	Then the parameters of the policy module are adjusted to minimize a divergence D(ǎ[t]), A(s[t])) between the optimal action and the output of the policy module.
+S0212	This results in a policy module that performs amortized inference, and produces an approximation for a good action sequence. (Amortized inference means training a shortcut network to guess a good hidden-variable setting instead of solving the full optimization from scratch every time.)
+S0213	The policy module can then be used to produce actions reactively in Mode-1, or to initialize the action sequence prior to Mode-2 inference and thereby accelerate the optimization.
+S0214	Using Mode-2 is onerous.
+S0215	The agent only possesses one world model “engine”.
+S0216	It is configurable by the configurator for the task at hand, but it can only be used for a single task at a time.
+S0217	Hence, similarly to humans, the agent can only focus on one complex task at a time.
+S0218	Mode-1 is considerably less onerous, since it only requires a single pass through a policy module.
+S0219	The agent may possess multiple policy modules working simultaneously, each task-specific for a particular set of tasks.
+S0220	The process described in Figure 5 shows how a policy module A(s[t]) can be trained to produce approximations of the optimal actions resulting from Mode-2 reasoning.
+S0221	The system is run on Mode-2, producing an optimal action sequence (ǎ[0],..., ǎ[t],..., ǎ[T ]).
+S0222	Then, the parameters of the policy module A(s[t]) are updated to minimize a divergence measure between its output and the optimal action at that time D(ǎ[t], A(s[t])).
+S0223	Once properly trained, the policy module can be used to directly produce an action in Mode-1 ã[0] = A(s[0]).
+S0224	It can also be used to recursively compute an initial action sequence proposal before Mode-2 optimization: s[t + 1] = Pred(s[t], a[t]); ã[t + 1] = A(s[t + 1]) The policy module can be seen as performing a form of amortized inference.
+S0225	This process allows the agent to use the full power of its world model and reasoning capabilities to acquire new skills that are then “compiled” into a reactive policy module that no longer requires careful planning.
+S0226	3.1.4 The process of elaborating a suitable action sequence in Mode-2 can be seen as a form of reasoning.
+S0227	This form of reasoning is based on simulation using the world model, and...
+S0228	... s Figure 6: Architecture of the cost module.
+S0229	The cost module comprises the intrinsic cost module which is immutable ICi (s) (left) and the critic or Trainable Cost TCj (s) (right), which is trainable.
+S0230	Both IC and TC are composed of multiple submodules whose output energies are linearly combined.
+S0231	Each submodule imparts a particular behavioral drive in the agent.
+S0232	The weights in the linear combination, ui and vj, are determined by the configurator module and allow the agent to focus on different subgoals at different times. optimization of the energy with respect to action sequences.
+S0233	More generally, the “actions” can be seen as hidden variables representing abstract transformations from one state to the next.
+S0234	This type of planning though simulation and optimization may constitute the kind of reasoning that is most frequent in natural intelligence.
+S0235	Many classical forms of reasoning in AI can actually be formulated as optimization problems (or constraint satisfaction problems).
+S0236	It is certainly the case for the kind of probabilistic inference performed with factor graphs and probabilistic graphical models.
+S0237	The proposed architecture is, in fact, a factor graph in which the cost modules are log factors. (A factor graph is a graphical way to show variables and the constraints or scoring terms that connect them.)
+S0238	But the kind of reasoning that the proposed architecture enables goes beyond traditional logical and probabilistic reasoning.
+S0239	It allows reasoning by simulation and by analogy.
+S0240	The overall architecture of the cost module is shown in Figure 6.
+S0241	It is composed of the intrinsic cost module which is immutable ICi (s) and the critic or Trainable Cost TCj (s), which is trainable.
+S0242	Both IC and TC are composed of multiple submodules whose output energies are linearly combined C(s) = IC(s) + TC(s) IC(s) = k X i=1 TC(s) = j=1 Each submodule imparts a particular behavioral drive to the agent.
+S0243	The weights in the linear combination, ui and vj, are modulated by the configurator module and allow the agent to focus on different subgoals at different times.
+S0244	The intrinsic cost module (IC) is where the basic behavioral nature of the agent is defined.
+S0245	It is where basic behaviors can be indirectly specified.
+S0246	For a robot, these terms would include obvious proprioceptive measurements corresponding to “pain”, “hunger”, and “instinctive fears”, measuring such things as external force overloads, dangerous electrical, chemical, or thermal environments, excessive power consumption, low levels of energy reserves in the power source, etc.
+S0247	They may also include basic drives to help the agent learn basic skills or accomplish its missions.
+S0248	For example, a legged robot may comprise an intrinsic cost to drive it to stand up and walk.
+S0249	This may also include social drives such as seeking the company of humans, finding interactions with humans and praises from them rewarding, and finding their pain unpleasant (akin to empathy in social animals).
+S0250	Other intrinsic behavioral drives, such as curiosity, or taking actions that have an observable impact, may be included to maximize the diversity of situations with which the world model is trained (Gottlieb et al., 2013) The IC can be seen as playing a role similar to that of the amygdala in the mammalian brain and similar structures in other vertebrates.
+S0251	To prevent a kind of behavioral collapse or an uncontrolled drift towards bad behaviors, the IC must be immutable and not subject to learning (nor to external modifications).
+S0252	The role of the critic (TC) is twofold: (1) to anticipate long-term outcomes with minimal use of the onerous world model, and (2) to allow the configurator to make the agent focus on accomplishing subgoals with a learned cost.
+S0253	In general, the behavioral nature of an AI agent can be specified in four ways: 1. by explicitly programming a specific behavior activated when specific conditions are met 2. by defining an objective function in such a way that the desired behavior is executed by the agent as a result of finding action sequences that minimize the objective.
+S0254	3. by training the agent to behave a certain way through direct supervision.
+S0255	The agent observes the actions of an expert teacher, and trains a Mode-1 policy module to reproduce it.
+S0256	4. by training the agent through imitation learning.
+S0257	The agent observes expert teachers, and infers an objective function that their behavior appears to be optimizing when they act.
+S0258	This produces a critic submodule for Mode-2 behavior.
+S0259	This process is sometimes called inverse reinforcement learning.
+S0260	The second method is considerably simpler to engineer than the first one, because it merely requires to design an objective, and not design a complete behavior.
+S0261	The second method is also more robust: a preordained behavior may be invalidated by unexpected conditions or a changing environment.
+S0262	With an objective, the agent may adapt its behavior read...
+S0263	...
+S0264	...
+S0265	... to satisfy the objective despite unexpected conditions and changes in the environment.
+S0266	The second method exploits the learning and inference abilities of the agent to minimize the amount of priors hard-wired by the designer that are likely to be brittle.
+S0267	Figure 7: Training the critic.
+S0268	During planning episodes, the intrinsic cost module stores triplets (time, state, intrinsic energy): (τ, sτ, IC(sτ )) into the associative short-term memory.
+S0269	During critic training episodes, the critic retrieves a past state vector sτ, together with an intrinsic energy at a later time IC(sτ +δ ).
+S0270	In the simplest scenario, the critic adjusts its parameters to minimize a divergence measure between the target IC(stau+δ ) and the predicted energy C(sτ ).
+S0271	In more complex schemes, it may use combinations of future intrinsic energies as targets.
+S0272	Note that the state sequence may contain information about the actions planned or taken by the agent.
+S0273	An essential question is how to train the critic.
+S0274	The principal role of the critic is to predict future values of the intrinsic energy.
+S0275	To do so, it uses the short-term memory module.
+S0276	This module is an associative memory in which the intrinsic cost module stores triplets (time, state, intrinsic energy): (τ, sτ, IC(sτ )).
+S0277	The stored states and corresponding intrinsic energies may correspond to a perceived state or to a state imagined by the world model during a Mode-2 episode.
+S0278	The memory may retrieve a state sτ given a time τ, and may retrieve an energy IC(sτ ) given a time τ or a state sτ.
+S0279	With a suitable memory architecture, the retrieval may involve interpolations of keys and retrieved values.
+S0280	The process is shown in Figure 7 The critic can be trained to predict future intrinsic energy values by retrieving a past state vector sτ together with an intrinsic energy at a later time IC(sτ +δ ).
+S0281	The parameters of the critic can then be optimized to minimize a prediction loss, for example ||IC(sτ +δ ) − T C(sτ )||2.
+S0282	This is a simple scenario.
+S0283	More complex schemes can be devised to predict expectations of discounted future energies, or distributions thereof.
+S0284	Note that the state vectors may contain information about the actions taken or imagined by the actor.
+S0285	At a general level, this is similar to critic training methods used in such reinforcement learning approaches as A2C.
+S0286	The short-term memory can be implemented as the memory module in a key-value memory network ??: a query vector is compared to a number of key vectors, producing a vector of scores.
+S0287	The scores are normalized and used as coefficients to output a linear combination of the stored values.
+S0288	It can be seen as a “soft” associative memory capable of interpolation.
+S0289	One advantage of it is that, with a proper allocation scheme of new key/value slots, it is capable of one-shot learning, yet can interpolate between keys and is end-to-end differentiable.
+S0290	Arguably, designing architectures and training paradigms for the world model constitute the main obstacles towards real progress in AI over the next decades.
+S0291	One of the main contributions of the present proposal is precisely a multi-level architecture and a training procedure for world models that can represent multiple outcomes in their predictions.
+S0292	Training the world model is a prototypical example of Self-Supervised Learning (SSL), whose basic idea is pattern completion.
+S0293	The prediction of future inputs (or temporarily unobserved inputs) is a special case of pattern completion.
+S0294	In this work, the primary purpose of the world model is seen as predicting future representations of the state of the world.
+S0295	There are three main issues to address.
+S0296	First, quite evidently, the quality of the world model will greatly depend on the diversity of state sequences, or triplets of (state, action, resulting state) it is able to observe while training.
+S0297	Second, because the world is not entirely predictable, there may be multiple plausible world state representations that follow a given world state representation and an action from the agent.
+S0298	The world model must be able to meaningfully represent this possibly-infinite collection of plausible predictions.
+S0299	Third, the world model must be able to make predictions at different time scales and different levels of abstraction.
+S0300	The first issue touches on one of the main questions surrounding learning for sequential decision processes: the diversity of the “training set” depends on the actions taken.
+S0301	The issue is discussed in Section 4.10 below.
+S0302	The second issue is even more dire: the world is not entirely predictable.
+S0303	Hence, the world model should be able to represent multiple plausible outcomes from a given state and (optionally) an action.
+S0304	This may constitute one of the most difficult challenges to which the present proposal brings a solution.
+S0305	This issue is discussed in Section 4.8 below.
+S0306	The third issue relates to the problem of long-term prediction and planning.
+S0307	Humans plan complex goals at an abstract level and use high-level descriptions of the world states and actions to make predictions.
+S0308	High-level goals are then decomposed into sequences of more elementary sequences of subgoals, using shorter-term prediction from the world model to produce lower-level actions.
+S0309	This decomposition process is repeated all the way down to millisecond-by-millisecond muscle control, informed by local conditions.
+S0310	The question of how world models could represent action plans at multiple time scales and multiple levels of abstraction is discussed in Section 4.6
+S0311	Self-Supervised Learning (SSL) is a paradigm in which a learning system is trained to capture the mutual dependencies between its inputs.
+S0312	Concretely, this often comes down to training a system to tell us if various parts of its input are consistent with each other.
+S0313	For example, in a video prediction scenario, the system is given two video clips, and must tell us to what degree the second video clip is a plausible continuation of the first one.
+S0314	In a pattern completion scenario, the system is given part of an input (image, text, audio signal) together with a proposal for the rest of the input, and tells us whether the proposal is a plausible completion of the first part.
+S0315	In the following, we will denote the observed part of the input by x and the possibly-unobserved part by y.
+S0316	Importantly, we do not impose that the model be able to predict y from x.
+S0317	The reason is that there may be an infinite number of y that are compatible with a given x.
+S0318	In a video prediction setting, there is an infinite number of video clips that are plausible continuations of a given clip.
+S0319	It may be difficult, or intractable, to explicitly represent the set of plausible predictions.
+S0320	But it seems less inconvenient to merely ask the system to tell us if a proposed y is compatible with a given x.
+S0321	A general formulation can be done with the method of Energy-Based Models (EBM). (EBM means Energy-Based Model, a model that gives low scores to compatible states and higher scores to incompatible ones.)
+S0322	The system is a scalar-valued function F (x, y) that produces low energy values when x and y are compatible and higher values when they are not.
+S0323	The concept is depicted in Figure 8.
+S0324	Data points are black dots.
+S0325	The energy function produces low energy values around the data points, and higher energies away from the regions of high data density, as symbolized by the contour lines of the energy landscape.
+S0326	The EBM implicit function formulation enables the system to represent multi-modal dependencies in which multiple values of y are compatible with a given x.
+S0327	The set of y compatible with a given x may be a single point, multiple discrete points, a manifold, or a collection of points and manifolds.
+S0328	To enable Mode-2 planning, a predictive world model should be trained to capture the dependencies between past and future sensory inputs.
+S0329	It should be able to predict representations of the future from representations of the past and present.
+S0330	The general learning principle is as follows: given two inputs x and y, learn two functions that compute representations sx = gx (x) and sy = gy (y) such that (1) sx and sy are maximally informative about x and y and (2) sy can easily be predicted from sx.
+S0331	This principle ensures a trade-off between making the evolution of the world predictable in the representation space, and capturing as much information as possible about the world state in the representation.
+S0332	What concepts could such an SSL system learn by being trained on video?
+S0333	Our hypothesis is that a hierarchy of abstract concepts about how the world works could be acquired.
+S0334	Learning a representation of a small image region such that it is predictable from neighboring regions surrounding it in space and time would cause the system to extract local edges and contours in images, and to detect moving contours in videos.
+S0335	Learning a representation of images such that the representation of a scene from one viewpoint is predictable from the representation of the same scene from a slightly different viewpoint would cause the system to implicitly represent a depth map.
+S0336	A depth map is the simplest way to explain how a view of a scene changes when the camera moves slightly.
+S0337	Once the notion of depth has been learned, it would become simple for the system to identify occlusion edges, as well as the collective motion of regions belonging to a rigid object.
+S0338	An implicit representation of 3D x Figure 8: Self-Supervised Learning (SSL) and Energy-Based Models (EBM).
+S0339	SSL is a learning paradigm in which a learning system is trained to “fill in the blanks”, or more precisely to capture the dependencies between observed parts of the input and possibly unobserved parts of the input.
+S0340	Part of the input signal is observed and denoted x (in pink), and part of the input signal is either observed or unobserved and denoted y (in blue).
+S0341	In a temporal prediction scenario, x represents past and present observations, and y represent future observations.
+S0342	In a general pattern completion scenario, various parts of the input may be observed or unobserved at various times.
+S0343	The learning system is trained to capture the dependencies between x and y through a scalar-valued energy function F (x, y) that takes low values when x and y are consistent or compatible, and higher values if x and y are inconsistent or incompatible.
+S0344	In a video prediction scenario, the system would produce a low energy value if a video clip y is a plausible continuation of the video clip x.
+S0345	This energy-based model (EBM) formulation enables the system to represent multi-modal dependencies in which multiple values of y (perhaps an infinite set) may be compatible with a given x.
+S0346	In the right panel, an energy landscape is represented in which dark discs represent data points, and closed lines represents contours (level sets) of the energy function. objects may spontaneously emerge.
+S0347	Once the notion of object emerges in the representation, concepts like object permanence may become easy to learn: objects that disappear behind others due to parallax motion will invariably reappear.
+S0348	The distinction between inanimate and animate object would follow: inanimate object are those whose trajectories are easily predictable.
+S0349	Intuitive physics concepts such as stability, gravity, momentum, may follow by training the system to perform longer-term predictions at the object representation level.
+S0350	One may imagine that through predictions at increasingly abstract levels of representation and increasingly long time scales, more and more complex concepts about how the world works may be acquired in a multi-level fashion.
+S0351	The idea that abstract concepts can be learned through prediction is an old one, formulated in various way by many authors in cognitive science, neuroscience, and AI over several decades.
+S0352	The question is how to do it, precisely.
+S0353	Figure 9: Latent-Variable Energy-Based Model (LVEBM).
+S0354	To evaluate the degree of compatibility between x and y, an EBM may need the help of a hidden variable z. (A latent variable is a hidden variable the model uses to represent missing, uncertain, or compressed information.)
+S0355	The hidden variable can be seen as parameterizing the set of possible relationships between an x and a set of compatible y.
+S0356	Hidden variables represent information about y that cannot be extracted from x.
+S0357	For example, if x is a view of an object, and y another view of the same object, z may parameterize the camera displacement between the two views.
+S0358	Inference consists in finding the latent that minimizes the energy ž = argminz∈Z Ew (x, y, z).
+S0359	The resulting energy Fw (x, y) = Ew (x, y, ž) only depends on x and y.
+S0360	In the dual view example, inference finds the camera motion that best explains how x could be transformed into y.
+S0361	As was pointed out above, one of the main issues is enabling the model to represent multiple predictions.
+S0362	This may require the use of a hidden variable.
+S0363	A hidden variable is an input variable whose value is not observed but inferred.
+S0364	A hidden variable can be seen as parameterizing the set of possible relationships between an x and a set of compatible y.
+S0365	Hidden variables are used to represent information about y that cannot be extracted from x.
+S0366	Imagine a scenario in which x is a photo of a scene, and y a photo of the same scene from a slightly different viewpoint.
+S0367	To tell whether x and y are indeed views from the same scene, one may need to infer the displacement of the camera between the two views.
+S0368	Similarly, if x is a picture of a car coming to a fork in the road, and y is a picture of the same car a few seconds later on one of the branches of the fork, the compatibility between x and y depends on a binary hidden variable that can be inferred: did the car turn left or right.
+S0369	In a temporal prediction scenario, the hidden variable represents what cannot be predicted about y (the future) solely from x and from past observations (the past).
+S0370	It should contain all information that would be useful for the prediction, but is not observable, or not knowable.
+S0371	I may not know whether the driver in front of me will turn left or right, accelerate or brake, but I can represent those options by a hidden variable.
+S0372	A latent-variable EBM (LVEBM) is a parameterized energy function that depends on x, y, and z: Ew (x, y, z).
+S0373	When presented with a pair (x, y) the inference procedure of the EBM finds a value of the hidden variable z that minimizes the energy ž = argmin Ew (x, y, z) z∈Z This latent-variable inference by minimization allows us to eliminate z from the energy function: Fw (x, y) = min Ew (x, y, z) = Ew (x, y, ž) (5) z∈Z Technically, Fw (x, y) should be called a zero-temperature free energy, but we will continue to call it the energy.
+S0374	Before we discuss EBM training, it is important to note that the definition of EBM does not make any reference to probabilistic modeling.
+S0375	Although many EBMs can easily be turned into probabilistic models, e.g. through a Gibbs distribution, this is not at all a necessity. (A Gibbs or Gibbs-Boltzmann distribution turns energies into probabilities, so lower-energy states become more likely.)
+S0376	Hence the energy function is viewed as the fundamental object and is not assumed to implicitly represent the unnormalized logarithm of a probability distribution.
+S0377	Training an EBM consists in constructing an architecture (e.g. a deep neural network) to compute the energy function Fw (x, y) parameterized with a parameter vector w.
+S0378	The training process must seek a w vector that gives the right shape to the energy function.
+S0379	For a given x from the training set, a well-trained Fw (x, y) will produce lower energies for values of y that are associated with x in the training set, and higher energies to other values of y.
+S0380	Given a training sample (x, y), training an EBM comes down to devising a suitable loss functional L(x, y, Fw (x, y)), which can be expressed directly as a function of the parameter vector L(x, y, w), and such that minimizing this loss will make the energy of the training sample Fw (x, y) lower than the energies Fw (x, ŷ) of any ŷ different from y.
+S0381	Making the energy of the training sample low is easy: it is sufficient for the loss to be an increasing function of the energy, and for the energy to have a lower bound.
+S0382	The difficult question is how to ensure that the energies of ŷ different from y are higher than the energy of y.
+S0383	Without a specific provision to ensure that Fw (x, y 0 ) > Fw (x, y) whenever ŷ 6= y the energy landscape may suffer a collapse: given an x the energy landscape could become “flat”, giving essentially the same energy to all values of y.
+S0384	What EBM architectures are susceptible to collapse?
+S0385	Whether an EBM may be susceptible to collapse depends on its architecture.
+S0386	Figure 10 shows a number of standard architectures and indicates whether they can be subject to collapse.
+S0387	A regular predictive or deterministic-generative architecture (Figure 10(a)) cannot collapse.
+S0388	For any x, a single ỹ is produced.
+S0389	The energy is zero whenever y = ỹ.
+S0390	Any y different from ỹ will have a higher energy, as long as D(y, ỹ) is strictly larger than zero whenever y is different from ỹ.
+S0391	A generative latent-variable architecture (non-deterministic generative) (Figure 10(b)) can collapse when the hidden variable has too much information capacity.
+S0392	When the hidden variable z varies over the set Z, the prediction ỹ varies over a set Pred(sx, Z), which must match the set of y that are compatible with x.
+S0393	If Z is too “large” then the region of lowenergy y may be larger than the region of high data density.
+S0394	If z has the same dimension as y, the system could very well give zero energy to the entire y space.
+S0395	An auto-encoder (AE) (Figure 10(c)) can collapse when the representation sy has too much information capacity.
+S0396	For example, if the dimension of sy is equal or higher than that of y, the AE could learn the identity function, producing a reconstruction error equal to zero over the entire y space.
+S0397	Lastly, a Joint Embedding Architecture (JEA) (Figure 10(d)) can collapse when the information carried by sx and/or sy are insufficient.
+S0398	If the encoders ignore the inputs, and produce constant and equal codes sx = sy, the entire space will have zero energy.
+S0399	These are but a few examples of architectures.
+S0400	How do we design the loss to prevent collapse?
+S0401	There are two approaches: contrastive methods and regularized methods.
+S0402	In the following, I will argue that contrastive methods have flaws and that regularized (non contrastive) methods are much more likely to be preferable in the long run.
+S0403	Contrastive methods consist in using a loss functional whose minimization has the effect of pushing down on the energies of training samples (x, y), and pulling up on the energies of suitably-hallucinated “contrastive” samples (x, ŷ).
+S0404	The contrastive sample ŷ should be picked in such a way as to ensure that the EBM assigns higher energies to points outside the regions of high data density.
+S0405	This translates into designing a loss that is an increasing function of Fw (x, y) and a decreasing function of Fw (x, ŷ), at least whenever Fw (x, ŷ) is not sufficiently higher than Fw (x, y).
+S0406	There are many such contrastive loss functions, some of them taking a single triplet (x, y, ŷ), others requiring a batch of positive and contrastive values of y.
+S0407	A simple example of contrastive loss functions is as follows: L(w, x, y, ŷ) = H(Fw (x, y), Fw (x, ŷ), m(y, ŷ)) where H is an increasing function of Fw (x, y), and a decreasing function of Fw (x, ŷ) whenever the latter is less than the former plus a positive margin function m(y, ŷ).
+S0408	A simple instance of such loss is the distance-dependent hinge loss: h L(w, x, y, ŷ) = Fw (x, y) − Fw (x, ŷ) + µ||y − ŷ||2 where [a]+ is the identity when a is positive and zero otherwise.
+S0409	This makes the energy grow at least quadratically with the distance to the data manifold.
+S0410	Other contrastive loss functionals take multiple contrastive samples into consideration: L(w, x, y, ŷ[1],..., ŷ[K]) = H(Fw (x, y), Fw (x, ŷ[1]),..., Fw (x, ŷ[K])) Which must be an increasing function of the first argument, and a decreasing function of all other arguments.
+S0411	An example of such loss is the popular InfoNCE: " L(w, x, y, ŷ[1],..., ŷ[K]) = Fw (x, y) + log exp(−Fw (x, y)) + k=1 Contrastive methods are very popular, particularly for Siamese network architectures trained with pairs where x is a distorted or corrupted version of y and ŷ another random (or suitably chosen) training sample.
+S0412	This includes such methods as the original Siamese net, as well as more recent methods including DrLIM, PIRL, MoCO, SimCLR, CPT, and others.
+S0413	Contrastive methods also include such classical methods as probabilistic models trained with maximum likelihood that are not automatically normalized.
+S0414	Contrastive samples ŷ are often produced using Monte Carlo methods, Markov-Chain Monte Carlo methods, or approximate versions thereof, such as Contrastive Divergence.
+S0415	Generative Adversarial Networks can also be seen as contrastive methods in which the ŷ are produced by the trainable generator network.
+S0416	Denoising Auto-Encoders and their special case, Masked Auto-Encoders, are also examples of contrastive training methods in which the ŷ is generated by corrupting the clean y.
+S0417	A more detailed discussion of various contrastive methods is given in appendix 8.3.3.
+S0418	But there are two main issues with contrastive methods.
+S0419	First, one has to design a scheme to generate or pick suitable ŷ.
+S0420	Second, when y is in a high-dimensional space, and if the EBM is flexible, it may require a very large number of contrastive samples to ensure that the energy is higher in all dimensions unoccupied by the local data distribution.
+S0421	Because of the curse of dimensionality, in the worst case, the number of contrastive samples may grow exponentially with the dimension of the representation.
+S0422	This is the main reason why I will argue against contrastive methods.
+S0423	Regularized methods for EBM training are much more promising in the long run than contrastive methods because they can eschew the curse of dimensionality that plagues contrastive methods.
+S0424	They consist in constructing a loss functional that has the effect of pushing down on the energies of training samples, and simultaneously minimizing the volume of y space to which the model associates a low energy.
+S0425	The volume of the low-energy region is measured by a regularization term in the energy and/or in the loss.
+S0426	By minimizing this regularization term while pushing down on the energies of data points, the regions of low energy will “shrink-wrap” the regions of high data density.
+S0427	The main advantage of non-contrastive regularized methods is that they are less likely than contrastive methods to fall victim to the curse of dimensionality.
+S0428	The main question is precisely how to design such volume-minimizing regularizers.
+S0429	The answer depends greatly on the architecture of the model, which is discussed in the next sections.
+S0430	But, non-contrastive methods have existed for a long time.
+S0431	Examples include sparse modeling, sparse auto-encoders, and autoencoders with noisy hidden variables, such as VAE. (VAE means Variational Autoencoder, a model that uses probabilistic hidden variables to represent uncertainty.)
+S0432	It is important to note that contrastive and regularized methods are not incompatible with each other, and can be used simultaneously on the same model.
+S0433	How would regularized methods apply to the architectures of Figure 10(b-d)?
+S0434	In the latent-variable generative architecture, restricting the information capacity of z will restrict the volume of y space that can take low energy.
+S0435	If z is discrete with possible k values, at most k points in y space will have zero energy. if Z is a manifold of dimension d then the region of y space with zero energy will have at most d dimensions.
+S0436	Similarly, in the auto-encoder architecture, restricting the information capacity of sy will restrict the volume of y space that can be reconstructed with low energy.
+S0437	Lastly, in the Joint Embedding Architecture, Maximizing the information that sx contains about x and sy contains about y will minimize the volume of y space that can take low energy.
+S0438	In the following, we will focus on an architecture for SSL the Joint Embedding Predictive Architectures (JEPA) which can seen as a combination of the Joint Embedding Architecture and the Latent-Variable Generative Architecture.
+S0439	The JEPA is non-generative in that it does not actually predict y, but predicts the representation of y, sy from that of x, sx.
+S0440	Figure 10: A few standard architectures and their capacity for collapse.
+S0441	(a) Deterministic generative architecture: cannot collapse because it can only produce a single output.
+S0442	For a given x, only one value of y may have zero energy: y = ỹ.
+S0443	Other values of y will have higher energy if D(u, ỹ) is larger than zero when y 6= ỹ.
+S0444	(b) Non-deterministic generative architecture: can collapse when the hidden variable has excessive information capacity.
+S0445	If for a given x and for all y there exists a z that produces zero prediction energy (e.g. if z has the same or higher dimension as y), the entire y space will have low energy.
+S0446	The information capacity of z should be just enough so that varying z over its set will produce all the plausible ỹ for a given x.
+S0447	(c) Auto-encoder: can collapse if the system learns the identity function or if it can correctly reconstruct a region of y space that is much larger than the region of high data density, thereby giving low energy to an overly large region.
+S0448	(d) Simple joint embedding architecture: can collapse if the encoders ignore the inputs and produce representations that remain constant and equal, or if the encoders are invariant over overly broad regions of the space.
+S0449	Figure 11: Contrastive and regularized methods for EBM training.
+S0450	A conceptual diagram of an energy landscape is shown on the left.
+S0451	Training samples are blue dots.
+S0452	The region of low energy is shown in orange (a level set of the energy function).
+S0453	Contrastive methods (top right) push down on the energy of training samples (blue dots) and pulls up on the energies of suitably-placed contrastive samples (green dots). regularized methods (bottom right) push down on the energy of training samples and use a regularizer term that minimizes the volume of low-energy regions.
+S0454	This regularization has the effect of “shrink-wrapping” the regions of high data density within the low-energy regions, to the extent that the flexibility of the energy function permits it.
+S0455	One issue with contrastive methods is that the energy will only be pulled up wherever contrastive samples have been placed.
+S0456	One must devise methods that preferentially place contrastive samples in regions of low energy, which is what Monte-Carlo and MCMC methods do.
+S0457	But, a disadvantage of contrastive methods is that the number of contrastive samples necessary to make an energy surface adopt a good shape may grow exponentially with the dimension of y space.
+S0458	The centerpiece of this paper is the Joint Embedding Predictive Architecture (JEPA).
+S0459	JEPA is not generative in the sense that it cannot easily be used to predict y from x.
+S0460	It merely capture the dependencies between x and y without explicitly generating predictions of y.
+S0461	A generic JEPA is shown in Figure 12.
+S0462	The two variables x and y are fed to two encoders producing two presentations sx and sy.
+S0463	These two encoders may be different.
+S0464	They are not required to possess the same architecture nor are they required to share their parameters.
+S0465	This allows x and y to be different in nature (e.g. video and audio).
+S0466	A predictor module predicts the representation of y from the representation of x.
+S0467	The predictor may depend on a hidden variable z.
+S0468	The energy is simply the prediction error in representation space: Ew (x, y, z) = D(sy, Pred(sx, z)) The overall energy is obtained by minimizing over z: ž = argmin Ew (x, y, z) = argmin D(sy, Pred(sx, z)) z∈Z Fw (x, y) = min Ew (x, y, z) = D(sy, Pred(sx, ž)) z∈Z The main advantage of JEPA is that it performs predictions in representation space, eschewing the need to predict every detail of y.
+S0469	This is enabled by the fact that the encoder of y may choose to produce an abstract representation from which irrelevant details have been eliminated.
+S0470	But there are two ways a JEPA may represent the multiplicity of values of y compatible with x.
+S0471	The first one is invariance properties of the y encoder, the second one is the hidden variable z, as explained below. multi-modality through encoder invariance: The encoder function sy = Enc(y) may have invariance properties.
+S0472	If all the y’s in a set map to the same value of sy, all those y’s will have identical energies.
+S0473	With JEPA, we lose the ability to generate outputs, but we gain a powerful way to represent multi-modal dependencies between inputs and outputs. multi-modality through hidden variable predictor: The predictor may use a hidden variable z to capture the information necessary to predict sy that is not present in sx.
+S0474	When z is varied over a set Z, the predictor produces a set of plausible predictions Pred(sx, Z) = {s̃y = Pred(sx, z) ∀z ∈ Z}.
+S0475	For example, if x is a video clip of a car approaching a fork in the road, sx and sy may represent the past and future positions, orientations, velocities and other characteristics of the car, ignoring irrelevant details such as the trees bordering the road or the texture of the sidewalk.
+S0476	The latent z may be a binary variable indicating whether the car takes the left branch (z = 0) or the right branch (z = 1 if the road.
+S0477	If the car takes the left branch, the value z = 0 will produce a lower energy D(sy, s̃y ) than z = 1.
+S0478	Figure 12: The Joint-Embedding Predictive Architecture (JEPA) consists of two encoding branches.
+S0479	The first branch computes sx, a representation of x and the second branch sy a representation of y.
+S0480	The encoders do not need to be identical.
+S0481	A predictor module predicts sy from sx with the possible help of a hidden variable z.
+S0482	The energy is the prediction error.
+S0483	Simple variations of the JEPA may use no predictor, forcing the two representations to be equal, or may use a fixed predictor with no latent, or may use simple latents such as discrete variables.
+S0484	The main advantage of JEPA is that it performs predictions in representation space, eschewing the need to predict every detail of y, and enabling the elimination of irrelevant details by the encoders.
+S0485	More precisely, the main advantage of this architecture for representing multi-modal dependencies is twofold: (1) the encoder function sy = Enc(y) may possess invariance properties that will make it produce the same sy for a set of different y.
+S0486	This makes the energy constant over this set and allows the model to capture complex multi-modal dependencies; (2) The hidden variable z, when varied over a set Z, can produce a set of plausible predictions Pred(sx, Z) = {s̃y = Pred(sx, z) ∀z ∈ Z} If x is a video clip of a car approaching a fork in the road, sx and sy may represent the position, orientation, velocity and other characteristics of the car before and after the fork, respectively, ignoring irrelevant details such as the trees bordering the road or the texture of the sidewalk. z may represent whether the car takes the left branch or the right branch of the road.
+S0487	Like any EBM, a JEPA can be trained with contrastive methods.
+S0488	But, as pointed out above, contrastive methods tend to become very inefficient in high dimension.
+S0489	The relevant dimension here is that of sy, which may be considerably smaller than y, but still too high for efficient training.
+S0490	What makes JEPAs particularly interesting is that we can devise non-contrastive methods to train them.
+S0491	As explained in section 4.3, non-contrastive methods use regularizers that measure the volume of space that can take low energy values.
+S0492	In the case of the JEPA, this can be done through four criteria, as depicted in Figure 13: 1. maximize the information content of sx about x 2. maximize the information content of sy about y 3. make sy easily predictable from sx 4. minimize the information content of the hidden variable z used in the prediction.
+S0493	Criteria 1 and 2 prevent the energy surface from becoming flat by informational collapse.
+S0494	They ensure that sx and sy carry as much information as possible about their inputs.
+S0495	Without these criteria the system could choose to make sx and sy constant, or weakly informative, which would make the energy constant over large swaths of the input space.
+S0496	Criterion 3 is enforced by the energy term D(sy, s̃y ) and ensures that y is predictable from x in representation space.
+S0497	Criterion 4 prevents the system from falling victim to another type of informational collapse by forcing the model to predict sy with as little help from the latent as possible.
+S0498	This type of collapse can be understood with the following thought experiment.
+S0499	Imagine that z has the same dimension as sy.
+S0500	Assume that the predictor is a parameterized function (e.g. a neural net) that can choose to ignore sx and to simply copy z on its output s̃y = z.
+S0501	For any sy it is possible to set ž = sy, which would make the energy D(sy, s̃y ) zero.
+S0502	This corresponds to a totally flat and collapsed energy surface.
+S0503	How do we prevent this collapse from happening?
+S0504	By limiting or minimizing the information content of the hidden variable.
+S0505	How can this be done?
+S0506	By making z discrete, low-dimensional, sparse, or noisy, among other methods.
+S0507	A few concrete examples may help build an intuitive understanding of the phenomenon.
+S0508	Suppose that D(sy, s̃y ) = ||sy − s̃y ||2 and that z is discrete with K possible integer values [0, K − 1].
+S0509	For a given x, there can be only K possible values of s̃y : Pred(sx, 0), Pred(sx, 1),..., Pred(sx, K − 1).
+S0510	Hence, these can be the only values of sy with zero energy, and there are only K of them.
+S0511	Consider a point sy that starts from Pred(sx, 0) and moves towards Pred(sx, 1).
+S0512	Its energy will start from zero, increase quadratically as sy moves away from Pred(sx, 0), until sy.
+S0513	When sy becomes closer to Pred(sx, 1) than to Pred(sx, 0), the energy will decrease, reaching zero when sy reaches Pred(sx, 1).
+S0514	In representation space, the energy will be the minimum of K quadratic energy wells.
+S0515	Similarly, imagine that z is a vector whose dimension d is lower than that of s̃y.
+S0516	Then, assuming that Pred(sx, z) is a smooth function of z, the set of possible predictions will be at most a d-dimensional manifold in the space of sy.
+S0517	More to the point, imagine that the energy function is augmented by a regularization P term on z of the form R(z) = α di=1 |zi |, i.e. the L1 norm of z.
+S0518	This will drive ž to be sparse.
+S0519	As with classical sparse coding, this will cause the region of low energy to be approximated by a union of low-dimensional manifolds (a union of low-dimensional linear subspaces if Pred(sx, z) is linear in z), whose dimension will be minimized by the L1 regularizer.
+S0520	Making z a stochastic sample from a distribution whose entropy is maximized will also have a proper regularization effect.
+S0521	This is the basis of Variational Auto-Encoders and similar models.
+S0522	A more complete discussion of regularizers that can minimize the information content of hidden variables is beyond the scope of this paper.
+S0523	For now, we can mention four classes of methods: discretization/quantification (e.g. as in VQ-VAE (Walker et al., 2021), dimensionality/rank minimization (e.g. as in Implicit Rank-Minimizing AE (Jing et al., 2020), sparsification (as in linear sparse modeling (Olshausen and Field, 1996), LISTA (Gregor and LeCun, 2010b), and non-linear sparse modeling (Evtimova and LeCun, 2022)), and fuzzyfication (as in noisy AE (Doi et al., 2007), VAE (Kingma and Welling, 2013), and variants used in control problems (Henaff et al., 2019)).
+S0524	The ability of the JEPA to predict in representation space makes it considerably preferable to generative models that directly produce a prediction of y.
+S0525	In a video prediction scenario, it is essentially impossible to predict every pixel value of every future frame.
+S0526	The details of the texture on a carpet, the leaves of a tree moving in the wind, or the ripples on a pond, cannot be predicted accurately, at least not over long time periods and not without consuming major resources.
+S0527	A considerable advantage of JEPA is that it can choose to ignore details of the inputs that are not easily predictable.
+S0528	Yet, Criteria 1 and 2 will ensure that the information content of the ignored details are kept to a minimum.
+S0529	How can we implement Criteria 1 and 2?
+S0530	In other words, given a parameterized deterministic encoding function sy = Encw (y), how do we maximize the information content of sy ?
+S0531	If Encw (y) is invertible, sy contains all the information about y, but that may be suboptimal for Criterion 3, as sy will contain many irrelevant or hard-to-predict details about y.
+S0532	More precisely, sy is maximally informative about y if the function Encw (y) is minimally surjective, i.e. if the volume of sets of y that map to the same sy is minimal.
+S0533	The same reasoning applies to the x encoder.
+S0534	To turn this criterion into a differentiable loss, we need to make some assumptions.
+S0535	4.5.1 The VICReg method (Bardes et al., 2021) makes a few assumptions about the distributions of sx and sy. (VICReg is a self-supervised training method that keeps representations informative without relying on explicit negative examples.)
+S0536	A graphical representation is shown in Figure 14.
+S0537	To maximize the information content of sx, VICReg uses the following two sub-criteria: (1) the components of sx must not be constant, (2) the components of sx must be as independent of each other as possible.
+S0538	This is approximated by first non-linearly mapping sx and sy to higher-dimensional embeddings vx and vy through a trainable expander module (e.g. a neural net with a few layers), and using a loss function with two differentiable loss terms computed over a batch of samples: 1.
+S0539	Variance: a hinge loss that maintains the standard deviation of each component of sy and vy above a threshold over a batch.
+S0540	2.
+S0541	Covariance: a covariance loss in which the covariance between pairs of different components of vy are pushed towards zero.
+S0542	This has the effect of decorrelating the components of vy, which will in turn make the components of sy somewhat independent.
+S0543	The same criteria are applied to sx and vx separately.
+S0544	The third criterion of VICReg is the representation prediction error D(sy, s̃y ).
+S0545	In the simplest implementations of VICReg, the predictor is constant (equal to the identity function), making the representations invariant to the transformation that turns x into y.
+S0546	In more sophisticated versions, the predictor may have no hidden variable, or may depend on a hidden variable that is either discrete, low dimensional, or stochastic.
+S0547	The fourth criterion is necessary when the predictor uses a hidden variable whose information content must be minimized, for example a vector whose dimension approaches or surpasses that of s̃y.
+S0548	A simple instantiation of VICReg to learn invariant representations consists in making x and y be different views (or distorted versions) of the same content, setting the predictor to the identity function, and defining D(sy, s̃y ) = D(sy, sx ) = ||sy − sx ||2.
+S0549	Inferring the hidden variable through gradient-based methods may be onerous.
+S0550	But the computational cost can be greatly reduced by using amortized inference, as explained in Appendix 8.3.3.
+S0551	While contrastive methods ensure that representations of different inputs in a batch are different, VICReg ensures that different components of representations over a batch are different.
+S0552	VICReg is contrastive over components, while traditional contrastive methods are contrastive over vectors, which requires a large number of contrastive samples.
+S0553	But the most promising aspect of JEPA trained with VICReg and similar non-contrastive methods is for learning multi-level predictive world models, as we examine in the next section.
+S0554	4.5.2 With the training criteria listed above, the JEPA finds a trade-off between the completeness and the predictability of the representations.
+S0555	What is predictable and what does not get represented is determined implicitly by the architectures of the encoders and predictor.
+S0556	They determine a inductive bias that defines what information is predictable or not.
+S0557	But it would be useful to have a way to bias the system towards representations that contain information relevant to a class of tasks.
+S0558	This can be done by adding prediction heads that take s̃y as input and are trained to predict variables that are easily derived from the data and known to be relevant to the task.
+S0559	Figure 13: Non-contrastive training of JEPA.
+S0560	The main attraction of JEPAs is that they can be trained with non-contrastive methods.
+S0561	The basic principle of such training is that (1) sx should be maximally informative about x; (2) sy should be maximally informative about y; (3) sy should be easily predictable from sx; and (4) z should have minimal information content.
+S0562	Criteria 1, 2, and 4 collectively prevent a collapse of the energy function.
+S0563	Examples of such non-contrastive criteria for JEPA training include VICReg and Barlow Twins.
+S0564	As with every EBM, JEPAs can also be trained with contrastive methods.
+S0565	But doing so runs into the curse of dimensionality and limits the practical dimension of sy.
+S0566	Figure 14: Training a JEPA with VICReg.
+S0567	VICReg is a non sample-contrastive method for training embeddings.
+S0568	The information content of the representations sx and sy is maximized by first mapping them to higher-dimensional embeddings vx and vy through an expander (e.g. a trainable neural net with a few layers).
+S0569	The loss function drives the covariance matrix of the embeddings towards the identity (e.g. computed over a batch).
+S0570	VICReg can be seen as a dimension-contrastive method as opposed to sample-contrastive methods.
+S0571	JEPA models trained non-contrastively may constitute our best tool for learning world models that are able to learn relevant abstractions.
+S0572	When trained with VICReg and similar criteria, a JEPA can choose to train its encoders to eliminate irrelevant details of the inputs so as to make the representations more predictable.
+S0573	In other words, a JEPA will learn abstract representations that make the world predictable.
+S0574	Unpredictable details will be eliminated by the invariance properties of the encoder, or will be pushed into the predictor’s hidden variable.
+S0575	The amount of information thereby ignored will be minimized by the training criteria and by the hidden variable regularizer.
+S0576	It is important to note that generative latent-variable models are not capable of eliminating irrelevant details, other than by pushing them into a hidden variable.
+S0577	This is because they do not produce abstract (and invariant) representations of y.
+S0578	This is why we advocate against the use of generative architectures.
+S0579	The capacity of JEPA to learn abstractions suggests an extension of the architecture to handle prediction at multiple time scales and multiple levels of abstraction.
+S0580	Intuitively, lowlevel representations contain a lot of details about the input, and can be used to predict in the short term.
+S0581	But it may be difficult to produce accurate long-term predictions with the same level of details.
+S0582	Conversely high-level, abstract representation may enable long-term predictions, but at the cost of eliminating a lot of details.
+S0583	Let’s take a concrete example.
+S0584	When driving a car, given a proposed sequence of actions on the steering wheel and pedals over the next several seconds, drivers can accurately predict the trajectory of their car over the same period.
+S0585	The details of the trajectory over longer periods are harder to predict because they may depend on other cars, traffic lights, pedestrians, and other external events that are somewhat unpredictable.
+S0586	But the driver can still make accurate predictions at a higher level of abstraction: ignoring the details of trajectories, other cars, traffic signals, etc, the car will probably arrive at its destination within a predictable time frame.
+S0587	The detailed trajectory will be absent from this level of description.
+S0588	But the approximate trajectory, as drawn on a map, is represented.
+S0589	A discrete hidden variable may be used to represent multiple alternative routes.
+S0590	Figure 15 shows a possible architecture for multilevel, multi-scale world state prediction.
+S0591	Variables x0, x1, x2 represent a sequence of observations.
+S0592	The first-level network, denoted JEPA-1 performs short-term predictions using low-level representations.
+S0593	The second-level network JEPA-2 performs longer-term predictions using higher-level representations.
+S0594	One can envision architectures of this type with many levels, possibly using convolutional and other modules, and using temporal pooling between levels to coarse-grain the representation and perform longer-term predictions.
+S0595	Training can be performed level-wise or globally, using any non-contrastive method for JEPA.
+S0596	I submit that the ability to represent sequences of world states at several levels of abstraction is essential to intelligent behavior.
+S0597	With multi-level representations of world states and actions, a complex task can be decomposed into successively more detailed subtasks, instantiated into actions sequences when informed by local conditions.
+S0598	For example, planning a complex task, like commuting to work, can be decomposed into driving to the train station, catching a train, etc.
+S0599	Driving to the train station can be decomposed into walking out of the house, starting the car, and driving.
+S0600	Getting out of the house requires standing up, walking to the door, opening the door, etc.
+S0601	This decomposition descends all the way down to millisecond-by-millisecond muscle controls, which can only be instantiated when the relevant environmental conditions are perceived (obstacles, traffic lights, moving objects, etc).
+S0602	Figure 15: multi-level JEPA (H-JEPA) The ability of the JEPA to learn abstract representations in which accurate prediction can be performed allows multi-level stacking.
+S0603	In this diagram JEPA-1 extracts low-level representations and performs short-term predictions.
+S0604	JEPA-2 takes the representations extracted by JEPA-1 as inputs and extracts higher-level representations with which longer-term predictions can be performed.
+S0605	More abstract representations ignore details of the inputs that are difficult to predict in the long term, enabling them to perform longer-term predictions with coarser descriptions of the world state.
+S0606	If our world model can perform predictions hierarchically, can it be used to perform Mode-2 reasoning and planning hierarchically?
+S0607	Multi-level planning is a difficult topic with few solutions, most of which require that the intermediate vocabulary of actions be predefined.
+S0608	But if one abides by the deep learning philosophy, those intermediate representations of action plans should also be learned.
+S0609	Figure 16 shows a possible architecture for multi-level Mode-2 planning that can exploit the multi-level nature of a multi-scale world model.
+S0610	A sensory input is encoded into representations at multiple levels of abstractions by a cascade of encoders: s[0] = Enc1(x); s2[0] = Enc2(s[0]);...
+S0611	(14) Prediction takes place at all levels.
+S0612	Higher levels perform longer-term prediction, while lower levels perform shorter-term predictions.
+S0613	The overall task is defined by a high-level objective, depicted as C(s2 [4]) in the diagram.
+S0614	The top level infers a sequence of high-level actions (a2[2], a2[4]) to optimize this objective.
+S0615	These high-level “actions” are not real actions but targets for the lower level predicted states.
+S0616	One can think of them as conditions that the lower-level state must satisfy in order for the high-level predictions to be accurate.
+S0617	Whether these conditions are satisfied can be computed by cost modules C(s[2]) and C(s[4]).
+S0618	They take a lower-level state s[2] and a high-level condition a2[2] and measure to what extent the state satisfies the condition.
+S0619	With these subgoals defined, the lower level can perform inference and find a low-level action sequence that minimizes the mid-level subgoals C(s[2]) and C(s[4]).
+S0620	The process just described is top down and greedy.
+S0621	But one may advantageously iterate the optimization so that high level and low-level action sequences are optimized jointly.
+S0622	The cost modules may be configured by the configurator for the situation at hand.
+S0623	The idea that an action is merely a condition to be satisfied by the level below is actually an old one in control theory.
+S0624	For a example, a classical proportional servomechanism can be seen as being given a target state.
+S0625	A quadratic cost measures the squared distance between the target and the current state, and the control is simply proportional to the negative gradient of the cost with respect to the action variables.
+S0626	Figure 16: multi-level JEPA for Mode-2 multi-level planning.
+S0627	A complex task is defined by a high-level cost computed from a high-level world-state representation C(s2[4]).
+S0628	A sequence of high-level abstract actions (a2[2], a2[4]) is inferred that minimizes C(s2[4]).
+S0629	The inferred abstract actions are fed to lower-level cost modules C(s[2]), C(s[4]) which define subgoals for the lower layer.
+S0630	The lower layer then infers an action sequence that minimizes the subgoal costs.
+S0631	Although only a 2-layer hierarchy is shown here, it is straightforward to extend the concept to multiple levels.
+S0632	The process described here is sequential top-down, but a better approach would be to perform a joint optimization of the actions in all the layers.
+S0633	The real world is not entirely predictable.
+S0634	Uncertainty in predictions of future world states may be due to a number of reasons: • the world is intrinsically stochastic (aleatoric uncertainty, type 1) • the world is deterministic but chaotic, hence difficult to predict without infinitely precise perception (aleatoric uncertainty, type 2) • the world is deterministic but partially observable (aleatoric uncertainty type 3). • the world is fully observable, but the sensors only give partial information about the world state (epistemic uncertainty, type 1) • the representation of the world state extracted by the perception module does not contain the full information necessary for accurate prediction (epistemic uncertainty, type 2). • the world model is inaccurate due to limitations of its representational power (bounded rationality or epistemic uncertainty, type 3).
+S0635	• the world model is inaccurate due to it having been trained with limited amount of data (epistemic uncertainty, type 4).
+S0636	Much of the literature in reinforcement learning is focused on dealing with the stochastic nature of the environment.
+S0637	It is often assumed from the start that models, critics and policies must represent distributions.
+S0638	In the present work, we push the possible stochasticity of a predicted variable into a hidden variable, which may be optimized, predicted, or sampled.
+S0639	This is what is often referred to in the ML literature as “the reparameterization trick”.
+S0640	We do not need to use this trick here, since we view the latent-variable parameterization of the predictions as fundamental.
+S0641	Figure 17 represents a hierachical planning episode in the presence of uncertainty.
+S0642	A prediction at a given level and time step, e.g. s2[2] requires a sample of the corresponding hidden variable z2[2].
+S0643	The sample may come from the distribution whose negative logarithm is the regularizer R2(z2[2])).
+S0644	The parameters of the regularizer may be constant (e.g. fixed Gaussian), predicted from currently-available data using amortized inference (e.g. a multinomial or Gaussian whose parameters are computed from s2[0]) or produced by the configurator.
+S0645	Using previous predictions to configure the latent regularizer biases the system towards generating “good” trajectories.
+S0646	As the prediction progresses, the number of generated state trajectories may grow exponentially: if each hidden variable has k possible discrete values, the number of possible trajectories will grow as k t, where t is the number of time steps.
+S0647	Directed search and pruning strategies can be employed, as in classical Monte-Carlo Tree Search (MCTS). (Monte-Carlo Tree Search is a search method that explores promising decision branches instead of checking everything exhaustively.)
+S0648	In the case of continuous latents, one may sample latents from the continuous distributions defined by the regularizer.
+S0649	Given a sample of all the latents, the optimal action sequences at every levels can be inferred.
+S0650	But, the prediction process may need to be repeated for multiple drawings of the latents, so as to cover the set of plausible outcomes.
+S0651	The inference process may be used for multiple predictions to produce an action that does not just minimize the expected cost, but also minimizes the uncertainty on the expected cost.
+S0652	4.8.1 The details of the architecture of the world model should depend on the type of environment the agent evolves in.
+S0653	It is likely that the best module architectures in a JEPA should include some sort of gating or dynamic routing mechanism.
+S0654	For example, the best way to handle low-level, short-term predictions in videos is by extracting simple local feature vectors and displacing those feature vectors from one frame to the next, depending on predicted motions.
+S0655	The hidden variables may encode a map of displacements, which can modulate routing connections between one frame and the next.
+S0656	For longer-term prediction at a higher level of abstraction, the relevant features are objects and their interactions.
+S0657	The evolution may be best modeled by a transformer architecture, which has the property of being equivariant to permutation and is appropriate to capture interactions between discrete objects (Vaswani et al., 2017; Carion et al., 2020; Battaglia et al., 2016). (A transformer is a neural-network architecture that uses attention to model relationships between many items at once.)
+S0658	Separating the World Model from the Ego Model: The natural world is complex and somewhat unpredictable, requiring a powerful model with hidden variables to account for the unpredictability.
+S0659	On the other hand, the agent itself is somewhat more predictable: a particular action on effector will produce a motion that can often be predicted deterministically.
+S0660	This suggests that the agent should possess a separate model of itself, perhaps without hidden variables (Sobal et al., 2022) as the effect of actions on proprioception somewhat easier to predict than the evolution of the external world or the effect of actions on it.
+S0661	In turn, the ego-model that the agent has of itself can be used as a template for a model of other agents in a multi-agent scenario.
+S0662	Figure 17: multi-level JEPA for Mode-2 multi-level planning in an uncertain environment.
+S0663	Realistic environments are not entirely predictable, even when using highly-abstract representations.
+S0664	Uncertainty about predictions can be handled by predictors with hidden variables.
+S0665	The hidden variables (red circles) contain information about the prediction that cannot be derived from the prior observation.
+S0666	The hidden variables must be regularized to prevent an energy collapse and to force the system to predict as much as possible without the help of it.
+S0667	At planning time, hidden variables are sampled from distributions obtained by applying a Gibbs distribution to the regularizers.
+S0668	Each sample leads to a different prediction.
+S0669	To produce consistent latent sequences, the parameters of the regularizer can be functions of previous states and retrieved memories.
+S0670	As the prediction progresses, the number of generated state trajectories may grow exponentially.
+S0671	If each hidden variable has k possible discrete values, the number of possible trajectories will grow as k t, where t is the number of time steps.
+S0672	Directed search and pruning strategies must be employed.
+S0673	With multiple predicted trajectories, optimal action sequences can be computed that minimize the average cost, or a combination of average and variance of the cost so as to minimize risk.
+S0674	Traditionally, modules in deep learning architectures communicate states through vectors or multi-dimensional arrays.
+S0675	But this tends to be a very inefficient method when the state of the object being modeled only changes in minor ways from one time to the next.
+S0676	A typical action of an agent will only modify a small portion of the state of the world.
+S0677	If a bottle is being moved from the kitchen to the dining room, the states of the bottle, the kitchen, and the dining room will be modified.
+S0678	But the rest of the world will be unaffected.
+S0679	This suggests that the state of the world should be maintained in some sort of writable memory.
+S0680	Whenever an event occurs, only the part of the world-state memory affected by the event is to be updated, while the rest is to be left unchanged.
+S0681	A conventional key-value associative memory can be used for this purpose, similar to what has been proposed in the context of memory-augmented networks (Bordes et al., 2015; Sukhbaatar et al., 2015; Miller et al., 2016), and entity networks (Henaff et al., 2017).
+S0682	The output of the world model at a given time step is a set of query-value pairs (q[i], v[i]), which are used to modify existing entries in the world-state memory, or to add new entries.
+S0683	Given a query q, the world-state memory returns X = Match(kj, q) c = Normalize(c̃) Mem(q) = where the kj are keys, the vj are stored values, function Match(k, q) measures a divergence or dissimilarity between a key and a query, vector c contains scalar coefficients cj, and function Normalize(c̃) performs some sort of competitive normalization or thresholding, P such as the commonly-used cj = exp(c̃j )/[γ + k exp(c̃k )], where γ is a positive constant.
+S0684	Writing a value r using query (or address) q into the memory can be done by updating existing entries: c̃j = Match(kj, q) c = Normalize(c̃) = Update(r, vj, cj ) Function Update(r, v, c) may be as simple as cr + (1 − c)v.
+S0685	If the query is distant from all keys, the memory may allocate a new entry whose key is q and corresponding value is r.
+S0686	The γ constant in the example Normalize function above may serve as a threshold for acceptable key-query divergence.
+S0687	One can view each entry as representing the state of an entity in the world.
+S0688	In the above example of the bottle, the world model may contain keys kbottle, kkitchen, kdining−room respectively representing the bottle, the kitchen and the dining room.
+S0689	The initial value of vbottle encodes its location as “kitchen”, the inital value of vkitchen encodes its content as including the bottle, and the initial value of vdining−room encodes its content as not including the bottle.
+S0690	After the event, the location and contents are updated.
+S0691	All of these operations can be done in a differentiable manner, and would hence allow to back-propagate gradients through them.
+S0692	Much knowledge about the world is learnable through pure observation.
+S0693	The laws of motion of physical objects can, in principle, be derived from observation, without a need for intervention.
+S0694	But training a world model efficiently may require more active or “agentive” information gathering.
+S0695	One can list five modes of information gathering with which an agent can learn about how the world works: 1. passive observation: the agent is being fed a sensor stream (e.g. video, audio, etc) 2. active foveation: the agent is being fed a stream within which the focus of attention can be directed without affecting the environment.
+S0696	For example, watching a scene while being able to orient the vision and sound sensors, or being being fed a wideangle, high resolution video and/or audio stream within which the focus of attention can be directed.
+S0697	3. passive agency: sensory streams in which another agent acting on the environment is being observed, enabling the inference of causal effects of agent actions on the state of the environment.
+S0698	4. active egomotion: the agent receives sensory streams from a real or virtual environment within which the position of the sensors can be modified without significantly affecting the environment.
+S0699	This may include steerable active sensors (e.g. range sensors, heat sensors, chemical sensors) as well as touch sensors.
+S0700	5. active agency: sensory streams that are influenced by the agent’s actions.
+S0701	This enables the establishment of causal models in which the agent can learn to predict the consequences of its actions.
+S0702	This mode brings the exploration-exploitation dilemma to the forefront.
+S0703	In a complex environment, it may not be practical to collect enough passive data for the world model to capture a sufficient portion of the environment’s behavior.
+S0704	Mode 2, 4, and 5 allow the agent to collect information that maximizes its understanding of the environment.
+S0705	But to do so may require internal motivation modules that drive attention, curiosity, and exploration into corners of the state space in which the world model’s prediction are currently inexact or uncertain.
+S0706	The main open question is how much can be learned using passive observation (modes 1, 2, 4), how much requires egomotion (mode 3), and how much requires full agency (mode 5).
+S0707	The role of the actor module is threefold: 1. inferring optimal action sequences that minimize the cost, given the predictions produced by the world model for Mode-2 actions.
+S0708	2. producing multiple configurations of hidden variables that represent the portion of the world state the agent does not know.
+S0709	3. training policy networks for producing Mode-1 actions.
+S0710	There is no conceptual difference between an action and a hidden variable.
+S0711	The configurations of both sets of variables must be explored by the actor.
+S0712	For hidden variables, configurations must be explored to plan under uncertainty.
+S0713	For action variables configurations must be explored to produce an optimal one that minimizes the cost.
+S0714	In adversarial scenarios (such as games), the latent configurations must be explored that maximize the cost.
+S0715	In effect, the actor plays the role of an optimizer and explorer.
+S0716	When the world model and the cost are well-behaved, the actor module can use a gradient-based optimization process to infer an optimal action sequence.
+S0717	To do so, it receives estimates of the gradient of the cost computed by backpropagating gradients through the cost and the unfolded world model.
+S0718	It uses those estimates to update the action sequence.
+S0719	When the world model or the cost are not so well-behaved, a gradient-based search for an optimal action sequence may fail.
+S0720	In this case another search/planning method may be applied.
+S0721	If the action space is discrete or can be discretized, one can use dynamic programming methods or approximate dynamic programming methods such as beam search or Monte-Carlo tree search.
+S0722	In effect, any planning method developed in the context of optimal control, robotic, or “classical” AI may be used in this context.
+S0723	Once an optimal action sequence is obtained through the planning / inference / optimization process, one can use the actions as targets to train a policy network.
+S0724	The policy network may subsequently be used to act quickly, or merely to initialize the proposed action sequence to a good starting point before the optimization phase.
+S0725	Multiple policy networks can be trained for multiple tasks.
+S0726	The actor also produces configurations of hidden variables.
+S0727	These hidden variables represent the portion of the world state that the agent does not know.
+S0728	Ideally, the actor would systematically explore likely configurations of the latents.
+S0729	Ideally, the regularizer for the latents, R1 and R2 in Figure 17, would represent log-priors from which the latent could be sampled.
+S0730	But in a similar way as the policy network, one may devise a latent amortized inference module that learns distributions of hidden variables.
+S0731	Good distributions would produce predictions that are plausible.
+S0732	The distribution primate’s may depend on all the variables available at that time.
+S0733	The configurator is the main controller of the agent.
+S0734	It takes input from all other modules and modulates their parameters and connection graphs.
+S0735	The modulation can route signals, activate sub-networks, focus attention, etc.
+S0736	In a scenario in which the predictor and the upper layers of the perception encoder are transformer blocks, the configurator outputs may constitute extra input tokens to these transformer blocks, thereby modulating their connection graphs and functions.
+S0737	The configurator module is necessary for two reasons: hardware reuse, and knowledge sharing.
+S0738	There is an obvious advantage to be able to reuse the same circuit for multiple tasks, particularly if the tasks can be accomplished sequentially, and if the amount of resources (e.g. parameter memory) is limited.
+S0739	But there is another advantage: knowledge reuse.
+S0740	A reasonable hypothesis is that a world model trained for a given environment can be used for a range of different tasks with minor changes.
+S0741	One can imagine a “generic” world model for the environment with a small portion of the parameters being modulated by the configurator for the task at hand.
+S0742	This would be more data efficient and computationally efficient than having separate world models for each skill.
+S0743	The disadvantage is that the agent can only accomplish one task at a time.
+S0744	The configurator may prime the perception module for a particular task by modulating the parameters at various levels.
+S0745	The human perceptual system can be primed for a particular task, such as detecting an item in a cluttered drawer, detecting fruits or preys in a forest, reading, counting certain events, assembling two parts, etc.
+S0746	For tasks that require a rapid detection of simple motifs, the configurator may modulate the weights of low-level layers in a convolutional architecture.
+S0747	For tasks that involve satisfying relationships between objects (such as assembling two parts with screws) the configuration may be performed by modulating tokens in high-level transformer modules.
+S0748	The predictor part of the world model must be able to perform a broad set of functions depending on the task at hand.
+S0749	For predictors performing short-term predictions at a low level of abstraction, configuration may mean dynamic signal routing.
+S0750	In a low-level retinotopic feature array representation, prediction may be reduced to local displacements of individual feature vectors, accompanied with small transformations of those vectors.
+S0751	This may be advantageously implemented with local gating/routing circuits.
+S0752	For longerterm prediction at higher-levels of abstraction, it may be preferable to use a transformer architecture.
+S0753	Transformer blocks are particularly appropriate for object-based reasoning in which objects interact.
+S0754	The reason is that the function of transformer blocks is equivariant to permutation.
+S0755	Thanks to that property, one does not need to worry about which object is assigned to which input token: the result will be identical and consistent with the input assignment.
+S0756	Recent work in model-based robotics have proposed to use a transformer operating at the level of an entire trajectory, imposing constraints on the attention circuits to configure the predictor for causal prediction or other tasks (Janner et al., 2021).
+S0757	Conveniently, the function of a transformer block is easy to configure by adding extra input tokens.
+S0758	Those extra inputs have the effect of modulating the connection graph used by the rest of the network, thereby allowing the specification of a broad set of input-output functions.
+S0759	Perhaps the most important function of the configurator is to set subgoals for the agent and to configure the cost module for this subgoal.
+S0760	As mentioned in Section 3.2, a simple way to make the cost configurable is by modulating the weights of a linear combination of elementary cost sub-modules.
+S0761	This may be appropriate for the immutable Intrinsic Cost submodule: allowing for a complex modulation of the Intrinsic Cost may make the basic drives of the agent difficult to control, including cost terms that implement safety guardrails.
+S0762	In contrast, one can imagine more sophisticated architectures allowing the Trainable Critic part of the cost to be flexibly modulated.
+S0763	As with the predictor, if the high-level cost is formulated as a set of desired relationships between objects (“is the nut set on the screw?”) one may use a transformer architecture trained to measure to what extent the state of the world diverges from the condition to be satisfied.
+S0764	As with the predictor, extra token inputs can be used to modulate the function.
+S0765	One question that is left unanswered is how the configurator can learn to decompose a complex task into a sequence of subgoals that can individually be accomplished by the agent.
+S0766	I shall leave this question open for future investigation.
+S0767	Most of the ideas presented in the paper are not new, and have been discussed at length in various forms in cognitive science, neuroscience, optimal control, robotics, AI, and machine learning, particularly in reinforcement learning.
+S0768	Perhaps the main original contributions of the paper reside in • an overall cognitive architecture in which all modules are differentiable and many of them are trainable. • H-JEPA: a non-generative multi-level architecture for predictive world models that learn representations at multiple levels of abstraction and multiple time scales. • a family of non-contrastive self-supervised learning paradigm that produces representations that are simultaneously informative and predictable. • A way to use H-JEPA as the basis of predictive world models for multi-level planning under uncertainty.
+S0769	Below is an attempt to connect the present proposal with relevant prior work.
+S0770	Given the scope of the proposal, the In the context of optimal control, learning a Mode-1 like policy network is known as direct inverse control.
+S0771	The idea of Mode-2 style inference over actions using a predictive model in the context of reinforcement learning is also an old idea with, for example, Sutton’s Dyna architecture (Sutton, 1991).
+S0772	See (Bertsekas, 2019) for an extensive review.
+S0773	The idea of learnable models has recently enjoyed a renewal of interest in various contexts (Ha and Schmidhuber, 2018b; Ha and Schmidhuber, 2018a; Hafner et al., 2018; Hafner et al., 2020) (see (Moerland et al., 2020) for a recent survey of model-based reinforcement learning).
+S0774	Learning world models is particularly important in the context of robotics, especially for grasping and manipulation where sample efficiency is paramount and simulation is often inaccurate.
+S0775	In fact, because classical reinforcement learning approaches require too many trials for real-world applications, interesting advances in learned model for control have emerged from ML-based robotics research (Agrawal et al., 2016; Finn and Levine, 2017; Chua et al., 2018; Srinivas et al., 2018; Yu et al., 2020; Yarats et al., 2021).
+S0776	For a recent review, see (Levine, 2021) and same scene.
+S0777	Perhaps the first contrastive method for JEA is the so-called “Siamese Network” (Bromley et al., 1994).
+S0778	This was trained contrastively for the purpose of verifying signatures handwritten on a pen tablet.
+S0779	The idea of JEA remained largely untouched for over a decade, until it was revived in a series of papers from my group (Chopra et al., 2005; Hadsell et al., 2006), and Geoffrey Hinton’s group (Goldberger et al., 2005).
+S0780	Following the rebirth of deep learning, a few papers used JEA for fine-grained recognition, including face recognition (Taigman et al., 2014).
+S0781	With the emergence of SSL approaches, the use of JEA trained contrastively has exploded in the last few years with methods such as PIRL (Misra and Maaten, 2020), MoCo and MoCo-v2 (He et al., 2020; Chen et al., 2020b), and SimCLR (Chen et al., 2020a).
+S0782	Some methods can be seen as “distillation” approaches in which one branch of the Siamese network is a teacher whose output are used as targets for the other branch.
+S0783	This includes methods in which the output vectors are quantized to discrete cluster prototypes (see (Caron et al., 2020) and predecessors).
+S0784	In recent years, a number of new non-contrastive methods have appeared, such as BYOL (Grill et al., 2020).
+S0785	But the class of non-contrastive methods advocated in the present proposal prevent collapse by maximizing the information content of the embeddings.
+S0786	This includes Barlow Twins (Zbontar et al., 2021), VICReg (Bardes et al., 2021), whitening-based methods (Ermolov et al., 2021), and Maximum Coding Rate Reduction methods (see (Dai et al., 2022) and
+S0787	Ideas in this paper are a distillation of years of interactions with many people.
+S0788	It is impossible to list them all here.
+S0789	I will list some of the more salient ones: Léon Bottou, Yoshua Bengio, Geoffrey Hinton, Rob Fergus, and Jitendra Malick; Emmanuel Dupoux and Stanislas Dehaene; Mikael Henaff, Alfredo Canziani, and Nicolas Carion at NYU; Li Jing, Yubei Chen, Randall Balestriero, and Stéphane Deny at FAIR; Vlad Sobal, Jiachen Zhu, and Katrina Evtimova at NYU.
+S0790	I am thankful to the following colleagues for their comments on the manuscript: Olivier Delalleau, Gus Xia, Yoshua Bengio, and Emmanuel Dupoux.
+S0791	Figure 18: Symbols used in architectural diagrams.
+S0792	Architectural diagrams use symbols commonly used to draw factor graphs – circles for variables, rectangles for factors – plus rounded rectangles to represent deterministic functions.
+S0793	Filled circles represent observed variables, or variables that are outputs of deterministic functions.
+S0794	Hollow circles represent hidden variables, i.e. variables that must be inferred by minimizing some cost, or sampled from a distribution.
+S0795	Red rectangles represent energy terms.
+S0796	These modules have an implicit scalar output that contributes additively to the total energy of the system.
+S0797	This is similar to the convention used for factor graphs.
+S0798	Rounded rectangles represent deterministic functions, which may have one or several inputs.
+S0799	Given a set of inputs, the output is assumed to be easily computable and unique.
+S0800	The function is generally assumed to be differentiable.
+S0801	It may contain trainable parameters.
+S0802	Non-deterministic functions are represented as shown on the right.
+S0803	They are composed of a deterministic function g(x, z) in which one of the inputs is a latent variabl z.
+S0804	The hidden variable is seen as varying within a level set of a regularizing energy term R(z).
+S0805	When z varies in the level set Zh = {z|R(z) < h}, the output ỹ will vary over the set Yh = {y|y = g(x, z), ∀z ∈ Zh }.
+S0806	In some cases, the energy term can be transformed into a probability distribution (see text).
+S0807	Architectural diagrams in this paper use the symbols shown in Figure 18.
+S0808	We use symbols that are somewhat similar to the representation of factor graphs: circles for variables, rectangles for factors.
+S0809	There are two major differences, but.
+S0810	First, the factors represent additive energy terms, not multiplicative probability factors.
+S0811	Second, we use an additional symbol, rounded rectangles, to represent deterministic functions with a clear directionality from inputs to outputs.
+S0812	More precisely: • Filled circles represent observed variables, or variables that are outputs of deterministic functions. • Hollow circles represent hidden variables, i.e. variables that must be inferred by minimizing some cost, varied over a set, or sampled from a distribution. • Red rectangles represent energy terms.
+S0813	These modules have an implicit scalar output that contributes additively to the total energy of the system. • Rounded rectangles represent deterministic functions, which may have one or several inputs.
+S0814	Given a set of inputs, the output is assumed to be easily computable and unique.
+S0815	The function is generally assumed to be differentiable.
+S0816	It may contain trainable parameters.
+S0817	Such a module is typically implemented as a deep neural net.
+S0818	Non-deterministic functions do not have a dedicated symbol, but must be represented as a combination of deterministic functions, energy modules, and hidden variables.
+S0819	An example is shown on the right of Figure 18.
+S0820	A non-deterministic function is represented by a deterministic function ỹ = g(x, z) whose output depends on a hidden variable z.
+S0821	The hidden variable is fed to a regularizing energy term R(z).
+S0822	We first define Zh as the level set of z, i.e. the set of z for which R(z) is less than a threshold h: Zh = {z/R(z) < h} As z varies over Zh, the output will vary over the set: Yh = {y|y = g(x, z), ∀z ∈ Zh } In some cases, this setup may be used to represent probability distributions.
+S0823	Forst, the energy term is transformed into a probability distribution using a Gibbs-Boltzmann formula: exp(−R(z)) P (z) = R (23) z exp(−R(z )) Drawing the hidden variable from this distribution implies a distribution over y: Z P (y|x) = where δ() is the Dirac delta function.
+S0824	Figure 19: Amortized Inference with an EBM.
+S0825	An encoder is trained to produce z̃ = Enc(sx, y) to approximate the value of the latent that minimizes the energy ž = argminz∈Z Ew (x, y, z).
+S0826	The regularizer R(z) plays the essential role of limiting the information that z contains about y.
+S0827	This is particularly important here because the system has access to y and can “cheat” by carrying the complete information about y through the encoder.
+S0828	Inference in hidden variable models consists in performing the optimization ž = argminz∈Z Ew (x, y, z).
+S0829	When z is continuous, this may be best performed through a gradient-based optimization that involves backpropagating gradients through the model dowen to z for multiple iterations.
+S0830	In generative architectures, this may be expensive, requiring to back-propagate through the decoder and the predictor.
+S0831	One way to reduce the cost of inference is to use amortized inference.
+S0832	The idea is to train a neural net to predict an approximate solution to the inference optimization problem.
+S0833	The architecture is depicted in Figure 20.
+S0834	An encoder z̃ = Enc(sx, y) is trained to minimize a divergence measure H(ž, z̃) between the encoder output and the optimal hidden variable ž = argminz∈Z Ew (x, y, z).
+S0835	Once trained, the prediction z̃ may be use as an estimate of ž or as an initial value for the inference optimization.
+S0836	Figure 20: Amortized Inference with a Regularized Generative Latent-Variable EBM architecture.
+S0837	An encoder is trained to produce z̃ = Enc(sx, y) to approximate the value ž that minimizes the energy.
+S0838	The regularizer R(z) plays the essential role of limiting the information that z contains about y.
+S0839	This is particularly important here because the system has access to y and can “cheat” by carrying the complete information about y through the encoder.
+S0840	The regularizer R(z) is even more important than in the regular inference case because the prediction pathway has access to y and can “cheat” by carrying the complete information about y through the encoder.
+S0841	Without an information-limiting regularizer This would cause a collapse of the energy function, since it would allow any y to be reconstructed perfectly.
+S0842	The regularizer is there to minimize the information that ž may contains about y.
+S0843	Variational Auto-Encoders, and LISTA-style sparse Auto-Encoders belong to the family of Regularized GLVEBM with amortized inference.
+S0844	Most of those models are unconditional and do not possess an x nor an Enc(x) module.
+S0845	Much can be said about contrastive methods.
+S0846	Table 1 lists a few examples of contrastive methods, together with their strategy for picking contrastive samples ŷ and their loss functional.
+S0847	Rows 1-2 in the table are exact maximum likelihood methods.
+S0848	They assume that the gradient of the log partition function can be computed exactly.
+S0849	Rows 2-4 are approximate maximum likelihood methods.
+S0850	Rows 5-10 are not interpretable within a probabilistic method.
+S0851	Row 1: Maximum Conditional Likelihood for discrete y is used whenever the energy needs to be turned into a probability distribution. through a Gibbs formula P (y|x) = P exp(−Fw (x, y))/ y0 ∈Y exp(−Fw (x, y 0 ).
+S0852	The loss is the negative log conditional likelihood.
+S0853	This is the prevalent approach when y is a discrete variable within a finite set (e.g. for classification).
+S0854	Row 2 and 3: Maximum Conditional Likelihood is used for any model that should produce probability estimates.
+S0855	Row 2 only applies to tractable models in which the integral in the contrastive term (or its gradient) can be computed analytically.
+S0856	Row 3 applies to situations where the integral is intractable and its gradient must be approximated by Monte Carlo sampling methods.
+S0857	It then comes down to devising good methods to sample ŷ values R from the model’s Gibbs distribution: Pw (y|x) = exp(−βFw (x, y)/ y0 exp(−βFw (x, y 0 ).
+S0858	Row 4: Contrastive Divergence.
+S0859	MCMC sampling methods for Row 3 may take a long time to mix.
+S0860	One may start from a training sample and let the Markov chain evolve for a short time, and then accept or reject the resulting sample so as to satisfy detailed balance (Carreira-Perpiñán and Hinton, 2005).
+S0861	Row 5: Pairwise hinge, also known as triplet loss, drives the energy of the correct output to be lower than the energy of the contrastive output by at least a margin m(y, ŷ) which may grow with a measure of divergence between y and ŷ.
+S0862	The difficulty is to find suitable contrastive samples whose energy is low and “threatening”, a task sometimes called “hard negative mining”.
+S0863	Rows 6-8: Min-hinge, Square-hinge, Square-exp.
+S0864	Assumes that the energy has a lower bound. minimizes the energy of the correct output and pushes the energy of contrastive outputs above a margin equal to m(y, ŷ) for rows 6 and 7, and infinite for row 8.
+S0865	Row 8: Logistic.
+S0866	As with the pairwise hinge, the logistic loss maximizes the difference between the energies of the contrastive output and the correct output.
+S0867	Unlike the pairwise hinge, the difference is pushed to infinity, but with a force that decreases quickly.
+S0868	Row 9: GAN.
+S0869	A GAN differs from other contrastive methods in the way contrastive samples are generated.
+S0870	The contrastive samples are produced by a generator network that is trained preferentially generate samples that have low energy according to the model.
+S0871	In principle, any loss function can be used, as long as it increases with the energy of the correct output, and decreases with the energy of the contrastive sample.
+S0872	Row 10: Denoising Auto-Encoder.
+S0873	A denoising AE produces contrastive samples by corrupting outputs from training samples.
+S0874	The corruption can be performed by adding noise or by masking parts of the output.
+S0875	The energy function is the reconstruction error, hence the energy is trained to be zero on the data manifold, and to grow with D(y, ŷ) as ŷ moves away from y on the data manifold.
+S0876	Method Energy ŷ Generation Loss P Max Likelihood discrete y exhaustive Fw (x, y) + log y0 ∈Y exp(−Fw (x, y 0 )) R Max Likelihood tractable exhaustive Fw (x, y) + log y0 ∈Y exp(−Fw (x, y 0 )) 3 Max likelihood any MC or MCMC Fw (x, y) − Fw (x, ŷ) 4 Contr.
+S0877	Divergence any trunc’d MCMC Fw (x, y) − Fw (x, ŷ) 5 Pairwise Hinge any most offending [Fw (x, y) − Fw (x, ŷ) + m(y, ŷ)]+ 6 Min-Hinge positive most offending Fw (x, y) + [m(y, ŷ) − Fw (x, ŷ)]+ 6 7 8 most offending most offending most offending ŷ = gu (z) ŷ = N (y) Table 1: A of list of contrastive methods and loss functions to train energy-based models.
+S0878	They are all use loss functions with two terms, one that pushes down on the energy of a training sample, and one the pulls up the energies of one or several contrastive samples.
+S0879	They differ by the strategy they employ to generate contrastive samples, and by the precise form of the loss function.
+S0880	Exact or approximate Maximum Likelihood methods (rows 1-4) are used whenever the model needs to produce probability estimates.
+S0881	When the second term is intractable, its gradient may be approximated through Monte-Carlo methods, which can be seen as particular ways to produce ŷ.
+S0882	Many contrastive self-supervised methods for joint embedding architectures (Siamese nets) use Row 1 (InfoNCE).
+S0883	A number of contrastive methods (Rows 5-8) are based on finding a ŷ that is “highly offending”, meaning different from the desired y, yet given a low energy by the model.
+S0884	Pairs of energies for y and ŷ are fed to a loss function that pushes the former to low values and the latter to higher values.
+S0885	This can be done with a variety of losses including hinge loss.
+S0886	GANs (row 9) are contrastive methods in which the contrastive samples are produced by a generator network whose input is a random vector.
+S0887	The generator is trained to produce samples to which the model currently attributes a low energy, but should attribute a high energy.
+S0888	Denoising Auto-Encoders (row 10) apply a corruption process to training samples to produce contrastive samples ŷ = N (y).
+S0889	The energy function is the reconstruction error Fw (y) = D(y, gw (y)) where D() is a symmetric divergence measure and gw (y) a parameterized function.
+S0890	By training gw () to map ŷ to y, the energy for ŷ is trained to be equal to D(ŷ, y), while the energy of y is trained to be zero.
+S0891	Fw (x, y)2 + [m(y, ŷ) − Fw (x, ŷ)]+ Fw (x, y)2 + exp(−βFw (x, ŷ)) log(1 + exp(Fw (x, y) − Fw (x, ŷ)) H(Fw (x, y), Fw (x, ŷ), m(y, ŷ)) D(y, gw (ŷ)

@@ -1,0 +1,243 @@
+S0001	To address the speed problem, the authors built a biomolecular emulator called BioEmu that tries to sample the usual set of shapes a single protein chain takes, along with how often those shapes occur.
+S0002	BioEmu is a deep-learning generator that can produce thousands of separate protein-structure samples per hour on one GPU.
+S0003	It uses AlphaFold to turn a protein sequence into a rich internal description, and then feeds that description into a diffusion model that builds 3D structures.
+S0004	The team trained BioEmu in three stages: first on a processed version of the AlphaFold Database (AFDB), in a way that encouraged the model to link each sequence to many possible structures instead of just one.
+S0005	They then kept training it on a very large MD dataset covering thousands of proteins and more than 200 milliseconds of total simulated time.
+S0006	Finally, they further trained it on more than 500,000 experimental protein-stability measurements using a new method they call property-prediction fine-tuning, or PPFT.
+S0007	The authors tested BioEmu on protein systems unlike the ones it saw in training, and they judged it on three tasks: first, whether it could recover known shape changes such as large domain motions, local unfolding, and hidden binding-pocket formation, with success rates between 55% and 90%.
+S0008	Second, they tested whether BioEmu could reproduce equilibrium behavior seen in large MD studies of both protein folding and native-state shape changes, with free-energy errors below 1 kcal/mol and speedups of 10,000-fold to 100,000-fold.
+S0009	Third, they tested whether it could predict experimentally measured stabilities of folded small proteins by directly generating equilibrium ensembles and explaining how mutations change stability, with errors below 1 kcal/mol and correlations above 0.6 for both absolute folding energies and mutation-driven energy changes.
+S0010	The authors say BioEmu could be useful for speeding up MD workflows, helping interpret protein experiments structurally, finding binding pockets and allosteric effects in drug discovery, and generating ensembles for protein design tasks that depend on motion.
+S0011	Their broader claim is that the expensive up-front cost of collecting MD and experimental data can be reused many times, and that performance should keep improving as more diverse training data are added.
+S0012	The corresponding author is Frank Noe.
+S0013	Frank Noe can be reached at `franknoe@microsoft.com`, and the dagger marks show which authors contributed equally.
+S0014	Cite the paper like this.
+S0015	S. Lewis et al., *Science* 389, eadv9817 (2025).
+S0016	The DOI is 10.1126/science.adv9817.
+S0017	This illustration summarizes the BioEmu model and workflow.
+S0018	It shows that BioEmu combines AlphaFold’s sequence representation with a diffusion model trained on large simulation and experimental datasets to generate equilibrium structure ensembles.
+S0019	Those ensembles can then be used to quickly estimate properties such as protein stability, at speeds far beyond standard MD. [Emu illustration by F.N.]
+S0020	Proteins are the main working parts of life, and they matter enormously in drug discovery and biotechnology.
+S0021	We can now read protein sequences and predict static structures at genome scale, but we still do not have an equally scalable way to predict protein function.
+S0022	Protein function depends heavily on dynamics, especially shifts between long-lived shapes and on binding and unbinding events with other proteins or small molecules.
+S0023	Those shape changes, composition changes, and the probabilities of each state under a given temperature, solvent, and concentration together determine how a protein behaves in the real world.
+S0024	Experiments and MD can reveal these structure-dynamics relationships very accurately, but they are too slow to use at high throughput.
+S0025	Proteins and protein complexes are the basic functional machinery of life and are central to medicine and biotechnology.
+S0026	Modern sequencing and structure-prediction tools have transformed our access to sequences and static structures, but scalable tools for studying function are still missing.
+S0027	A major reason is that proteins often work by switching between different shapes, and those shape changes are often linked to binding events.
+S0028	For example, actin forms muscle fibers because it changes shape, and that process is controlled by whether ATP or ADP is bound. (ATP and ADP are two related energy-carrying molecules.)
+S0029	Current tools that can measure these shape changes and their coupling to binding states do not scale well.
+S0030	Single-molecule experiments can, in principle, recover full equilibrium behavior from measurements such as distances inside one molecule, but they need custom constructs and slow data collection.
+S0031	Cryo-EM can recover multiple shapes of a biomolecular complex and estimate how probable each one is, but those experiments are also slow and expensive.
+S0032	In principle, MD is a universal tool because it can model both structure and motion at all-atom detail.
+S0033	In practice, MD is still limited because force fields are imperfect and because sampling rare events like folding or binding is extremely expensive.
+S0034	The authors built BioEmu as a model meant to approximately sample the equilibrium distribution of protein conformations, meaning the collection of shapes a protein naturally visits and how often it visits them.
+S0035	Its architecture is similar to Distributional Graphormer, or DiG, but the way it is trained is different.
+S0036	Given a protein sequence, the model first computes single-sequence and pairwise representations with the AlphaFold2 Evoformer.
+S0037	That representation is then passed to a denoising diffusion model, which constructs protein structures step by step. (See Figure 1B-C.)
+S0038	The sequence encoding only has to be done once per protein, and the structure-generation process can finish in as few as 30 to 50 denoising steps.
+S0039	Because of that, the model can sample 10,000 separate structures from the learned equilibrium ensemble in anywhere from minutes to a few hours on one GPU, depending on protein size.
+S0040	One major training problem was that there is no single high-quality dataset that directly gives equilibrium protein distributions.
+S0041	So the authors combined several complementary training sources instead.
+S0042	First, they pretrained on a clustered AlphaFold Database using data augmentation that encouraged the model to produce diverse conformations rather than collapse to one answer.
+S0043	Second, they continued training on more than 200 milliseconds of all-atom MD from thousands of small and medium proteins.
+S0044	To reduce MD sampling bias, they reweighted those MD data toward equilibrium, either with Markov state models or, when possible, with weights derived from experiments.
+S0045	Third, they fine-tuned the model on 500,000 sequences from the MEGAscale dataset, which is a large, standardized set of in vitro protein-stability measurements.
+S0046	Because MEGAscale does not contain structures, they developed PPFT, a new way to feed experimental measurements into diffusion-model training without needing full structural labels.
+S0047	After the revolutions in sequencing and structure prediction, the next major challenge is predicting protein shape changes that actually matter for function, at large scale.
+S0048	The paper presents BioEmu as a deep-learning system that can generate thousands of separate samples from a protein’s equilibrium ensemble every hour on a single GPU.
+S0049	It combines more than 200 milliseconds of MD data, static structures, and experimental protein-stability measurements using new training algorithms.
+S0050	The model captures many kinds of functional motion, including hidden-pocket formation, local unfolding, and domain rearrangement, and it predicts relative free energies to within about 1 kilocalorie per mole compared with long MD runs and experiments.
+S0051	Because it models both structural ensembles and thermodynamic properties together, it can also suggest mechanisms rather than just output scores.
+S0052	The authors argue that this lets them spread the heavy up-front cost of MD and experiments across many later predictions, which matters because direct MD studies of folding or association are still enormously expensive even with specialized hardware and enhanced-sampling tricks.
+S0053	There is also work on machine-learned coarse-grained MD, which could lower the cost by another two to three orders of magnitude while keeping similar accuracy, but those methods are still being developed.
+S0054	So the field needs a tool that can reveal protein shape states, binding states, and the probabilities of those states.
+S0055	In the ideal case, that tool would be as trustworthy as a well-converged MD run or a multiconformation cryo-EM analysis, but would take only hours and cost only a few dollars.
+S0056	Older physics-based generative models such as Boltzmann generators showed that machine learning can sample equilibrium distributions of molecular energy functions, but scaling that idea to large biomolecules with high sample efficiency is still hard.
+S0057	At the same time, data-driven generative models such as diffusion models are now widely used in protein structure prediction and design.
+S0058	Those models, along with AlphaFold-based perturbation methods, can produce multiple different structures and can also be combined with MD to help with the sampling problem.
+S0059	But so far, most generative ML systems have mainly shown that they can sample different conformations qualitatively, not that they can match the right equilibrium probabilities quantitatively.
+S0060	The authors argue that the next key step is to prove that generative ML can reproduce full equilibrium ensembles and predict real experimental observables; to encourage true generalization, they filtered training so that no protein was more than 40% sequence-similar to a predefined holdout set of reported test proteins at least 20 residues long.
+S0061	In the rest of the paper, “BioEmu” means the fully fine-tuned version trained on AFDB, MD simulations, and experimental protein-stability measurements.
+S0062	Unless they say otherwise, all later results use that final model.
+S0063	Figure 1.
+S0064	Overview of model and architecture.
+S0065	(A) Actin as a representative example of protein function driven by conformational changes.
+S0066	Actin filament formation depends on an open-close transition of monomers, which is controlled by ADP and ATP binding.
+S0067	(B) Given a protein sequence, BioEmu samples protein structures from an approximate equilibrium distribution, from which properties such as free-energy differences can be computed. [Emu illustration by F.N.] (C) ML model architecture consisting of protein sequence encoder, denoising diffusion model, and score model.
+S0068	The protein structure is represented using coarse-grained backbone frames.
+S0069	(D) Data integration and model training pipeline.
+S0070	(E) Data processing pipeline for pretraining.
+S0071	MLP, multilayer perceptron; repr., representation; feat., features.
+S0072	We consider the ability to qualitatively sample distinct, biologically relevant conformations as a foundation for building a quantitative equilibrium sampler.
+S0073	So we first tested whether BioEmu could predict known conformational changes and compared this capability with AFCluster (15), AlphaFlow (13), DiG (12), and uniform multiple-sequence alignment (MSA) subsampling (22) as representative baseline methods (materials and methods). (MSA means multiple-sequence alignment, a stack of related sequences.)
+S0074	To benchmark BioEmu’s ability to capture functionally relevant structural variability, we curated four benchmark sets comprising around 100 proteins with experimentally validated transitions (Figures S1 to S4).
+S0075	The first set, OOD60, assesses sequence generalization.
+S0076	The remaining three sets target specific types of conformational change: domain motions, local unfolding transitions, and cryptic pocket formations.
+S0077	OOD60 is designed to test strong generalization: Its proteins were deposited in the Protein Data Bank (PDB) after the AlphaFold2 cutoff date and share no more than 60 and 40% sequence similarity with the AlphaFold2 monomer model and BioEmu training sets, respectively. (PDB is the Protein Data Bank, the main public structure database.)
+S0078	OOD60 includes various challenging cases such as large-scale conformational changes induced by binding with other biomolecules (Figure S1).
+S0079	BioEmu significantly outperformed all baselines on this benchmark (Figure S7).
+S0080	For the other benchmarks, BioEmu matched or exceeded baseline performance, except in predicting apo states of cryptic pockets, where AFCluster performed best.
+S0081	The performance gap was especially pronounced for proteins outside the AlphaFold2 training set (Figure S7).
+S0082	The domain motion benchmark consists of proteins that undergo large-scale motions as part of their functional cycle (Figure 2A).
+S0083	In the open-close transition of adenylate kinase, the closed state brings the substrates together to catalyze the ATP + AMP ⇌ 2ADP reaction.
+S0084	Single-molecule experiments have confirmed that opening and closing occurs reversibly on timescales of tens of microseconds when the substrates are bound (23).
+S0085	BioEmu predicts a range of open and closed states, including close matches with crystallographic structures.
+S0086	A second example is the open-close transition of LAO-binding protein, which is required to bind and release lysine, arginine, and ornithine for transport across membranes as part of the ATP-binding cassette protein family.
+S0087	Another interesting example of domain motions is that of the receptor module that regulates the concentration of cyclic di–guanosine monophosphate (cyclic-di-GMP) in bacteria.
+S0088	In this case, one domain undergoes a large-scale rotation and repacks to the other domain with a completely different contact pattern.
+S0089	See Figure S2 for 19 further examples.
+S0090	Overall, BioEmu predicted 83% of the reference experimental structures with ≤3-Å root mean square deviation (RMSD) (Figure 2A), indicating the model’s ability to predict which protein regions are rigid and which are flexible, as well as which resulting motions can occur.
+S0091	Next, we considered local unfolding transitions, in which part of a protein chain unfolds or detaches from its main structure as part of a signaling pathway (Figure 2B).
+S0092	Predicting local unfolding challenges the model to correctly rank the relative stabilities of a protein’s fold.
+S0093	A famous example of local unfolding is Ras p21, a protein whose mutants are often linked to cancer development; the local unfolding of Ras p21 is a conformational switch that signals cell growth (24).
+S0094	In its active state, stabilized by binding guanosine triphosphate (GTP), the switch II region forms a short α helix, which partially unfolds in the inactive guanosine diphosphate (GDP)–bound state.
+S0095	Rhomboid intramembrane protease is a more complex case that involves domain swapping.
+S0096	As a single molecule, it has a compact globular shape, but in its dimer form the structure rearranges much more dramatically.
+S0097	Figure 2.
+S0098	BioEmu samples functionally distinct protein conformations.
+S0099	(A) Large-scale domain motions.
+S0100	(B) Local unfolding or unbinding of parts of the protein.
+S0101	(C) Formation of cryptic binding pockets that are not present in the apo ground state.
+S0102	The left column shows the coverage of pretrained and fine-tuned BioEmu models, defined as the percentage of reference structures that are sampled by at least 0.1% of samples within a given distance.
+S0103	Global and local RMSD are used for domain motions and cryptic pocket formation benchmarks, respectively, and the fraction of native contacts for local unfolding.
+S0104	Successful coverage of reference states is defined by probability density left of and below the dashed lines in the energy landscape plots of (A) and (C) and outside the dashed lines in (B).
+S0105	BioEmu sampled structures are shown in green, PDB structures in gray, and key secondary structure elements in blue.
+S0106	CaM, calcium-calmodulin dependent; LAO, lysine arginine ornithine.
+S0107	See table S4 for 12-letter PDB codes and original citations.
+S0108	A major motivation for developing BioEmu was to overcome the well-known sampling problem in MD: Simulating the full range of protein conformations and estimating their equilibrium probabilities often requires extensive MD simulations, on the order of 100 μs to 10 ms (7, 8, 27).
+S0109	These timescales are necessary to capture rare but functionally important transitions, yet achieving them is computationally demanding, if not prohibitive, even with task-specific supercomputers (28) or large-scale distributed simulations integrated using statistical models (8, 29).
+S0110	Here, we assessed BioEmu’s ability to emulate the equilibrium distribution that would be sampled with extensive MD simulations.
+S0111	To this end, we amassed all-atom simulations of proteins with a total aggregated simulation time of more than 200 ms (table S1), which were used for fine-tuning BioEmu (Figure 1D).
+S0112	Before analyzing the model trained on the full dataset, we first tested whether our machine-learning architecture and training protocol permit learning to emulate long-timescale MD equilibrium distributions.
+S0113	To this end, we used D. E. Shaw Research (DESRES) simulations of 12 fast-folding proteins generated on the Anton supercomputer (7).
+S0114	For each protein, we fine-tuned a separate model on the other 11 proteins and evaluated it on the held-out 12th, an approach known as leave-one-out cross-validation (see materials and methods).
+S0115	This setup ensures that each test case is evaluated independently of its training data and avoids bias from arbitrary train-test splits in this small dataset.
+S0116	As expected, the AFDB-pretrained model predicted the native state but performed poorly in sampling the full free-energy surface (Figure S9).
+S0117	Surprisingly, these DESRES-fine-tuned models, each trained on only 11 fast-folding proteins, predicted free-energy surfaces for the held-out protein that closely matched the MD reference result (Figure 3A and Figure S9).
+S0118	For all proteins, the model predicted both the native as well as the unfolded states with similar shapes on the free-energy landscape.
+S0119	In many cases, several or all folding intermediates visible on the two-dimensional (2D) free-energy surface were predicted (Figure 3A and Figure S9): For beta-beta-alpha protein (BBA), both MD and the DESRES– fine-tuned models predicted the existence of an intermediate with the α helix formed and the β sheet broken.
+S0120	For protein G, both MD and the DESRES–fine-tuned model sampled intermediates with half of the β sheet still formed, whereas the other half and most of the helix were broken.
+S0121	For homeodomain, MD and the model agreed in the prediction of an intermediate with only one helix turn unwound, whereas the unfolded states still featured some degree of helical propensity.
+S0122	There was excellent agreement of the predicted secondary structure propensities with the MD data (Figure 3A).
+S0123	Quantitatively, the mean absolute error between the MD and model 2D free-energy landscapes was only 0.74 kcal/mol, ranging from 0.30 kcal/mol for BBA to 1.63 kcal/mol for λ-repressor, which is on the order of differences expected from two different classical MD force fields (30, 31).
+S0124	We compared the computational costs of MD data generation and BioEmu in GPU-hours (on a NVIDIA Titan V; Figure 3A, top right).
+S0125	For all BioEmu results shown here, we drew 10,000 samples, which incurred computational costs of less than 1 GPU-minute for Chignolin to around 1 GPU-hour for λ-repressor.
+S0126	For MD, we considered the cost for generating the DESRES simulations, whose lengths were chosen to include roughly 10 folding-unfolding transitions.
+S0127	The MD costs then ranged from 2000 GPU-hours for Chignolin to more than 100,000 GPU-hours for NTL9, resulting in a speedup of BioEmu over MD of four to five orders of magnitude.
+S0128	We also note that for most proteins shown here, performing sufficiently long MD simulations to directly observe folding and unfolding in single trajectories is still not possible on consumer-grade hardware but instead requires a much more complex methodological method (29, 32).
+S0129	The main BioEmu model was fine-tuned on more than 200 ms of MD simulations with Amber force fields at or near a temperature of 300 K (table S1).
+S0130	We chose to combine data from slightly different simulation conditions because each of these MD models is inherently imperfect, and we regarded experimental data as being more reliable for weighing between conformations (Figure 1D).
+S0131	Differences in the simulation conditions of our own generated data were intentional; for example, AMBER ff99sb-disp (33) was chosen to avoid spuriously misfolded states produced by other force fields in the context of protein folding (materials and methods).
+S0132	A large fraction of training data, 46 ms, is dedicated to 1100 CATH domains, common building blocks of protein structure (34) (materials and methods).
+S0133	We designated 17 CATH systems with a simulation time of more than 100 μs as a test set and report statistics comparing MD and model distributions (Figure 3B, Figure S10, and materials and methods).
+S0134	Similar to DESRES simulations, BioEmu predicts the native state with local fluctuations and typically several other substates and structures sampled by MD.
+S0135	Most secondary structure propensities matched well (Figure 3B).
+S0136	We observed a free-energy mean absolute error over the converged test set of 0.9 kcal/mol, which was again comparable to the differences expected between different MD force fields. dimeric form, the central β sheet unfolds and the helices of the two monomers bind to each other.
+S0137	Finally, CaM kinase II presents an autoinhibition mechanism, wherein the N terminus binds into the active site.
+S0138	BioEmu correctly predicted the local unfolding of these structure elements and sampled 70% of the folded and 81% of the locally unfolded states across 20 protein examples (Figure 2B and Figure S3).
+S0139	As a final class of conformational changes, we considered the formation of pockets that are absent in the apo PDB structure but can form to bind a small molecule (Figure 2C).
+S0140	Such “cryptic” binding pockets can be discovered with high-performance MD simulation (25, 26), but the millisecond timescales often involved in the spontaneous opening of such pockets make MD on commercial hardware rarely viable for in silico drug-discovery pipelines.
+S0141	We curated 34 cases of experimentally validated formation of cryptic binding pockets from the literature (Figure S4).
+S0142	The sialic acid binding factor presents a case where a large opening in the apo state can partially close and form a binding site for the ligand.
+S0143	Fascin is a four-domain protein where two domains can rotate with respect to each other to reveal a binding site.
+S0144	In Glu PRPP amidotransferase, part of the chain is unfolded in the apo state and can fold into a structure that completes the binding site for the ligand.
+S0145	To ensure capturing subtle changes, we defined success by a very strict 1.5-Å RMSD threshold to the apo and holo reference structures.
+S0146	Surprisingly, the model had a strong preference for holo states, successfully predicting the cryptic pocket in 86% of cases, whereas it only succeeded in predicting 56% of the apo structures, indicating further room for improvement (Figure 2C).
+S0147	We hypothesize that the model may be picking up a bias implicit in the embeddings—proteins may have only one or a few apo structures deposited in the PDB, but it is common to find multiple structures of the same protein with different small molecules bound.
+S0148	To conclude, we conducted several tests to confirm that BioEmu’s multiconformation prediction is a hallmark of generalization rather than memorization of sequence-structure pairs.
+S0149	BioEmu’s ability to predict multiple conformations depends only weakly on the sequence similarity between the query molecule and the training set, with the clearest trend seen for domain motions where the final performance is reached at 30% sequence similarity (Figure S5 and materials and methods).
+S0150	As our test proteins contain examples that overlap with the AlphaFold2 training set, we ablated whether multiconformation prediction performance stems from trivial extraction of the information already present in the AlphaFold2 evoformer embeddings.
+S0151	To this end, we trained an end-to-end version of the model that uses MSA information directly, instead of pretrained embeddings, on a training set that is at most 40% similar in sequence to any protein belonging to the multiconformation benchmarks.
+S0152	The resulting model showed similar performance in the previously mentioned multiconformation benchmarks to that of the fine-tuned BioEmu (Figure S6 and materials and methods).
+S0153	To understand whether our model’s ability to sample accurate equilibrium distributions is limited by training data or model expressivity, we trained three models with the same architecture as BioEmu from scratch, using only 1, 10, and 100% of the CATH systems in the training dataset.
+S0154	We observed decreased free-energy errors and an increased coverage of the conformations sampled by MD as the amount of training proteins increased (Figure 3B, bottom right), suggesting that the model can be further improved by adding more training data.
+S0155	Notably, the fine-tuned model’s error on the same test set was further reduced to 0.9 kcal/mol, showing the potential benefit of pretraining and integrating multiple datasets even if they do not use identical simulation conditions.
+S0156	Finally, we evaluated BioEmu for two case studies that involve larger proteins: complexin II (134 amino acids) and tetraspanin CD9 (225 amino acids).
+S0157	Complexin II is an intrinsically disordered protein (IDP) from the neurotransmitter release apparatus (35).
+S0158	IDPs are usually hard to sample well with MD, but BioEmu still produced a flexible ensemble for complexin II and recovered known structural elements such as the central and accessory helices (Figure 3C).
+S0159	Getting fully converged all-atom MD for IDPs of this size is not practical.
+S0160	The authors also ran about 5 microseconds of all-atom MD at more than ten times the computational cost of BioEmu, and those simulations were probably still not fully converged.
+S0161	Figure 3.
+S0162	BioEmu achieves fast emulation of all-atom MD equilibrium distributions.
+S0163	(A) DESRES fast-folding proteins.
+S0164	From left to right are representative structures (green, model; gray, MD; blue, regions of interest), free-energy surfaces over slowest time-lagged independent components (TIC) (54), secondary structure propensities, computational cost for MD (magenta, full DESRES data; yellow, single folding-unfolding roundtrip) versus model (cyan, 10,000 samples), and mean absolute error (MAE) of free-energy differences and fraction of unphysical model samples.
+S0165	(B) CATH domains.
+S0166	Structures, free-energy surfaces, and errors are as in (A).
+S0167	Shown at the bottom right is data scaling for the task-specific CATH-only model with free-energy MAE and state coverage as a function of training data.
+S0168	The cyan star indicates BioEmu.
+S0169	(C) Complexin II: Structures, helix content, and radius of gyration (Rg) as predicted by BioEmu versus two all-atom force fields.
+S0170	(D) Tetraspanin CD9 results from BioEmu and MD (37).
+S0171	Shown is the open-closed transition, represented as a histogram in logarithmic scale of small and large extracellular loop (SEL-LEL) contacts, as defined in (37).
+S0172	Two-dimensional principal components (PC) analysis of exp(−dij) of Ca-Ca distances dij between SEL and LEL.
+S0173	The open star marks the experimental structure (6k4j).
+S0174	Understanding protein stability is crucial for various applications in molecular biology, drug design, and biotechnology.
+S0175	From a modeling point of view, predicting a protein’s stability is a specific case of predicting the equilibrium probabilities of its different conformational states, and these all arise from the same underlying biophysics.
+S0176	So the goal was to train BioEmu so that the fraction of folded versus unfolded samples would match experimentally measured stability.
+S0177	We classify protein structures as folded or unfolded based on their fraction of native contacts and define the folding free-energy as ΔG = Gfolded − Gunfolded (materials and methods).
+S0178	To facilitate protein stability prediction, BioEmu was trained on 502,442 mutant sequences generated from 361 wild types, a subset of the more than 674,000 experimental measurements in the MEGAscale dataset (materials and methods) (21).
+S0179	We evaluated BioEmu on a test set of randomly chosen mutants from 95 wild types.
+S0180	For a subset of 271 wild-type proteins and 21,458 mutants, we additionally conducted a total of 25 ms of all-atom MD simulations of the folded and unfolded states (materials and methods).
+S0181	To address MD sampling and force-field issues, we weighed the folded and unfolded samples based on the experimentally measured protein stabilities (materials and methods).
+S0182	To accelerate training convergence and leverage the large number of MEGAscale measurements, we developed the PPFT algorithm (Figure 4A and materials and methods), which integrates experimental expectation values, such as protein stabilities, into diffusion model training without requiring protein structures.
+S0183	PPFT uses fast approximate sampling with only eight denoising steps, which we observed to be sufficient to confidently predict whether each sampled structure will be classified as folded or unfolded.
+S0184	By comparing the mean foldedness of sampled structures with experimental measurements and backpropagating the error, our model could be efficiently trained to match experimental protein stabilities.
+S0185	BioEmu achieved a mean absolute error of less than 0.9 kcal/mol and a Spearman correlation coefficient of approximately 0.6 for the MEGAscale test proteins (Figure 4B).
+S0186	The BioEmu ensembles also correlated well with stability changes of point mutants, as measured by the change of folding free energy ΔΔG, achieving mean absolute errors of less than 0.8 kcal/mol and a Spearman correlation coefficient above 0.6 (Figure 4C).
+S0187	Errors of approximately 1 kcal/mol were achieved for test proteins that had 40% sequence similarity with the training set, but the best performance was obtained for test sets that included sequences with 50% or greater similarity (Figure 4, B and C).
+S0188	As there are only 361 distinct wild-type sequences in the MEGAscale training data, it is likely that generalization performance can be further improved with a training dataset that is more diverse in protein sequence space.
+S0189	To check whether BioEmu makes physically reasonable predictions outside the MEGAscale set of proteins, we tested it on proteins that are known to be very stable or unstable.
+S0190	We first selected stable proteins from ProThermDB (38) with a ΔG <−8 kcal/mol (materials and methods).
+S0191	Our model consistently sampled these proteins in their folded states with a fraction of native contacts that always exceeded 0.65 (Figure 4D).
+S0192	To test whether our model systematically predicts IDPs as unfolded, we used the CALVADOS test set (39).
+S0193	Most proteins sampled displayed a radius of gyration (Rg) similar to that of random coil structures and mostly larger than that of typical folded proteins (Figure 4E).
+S0194	Unlike other models (40, 41), ours has not been directly trained on IDPs; nonetheless, it provides zero-shot predictions of Rg that correlate well with experimental measurements (Figure 4E).
+S0195	In comparison to black-box methods that predict protein stability directly from sequences (42–45), BioEmu has competitive or superior prediction accuracy.
+S0196	But in contrast to a black-box prediction of ΔG, we can analyze the structure ensemble generated by our model to reveal insights on mutation-caused stability changes.
+S0197	To illustrate this point, in Figure 4F, we show mutants of the design protein HHH_rd1_0335 and PDB entry 2JWS.
+S0198	In HHH_rd1_0335, the mutation I7P (Ile7→Pro) leads to a destabilization of the first helix, as indicated by the model’s prediction of a ΔΔG of 1.8 kcal/mol compared with the experimental 2.1 kcal/mol.
+S0199	The analysis shows a decrease in average helicity that particularly affects the helix where the mutation is located.
+S0200	For 2jws, the mutation I24D (Ile24→Asp) in the middle helix results in partial unfolding, with the model predicting a ΔΔG of 2.1 kcal/mol, which closely matches the experimental value of 2.9 kcal/mol.
+S0201	This mutation replaces a hydrophobic residue with a negatively charged aspartate, disrupting core stability and leading to a localized structural change.
+S0202	These analyses highlight BioEmu’s ability to correlate predictions of thermodynamics with structural causes, which is not possible with black-box prediction models.
+S0203	In this work, we introduce BioEmu, a generative machine-learning system that can approximately sample the equilibrium distributions of proteins and through that explore two key aspects of molecular function: protein conformations and their equilibrium probabilities.
+S0204	We have shown that the system can sample experimentally known structures of proteins undergoing a variety of conformational changes, approximate the equilibrium distributions of extensive MD simulations, and predict experimentally measured protein stabilities within errors of 1 kcal/mol.
+S0205	The cost of running inference is on the order of 1 GPU-hour per computational experiment, which is many orders of magnitude less than running MD simulations, even if enhanced sampling methods are invoked, and orders of magnitude cheaper than experiments that can provide detailed structure-function relationships.
+S0206	Nonetheless, there are further opportunities to reduce BioEmu’s inference cost.
+S0207	Conditional flow-matching (46) can be used to generate protein structures using even fewer integration steps (47).
+S0208	The computational cost of evaluating the transformer network in the score model (Figure 1C) can potentially be reduced by leveraging sparse or low-rank attention mechanisms.
+S0209	BioEmu and MD simulation are complementary: Our system was trained on large amounts of MD simulation data for soluble proteins, and within this scope, it has shown that it can approximate MD distributions at a tiny fraction of the MD simulation costs.
+S0210	But BioEmu is not meant to generalize beyond that scope: for example, membrane environments and small-molecule ligands are not explicitly represented in either the model or the training data, so the authors do not claim reliable predictions when those factors are essential.
+S0211	Tetraspanin CD9, the second case study, plays a role in cell adhesion and fusion (Figure 3D).
+S0212	The large extracellular loop of CD9 is part of our OOD60 test set (Figure S1) in which our pretrained model samples both crystallographic reference structures (PDB entries 6rlo and 6rlr), whereas the BioEmu model fine-tuned on MD data samples 6rlo but discards 6rlr.
+S0213	That fits with the idea that both structures can exist in crystal environments, but 6rlr cannot occur as a folded monomeric protein, so BioEmu correctly drops it after MD fine-tuning (Figure S12A-C).
+S0214	We also sampled the full-length CD9 structure, which has less than 40% sequence similarity to both the BioEmu and AlphaFold training sets (Figure 3D).
+S0215	In agreement with MD simulations of previous work (37), BioEmu predicted the widely open state 1 and closed state 2 and similar contact distributions between the small and large extracellular loops as reported in (37).
+S0216	A principal components analysis revealed that BioEmu and MD sample similar sets of conformations (Figure 3D).
+S0217	MD predicts an experimentally unknown metastable closed state 3, which is unstable in BioEmu.
+S0218	BioEmu also samples closed structures in state 2 that are much closer to the experimental structure 6k4j than the closest MD sample is: 1.9 angstrom RMSD versus 4.6 angstrom RMSD (Figure S12D).
+S0219	By contrast, MD can be readily generalized to such conditions, though it remains constrained by the sampling problem.
+S0220	Our system can be used to generate an approximation to the equilibrium distribution, and MD trajectories can be launched from a BioEmu ensemble to obtain chemically accurate all-atom structures, refine the distribution, and even compute dynamical properties.
+S0221	So the authors do not think models like BioEmu will replace MD; instead, they expect MD to shift more toward generating training data and validating emulator results.
+S0222	A similar shift of roles is already in progress for other simulator-emulator pairs such as quantum chemistry methods and machine-learned force fields.
+S0223	An important limitation of BioEmu is that it generates distributions entirely empirically, whereas MD simulation uses potential energy functions, which are connected to equilibrium distributions and expectation values by statistical mechanics.
+S0224	If direct access to a reduced potential energy function u(x) was available that is consistent with the generated distribution by p(x) ∝ e−u(x), it could be used for reweighting and making rigorous enhanced sampling simulations available through the emulator.
+S0225	BioEmu can potentially also be improved by going beyond score matching and using energy or forces information from MD force fields at training time, as considered in Boltzmann generators (11) and variational force matching (9, 48).
+S0226	Although BioEmu samples approximate equilibrium distribution, it does not model protein dynamics, which is done by MD and other methods (49), nor does its training incorporate dynamical information as it does for Markov state models (20).
+S0227	A pragmatic approach to generate a dynamic ensemble is to predict starting points with BioEmu and launch MD simulations from them.
+S0228	Their broader takeaway is that this points toward a future emulator whose error keeps dropping as more high-quality training data are added.
+S0229	This indicates a path forward for predicting biomolecular function at the genomic scale.
+S0230	Materials and methods are available in the supplementary materials.
+S0231	Figure 4.
+S0232	Prediction of experimentally measured protein stabilities.
+S0233	(A) PPFT algorithm for fine-tuning a pretrained diffusion model to match experimentally measurable properties such as the protein’s stability.
+S0234	(B) Comparison of experimental measurements of folding free energies (21) with model predictions, generated by direct sampling and counting of folded and unfolded states for test proteins, the mean absolute error (MAE), and the Spearman correlation coefficient as a function of the sequence similarity between test and training proteins.
+S0235	The gray shaded region represents an error range of ±1 kcal/mol.
+S0236	(C) Same as (B) for the change in folding stability upon point mutation.
+S0237	(D) Validation that very stable proteins that are not included in the MEGAscale experimental dataset are consistently predicted as folded.
+S0238	Bars and shading indicate the minimum, maximum, and distribution of sampled values, respectively.
+S0239	(E) Validation that IDPs reported in (39) and (41) are predicted as unfolded.
+S0240	Comparison of the radius of gyration (Rg) for model (orange crosses), experimental measurement (blue dots), and Flory scaling (55).
+S0241	(F) Analysis of the effect of two destabilizing mutants on the folded structures as predicted by the model: HHH_rd1_0335 with mutation I7P and 2JWS with mutation I24D.
+S0242	See table S4 for 12-letter PDB codes and original citations.
+S0243	WT, wild type.

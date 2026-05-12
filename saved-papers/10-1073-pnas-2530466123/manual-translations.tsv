@@ -1,0 +1,386 @@
+S0001	Structural dynamics are fundamental to protein functions and mutation effects.
+S0002	Current protein deep learning models are predominantly trained on sequence and/or static structure data, which often fail to capture the dynamic nature of proteins.
+S0003	To address this, we introduce SeqDance and ESMDance, two protein language models trained on dynamic biophysical properties derived from molecular dynamics simulations and normal mode analyses of over 64,000 proteins. (A protein language model is an AI model that reads amino-acid sequences in a way similar to how language models read words.)
+S0004	Both models can be directly applied to predict dynamic properties of unseen ordered and disordered proteins.
+S0005	SeqDance, trained from scratch, has attentions that capture dynamic interaction and comovement between residues, and its embeddings encode rich representations of protein dynamics that can be further utilized to predict conformational properties beyond the training tasks via transfer learning. (SeqDance is the paper's model trained directly from protein sequences to predict dynamic biophysical properties.)
+S0006	SeqDance predicted dynamic property changes reflect mutation effect on protein folding stability.
+S0007	ESMDance, built upon ESM2 (Evolutionary Scale Model II) outputs, much outperforms ESM2 in zero-shot prediction of mutation effects for designed and viral proteins which lack evolutionary information. (ESMDance is the paper's model that starts from ESM2 representations and adds training on protein dynamics.)
+S0008	Together, SeqDance and ESMDance offer a method for integrating protein dynamics into language models, enabling more generalizable predictions of protein behavior and mutation effects.
+S0009	The sequence—structure (ensemble)—function relationship is central to biology.
+S0010	Protein dynamics in the structure ensemble determine function and mutation effects, and are widely used to study thermodynamics, folding pathways, and dynamic interactions of ordered proteins, as well as the conformational variability of intrinsically disordered proteins.
+S0011	But, current best currently available protein deep learning models, such as AlphaFold2,3 and evolutionary scale model (ESM), focus on static structures and sequences, which failed to directly capture protein dynamics.
+S0012	Here, we address this gap by developing protein language models to learn dynamic properties of over 64,000 proteins.
+S0013	We show that the model’s Transformer attentions capture protein dynamic interactions, and our model can be applied to predict conformational properties and mutation effects. molecular dynamics | protein language model | normal mode analysis | mutation effects (A transformer is a neural-network architecture that uses attention to model relationships between many items at once.)
+S0014	Protein deep learning models have made significant progresses in predicting 3D structure [e.g., AlphaFold (1, 2), RoseTTAfold (3), and ESMFold (4)], protein function (5), sta bility (6), localization (7), and interactions (8).
+S0015	A central challenge in developing effective models lies in the selection of information sources that models can interpret and learn from.
+S0016	Broadly, this information can be classified into two main types: evolutionary and biophysical (9).
+S0017	Evolutionary information is derived from protein homologous sequences across species that have been shaped by similar selection pressures.
+S0018	Multiple sequence alignments (MSAs) of homologs contain information of conserved motifs and coevolutionary pairs. (A homolog is a related protein sequence that likely shares evolutionary ancestry.)
+S0019	Recently, protein language models (pLMs) like ESM1,2 (4, 10), ProtTrans (11), and ProGen (12), trained on large-scale protein sequence datasets, have emerged as powerful tools to implic itly learn evolutionary information (13, 14). pLMs learn rich representations of evolu tionary information and perform well across diverse tasks, making them common baselines for evaluating new models.
+S0020	MSAs and pLMs have been successfully applied to predict 3D structures (1, 4), predict pathogenic mutations (15, 16), identify signal peptides (6), and even generate novel proteins (12).
+S0021	But, the effectiveness of evolutionary information relies on the quality and quantity of available homologous sequences.
+S0022	For instance, the confidences of structure predictions correlate to the number of homologous sequences (1, 4).
+S0023	As a result, evolutionary information is less effective for intrinsically disordered regions (IDRs), designed proteins, rapidly evolving viral proteins, immune proteins, and those from understudied species like extremophiles (17), where homologous sequences are either sparse or highly divergent. (Intrinsically disordered regions are protein regions that do not settle into one fixed 3D shape.)
+S0024	Also, evolutionary patterns in homologs are the outcomes of protein functions rather than the underlying causes (Figure 1A).
+S0025	Overreliance on evolu tionary information may bias models toward correlational patterns rather than learning fundamental principles governing protein behaviors.
+S0026	Biophysical information, primarily derived from protein structures, circumvents the limitations of evolutionary information.
+S0027	Predicting protein behaviors from biophysical information aligns with the central paradigm that sequence determines structure, and structure governs function (Figure 1A), thereby enabling models to generalize more broadly across the protein universe.
+S0028	Biophysical information has been applied to a broad set of biological questions.
+S0029	For example, predicted structures have been used to predict mutation effects and functional sites (18).
+S0030	MaSIF (8) utilized biophysical and geometric To whom correspondence may be addressed.
+S0031	Email: ys2411@cumc.columbia.edu. features on protein surface to study protein interactions.
+S0032	PScore (19) was trained to predict Pi-interactions derived from PDB (20) structures and can be used to identify phase-separating proteins (21). (PDB is the Protein Data Bank, the main public structure database.)
+S0033	Additionally, there have been initiatives to integrate biophysical information into pLMs.
+S0034	ProSE (9) was trained to predict masked residues, contacts within static struc tures, and structural similarities, while METL (22) was devel oped to predict biophysical properties derived from static structures (Figure 1B).
+S0035	There were also pLMs that integrate struc ture token information (14, 23).
+S0036	But, current protein models use biophysical information from static structures.
+S0037	These structural snapshots lack crucial infor mation about thermodynamics, allostery, folding, and dynamic interactions.
+S0038	Also, static structures cannot describe the dynamic nature of IDRs, which constitute more than 30% of the human proteome (24) and use their inherent flexibility to mediate essential biological processes.
+S0039	Protein dynamics are fundamental to under stand protein behaviors and mutation effects.
+S0040	Although evolutionary information encodes aspects of protein dynamics (25, 26), it depends on the quality and quantity of homologous sequences and cannot be directly extracted.
+S0041	Molecular dynamics (MD) simulations are routinely used to study protein dynamics, generating ensembles of structures based on defined physical forces over the simulation time. (Molecular dynamics means simulating how atoms or coarse-grained protein parts move over time according to physical forces.)
+S0042	All-atom MD simulations are often computationally intensive to reach a converged equilibrium state (27).
+S0043	Coarse-grained models simplify protein residues into beads and use task-specific force fields to reduce computation cost (24). (Coarse-grained models simplify a molecule by grouping atoms into larger units so simulations are cheaper.)
+S0044	Additionally, normal mode analysis (NMA) (28, 29) can describe protein vibrations around the equi librium conformation, with low-frequency modes capturing large-scale motions. (Normal mode analysis estimates the natural vibration patterns of a protein around a stable shape.)
+S0045	What’s more, deep learning models have been developed to generate conformation ensembles (30, 31).
+S0046	While these methods are widely used to study protein dynamics, the produced data are often high-dimensional and irregularly shaped.
+S0047	Thus, effec tively and efficiently integrating these dynamic data into protein deep learning models remains a significant challenge.
+S0048	In this study, we present a deep learning method to integrate dynamics data into pLMs.
+S0049	Using dynamics profiles from 64,403 proteins, we pretrained (i.e., train models on large scale, general datasets to learn useful information before applying them to specific tasks) two models: SeqDance and ESMDance.
+S0050	SeqDance is trained from scratch directly on protein dynamics data, whereas ESMDance is built upon ESM2 outputs, which implicitly encode structural and evolutionary information.
+S0051	We demonstrated that our models capture local dynamic properties and global conformational prop erties for proteins not included in the training data.
+S0052	We also applied our models for zero-shot (applying models directly to a new task without any additional training) prediction of mutation effects, achieving superior performance on designed and viral proteins, where evolution-based methods typically underperform. (Zero-shot means applying a model to a task without training it specifically on examples for that task.)
+S0053	Figure 1.
+S0054	Information flow in protein study, representative pLMs, model pretraining and performance on test set.
+S0055	(A) Illustration of the “sequence—structure ensemble—function—evolution” paradigm.
+S0056	The sequence is the basis of a protein, which folds into a structural ensemble to perform its function.
+S0057	Functionally important region exhibits conserved patterns across homologs.
+S0058	(B) Representative pLMs and their information sources.
+S0059	ESM1 and 2 were trained to predict masked residues and implicitly learned evolutionary information.
+S0060	ProSE was trained to predict masked residues, pairwise contact in static structures, and structure similarity.
+S0061	METL was trained to predict biophysical terms calculated from static structures.
+S0062	SeqDance and ESMDance were trained on protein dynamic properties from MD simulations, experimental data, and NMA of static structures.
+S0063	(C) Diagram of the pretraining process.
+S0064	SeqDance and ESMDance take a protein sequence as input and predict residue-level and pairwise dynamic properties, which are extracted from structure ensembles and NMA.
+S0065	Both models use a Transformer encoder architecture identical to ESM2-35M, consisting of 12 layers with 20 heads per layer and an embedding dimension of 480. (An embedding is a learned numerical representation that stores useful information about a sequence or residue.)
+S0066	Linear layers are applied to the residue embeddings to predict residue-level properties.
+S0067	For pairwise property prediction, pairwise embeddings, constructed from residue embeddings, are concatenated with attention maps, a linear layer is then applied to predict pairwise properties.
+S0068	(D and E) Comparison of SeqDance, ESMDance, and STARLING on 1,249 test IDRs (filtered to sequences ≤384 residues, since STARLING cannot be applied to longer IDRs).
+S0069	STARLING was used to generate 20 or 200 conformations for each IDR.
+S0070	(F and G) Comparison of SeqDance, ESMDance, and two NMA methods on 404 test high-resolution ordered proteins (filtered to sequences ≤1,024 residues, since SeqDance and ESMDance were trained with max length of 1,024).
+S0071	The low-frequency 5 or 20 modes from GNM and 5 × 3 or 20 × 3 modes from ANM were used for each protein (see Methods for details). (The Gaussian Network Model is a simplified normal-mode method for estimating protein motions.)
+S0072	In those boxplots, the box extends from the first quartile to the third quartile of the data, with a line at the median.
+S0073	The whiskers extend from the box to the farthest data point lying within 1.5 times the interquartile range from the box.
+S0074	To establish the protein dynamics dataset, we curated both highresolution and low-resolution data sources.
+S0075	High-resolution data include experimental data and all-atom MD simulation trajectories from mdCATH (32), ATLAS (33), GPCRmd (34), PED (35).
+S0076	Since high-resolution data are limited, we further used low-resolution dynamics data, including coarse-grained MD trajectories of human IDRs from IDRome (24) and NMA [we used the Gaussian Network Model (28) (GNM) and the Anisotropic Network Model (29) (ANM)] for representative structures in the PDB (36). (The Anisotropic Network Model is a simplified normal-mode method that estimates direction-specific protein motions.)
+S0077	Overall, we collected 7,799 high-resolution data and 56,604 low-resolution data, covering ordered domains, IDRs, membrane proteins, antibodies, and protein complexes (see Table 1 and SI Appendix, Supplementary Methods for details).
+S0078	We extracted residue-level and pairwise dynamic properties that describe the distribution of properties in structure ensembles (Figure 1C and SI Appendix, Table S1).
+S0079	Residue-level properties include normalized RMS fluctuation (RMSF), solvent-accessible surface area (SASA), eight-class secondary structures, and dihedral angles (phi, psi, chi1) which describe the rotations around bonds in the protein backbone and side chains. (SASA measures how much of a residue or protein surface is exposed to surrounding solvent.)
+S0080	Pairwise properties include the correlation of Cα movements and frequencies of hydrogen bonds, salt bridges, Pi–cation, Pi–stacking, T-stacking, hydrophobic interactions, and van der Waals interactions.
+S0081	For NMA data, we categorized normal modes of each structure into three frequency-based clusters.
+S0082	For each cluster, we calculated residue fluctuation and pairwise movement correlation (see SI Appendix, Table S1 and Supplementary Methods for details).
+S0083	We developed two models, SeqDance and ESMDance, both consisting of Transformer encoders and dynamic property predic tion heads (task-specific output layers).
+S0084	Both models take protein sequence as the only input, use the encoder’s final layer embed dings and attention maps to predict residue-level and pairwise dynamic properties (Figure 1C).
+S0085	The Transformer encoder follows the same architecture as ESM2-35M (35 million parameters) with 12 layers and 20 heads per layer, the dynamic property prediction heads contain 1.2 million trainable parameters in total.
+S0086	The key difference between the two models lies in their initialization and use of prior knowledge.
+S0087	In SeqDance, all parameters were ran domly initialized, allowing the model to learn dynamic properties from scratch.
+S0088	In contrast, ESMDance retains and freezes all parameters from ESM2-35M, enabling it to leverage the evolu tionary information already encoded in ESM2 to predict dynamic properties (see Methods for details).
+S0089	To balance contributions of different properties from different data sources, we adjusted their respective weights in the loss func tion (see Methods for details).
+S0090	We clustered sequences using a 50% sequence identity cutoff (same to ESM2 training), then randomly chose 95% of the clusters as the training set, reserving the remain ing 5% as the test set (no validation set was used, since we did not perform hyperparameter tuning; see Methods).
+S0091	The training and test losses are shown in SI Appendix, Figure S1.
+S0092	SeqDance and ESMDance achieve comparable overall test losses, with SeqDance performing better on the IDRome test set and NMA test set, while ESMDance performing better on the high-resolution test set.
+S0093	After pretraining, we observed strong correlations between the weights of linear layers used to predict comovement in MD simulations and those used for comovement in NMA, in both models (SI Appendix, Figure S2).
+S0094	This result confirms that NMA effectively captures dynamic motions similar to those observed in MD sim ulations, supporting its use as a complementary source for aug menting model pretraining.
+S0095	PED (35) GPCRmd (34) mdCATH (32) ATLAS (33) IDRome (24) Disordered regions Membrane proteins CATH domains Ordered structures in PDB Disordered regions 382 509 5,392 1,516 28,058 Experiment and others All-atom MD, ~500 ns × 3 All-atom MD, ~464 ns × 5 All-atom MD, 100 ns × 3 Coarse-grained MD To assess the direct utility of SeqDance and ESMDance, we evaluated them on the test IDRome and high-resolution datasets, comparing performance on IDRs against the IDR conformation generative model STARLING (31) and on the high-resolution dataset against two NMA methods: GNM and ANM.
+S0096	We focused on residue fluctuation and pairwise movement correla tion [only residue pairs farther than five amino acids were con sidered as recommended in CASP (37)], as they can be directly calculated from STARLING-generated ensemble and normal modes.
+S0097	For test IDRs, SeqDance achieves median Pearson cor relations of 0.87 for residue fluctuation and 0.89 for pairwise movement correlation, ESMDance achieves median correlations of 0.82 and 0.83 for two tasks (Figure 1 D and E).
+S0098	As a baseline, we used STARLING to generate 200 conformations for each test IDR, extracted dynamic properties from the generated ensemble.
+S0099	This approach achieves median correlations of 0.82 and 0.85 for two tasks (Figure 1 D and E), comparable to ESMDance but not as good as SeqDance.
+S0100	For high-resolution ordered test proteins, SeqDance achieves median Pearson corre lations of 0.54 for residue fluctuation and 0.27 for pairwise movement correlation, while ESMDance achieves 0.60 and 0.37, respectively (Figure 1 F and G).
+S0101	As baselines, we used GNM and ANM (low-frequency 5 or 20 modes for GNM, 5 × 3 or 20 × 3 modes for ANM) to calculate dynamic properties.
+S0102	ESMDance is comparable to ANM in predicting residue fluctuation and comparable to GNM with five modes in predicting pairwise correlation, but overall, both SeqDance and ESMDance lag behind GNM and ANM when using 20 normal modes for ordered proteins (Figure 1 F and G).
+S0103	Taken together, by being trained on protein dynamic properties, SeqDance and ESMDance can be directly applied to predict residue-level and pairwise dynamic properties for proteins dissim ilar to those in the training set.
+S0104	They shows superior per formance on IDRs for both residue-level and pairwise dynamics, and satisfactory performance on residue-level dynamics of ordered proteins, using sequence as the only input (NMA takes structure as input).
+S0105	SeqDance performs better on IDRs, whereas ESMDance performs better on ordered proteins, consistent with the trends observed in the test losses (SI Appendix, Figure S1) and in line with the fact that evolutionary information is more informative for ordered proteins but less effective for IDRs.
+S0106	In the following, we first assessed SeqDance’s attention mechanism and embeddings, then compared its predicted dynamic properties with mutation effect on protein stability, and examined the advantage of ESMDance compared to ESM2 and SeqDance on predicting mutation effects.
+S0107	SeqDance’s Attentions Capture Dynamic Interactions and Comovement.
+S0108	The Transformer model employs self-attention mechanism (38) to aggregate information from other tokens, with attention values representing the relationship between tokens (in protein context, amino acids). (Attention lets a model decide which other residues are most relevant when interpreting a given residue.)
+S0109	Here, we evaluated whether SeqDance’s attention mechanism captures dynamic interactions and residue comovement.
+S0110	The analysis was conducted on the test dataset, which included 404 high-resolution proteins, 1,355 IDRome proteins, and 1,274 proteins with NMA.
+S0111	Additionally, we evaluated an independent test set comprising 29 MD trajectories from the Dynamic PDB dataset (39).
+S0112	All test proteins share less than 50% sequence identity with the SeqDance training sequences, allowing us to assess the model’s ability to generalize to unseen proteins.
+S0113	The Dynamic PDB test set was generated using a different MD force field to those used in pretraining, enabling us to further evaluate SeqDance’s generalization ability across different simulation conditions.
+S0114	For all analyses, only residue pairs farther than five amino acids were considered as recommended in CASP (37).
+S0115	We compared the dynamic properties (interaction frequency and movement correlation) of residue pairs to attention values from each attention head.
+S0116	We calculated Spearman correlations for all 240 attention heads and highlighted the top five heads in Figure 2. (Spearman correlation measures whether two quantities tend to rise and fall together by rank, not by exact numerical scale.)
+S0117	For interaction frequency, the best attention heads of SeqDance achieve median Spearman correlations of 0.41 on the high-resolution test set, 0.52 on the IDRome test set, and 0.52 on the Dynamic PDB test set (Figure 2 A–C; the best attention head for different data may be different).
+S0118	For residue pairs with positive movement correlation in the MD ensemble, SeqDance performs particularly well on the IDRome test set, achieving a median Spearman correlation of 0.74 for the best attention head.
+S0119	In con trast, median Spearman correlations of best attention heads are just 0.22 for both ordered test set (high-resolution and Dynamic PDB; Figure 2 D–F), consistent with our results in Figure 1 E and G.
+S0120	SeqDance’s attention do not capture residue pairs with negative movement correlation in the MD ensemble well (SI Appendix, Figure S3 A–C).
+S0121	For NMA data, the best attention heads achieve median Spearman correlations of 0.34, 0.29, and 0.22 for posi tively correlated pairs in low-, medium-, and high-frequency modes, respectively (Figure 2 G–I), and Spearman correlations of –0.04, –0.26, and –0.35 for negatively correlated pairs in three frequency modes (SI Appendix, Figure S3 D–F; negative correlation means better capturing this property).
+S0122	We further evaluated ESM2-35M, as ESMDance was trained with ESM’s parameters frozen and thus shares identical atten tions.
+S0123	We note that the test proteins are dissimilar to SeqDance’s training data, but appear in, or have homologs in, the ESM2 training data.
+S0124	Previous studies showed that ESM’s attention heads capture both native interactions observed in PDB struc tures (40) and nonnative interactions observed in MD simula tions (25) via learning evolutionary information.
+S0125	Across all evaluations, ESM2-35M and SeqDance show comparable per formances (Figure 2 and SI Appendix, Figure S3).
+S0126	SeqDance performs slightly better on four evaluations (interaction frequencies, neg atively correlated pairs in the MD ensemble, and both positively and negatively correlated pairs in NMA), while ESM2-35M performs slightly better on one evaluation (positively correlated pairs in the MD ensemble).
+S0127	Overall, these results demonstrated that our pretraining strategy enables SeqDance’s attention to capture dynamic interactions and residue comovement directly from sequence, performing comparable to ESM2 on unseen proteins and different simulation conditions.
+S0128	ESM2’s ability to capture dynamic properties enabled us to train ESMDance, achieving comparable test loss to SeqDance with far fewer train able parameters (SI Appendix, Figure S1).
+S0129	SeqDance’s Embeddings Encode Global Protein Conformation Properties.
+S0130	Next, to assess SeqDance’s generalization capability, we investigated whether SeqDance learns protein conformational properties not included in the pretraining tasks.
+S0131	Specifically, we considered end-to-end distance (Re ), asphericity, and radius of gyration (Rg ), which quantify motion range, deviation from a spherical shape, and compactness, respectively.
+S0132	Since these properties cannot be directly obtained from the model, we trained linear regression models using its embeddings in a supervised manner.
+S0133	To ensure a fair comparison with other pLMs in Figure 1B (ESMDance embedding is identical to ESM2-35M), we applied principal component analysis to the mean-pooled embeddings from each method and used the top 200 components as input for linear regression.
+S0134	Spearman r: attention values vs. interaction frequency Spearman r: attention values vs.
+S0135	MD co-move (positive) Spearman r: attention values vs.
+S0136	NMA co-move (positive) We first evaluated these pLMs on structure ensembles of IDRs (41) generated using a different coarse-grained force field com pared to SeqDance training set.
+S0137	After removing IDRs with over 20% sequence identity and 50% coverage to any SeqDance train ing sequence, 28,717 IDRs remained (see Methods for details).
+S0138	We used mean Re, asphericity, and Rg in the ensemble (see Methods for how we account for the intrinsic length dependence of Rg and Re ).
+S0139	The training and test sets were split in a 6:4 ratio using a 20% sequence identity cutoff to prevent information leakage.
+S0140	Linear regression model was trained for each pLM, and the experiment was repeated 20 times.
+S0141	SeqDance significantly outperforms the randomly initialized model prior to pretraining and other pLMs (Figure 3 A–C), reducing the MAEs (mean absolute errors) of the random model, ESM2-650M, METL, and ProSE by 31%, 25%, 29%, and 31% on average, respectively.
+S0142	For ordered proteins, obtaining conformational properties from structure ensembles is challenging due to the computational cost of MD simulations.
+S0143	So, we used Rg of over 10,000 static monomer structures in the PDB database from the paper (42) (see Methods for details).
+S0144	Since SeqDance was trained on NMA of nearly all representative PDB structures (36), we did not exclude sequences with homologs in SeqDance training set.
+S0145	Using the same evaluation method described above, SeqDance outperforms the random model, ProSE, and METL, and performs comparably to ESM2 (Figure 3D).
+S0146	We also evaluated the performance using Pearson correlation and found similar results (SI Appendix, Figure S4 A–D).
+S0147	Notably, even using the full embeddings instead of the first 200 principal components, SeqDance still outperforms other pLMs in most tasks (SI Appendix, Table S2), despite having the shortest embedding size.
+S0148	Figure 3 E–H shows the predictions of the linear model using full SeqDance embeddings on test proteins from one experiment.
+S0149	SeqDance enables accurate predictions of conforma tional properties observed in MD simulations of IDRs and in PDB structures of ordered proteins.
+S0150	We further compared SeqDance with STARLING for IDRs and with ESMFold (3B parameters) for ordered proteins.
+S0151	We note that both STARLING and ESMFold were trained on the same datasets used in our eval uation, meaning that a substantial fraction of the test proteins was included in their training sets.
+S0152	For IDRs, SeqDance outperforms STARLING when generating 20 conformations but underper forms STARLING when generating 200 conformations (Figure 3 E–G and SI Appendix, Figure S4 E–G).
+S0153	For ordered proteins, SeqDance embeddings and ESMFold yield comparable perfor mance (Figure 3H and SI Appendix, Figure S4H).
+S0154	Thus, SeqDance provides an efficient alternative for predicting protein conforma tional properties, achieving performance comparable to structureand ensemble-based methods while being orders of magnitude faster.
+S0155	SeqDance Predicted Dynamic Property Changes Reflect Mutation Effect on Protein Stability.
+S0156	To evaluate whether SeqDance captures information about the biophysics of protein folding, we compared its output with mutation effects on protein folding stability.
+S0157	We hypothesized that destabilizing mutations would induce significant changes in protein dynamics, whereas mutations with minimal impact would induce smaller dynamic changes.
+S0158	To test this hypothesis, we used SeqDance to predict dynamic properties for both wild-type and mutated sequences, computed their relative changes, and compared these to experimentally measured ΔΔG values (Figure 4A, see Methods for details). (ΔΔG measures how much a mutation changes protein stability; larger destabilizing values usually mean worse folding stability.)
+S0159	This approach was framed as a zero-shot prediction, as the model was not specifically trained on mutation data.
+S0160	We applied this approach to the megascale protein folding stability dataset (43), which includes ΔΔG values for 379,865 single mutations and 147,926 double mutations across 412 proteins, encompassing both natural and designed proteins.
+S0161	To evaluate the zero-shot predictive power of individual dynamic properties, we computed the Spearman correlation between the relative change of each property and the correspond ing ΔΔG values for mutations in each protein.
+S0162	While the ran domly initialized model prior to pretraining shows no predictive power, many SeqDance-predicted properties achieve median Spearman correlations above 0.2 (Figure 4B and SI Appendix, Figure S5), confirming that pretraining enables SeqDance to capture meaningful biophysical dynamics.
+S0163	Among individual properties, SASA mean emerges as one of the top-performing properties, consistent with the fact that destabilizing mutations disrupt core packing and increase solvent exposure.
+S0164	Dihedral angles phi and psi also rank highly, highlighting the role of backbone conforma tional flexibility in protein stability.
+S0165	Additionally, pairwise move ment correlations derived from MD simulations and NMA shows relatively high performance, further emphasizing the importance of collective dynamics in predicting mutation effects.
+S0166	To integrate these dynamic properties, we used the geometric mean of quantile-normalized relative changes (see SI Appendix, Table S3 and Methods for details).
+S0167	The unified score yields a median Spearman correlation of 0.24 across all 412 proteins.
+S0168	To assess whether SeqDance’s performance depends on the presence of homologs in its training set, we first analyzed its per formance relative to the most similar protein in the training set.
+S0169	SeqDance performs better on proteins with close homologs of over 95% sequence identity in its training set (Figure 4C).
+S0170	For the 125 proteins with such close homologs, the median Spearman correlation is 0.29, whereas for the 191 proteins with no homologs in the training set, the median correlation is 0.20.
+S0171	Proteins with homologs of 20 to 95% sequence identity show similar perfor mance to those with no homologs.
+S0172	We also examined SeqDance’s performance as a function of the number of homologs (defined as over 20% sequence identity and 50% coverage) and observed only a minor correlation (Figure 4D).
+S0173	Also, we compared SeqDance with ESM2, which can perform zero-shot prediction of mutation effects by estimating the probability of 20 amino acids based on evolutionary informa tion.
+S0174	ESM2-35M achieves a median Spearman correlation of 0.33, outperforming SeqDance.
+S0175	This is consistent with the fact that evolutionary information is highly effective in predicting mutation effects.
+S0176	But, the performance of ESM2 is strongly dependent on the number of homologs in its training set, UniRef50, par ticularly for proteins with over 100 homologs (Figure 4E; ESM2-650M and -15B in SI Appendix, Figure S6 A and B).
+S0177	To iso late the effect of homolog abundance, we evaluated a subset of 257 proteins that have a similar number of homologs (between 0 and 146) in both UniRef50 and the SeqDance training set.
+S0178	In this subset, ESM2-35M achieves a median Spearman correlation of 0.22, comparable to SeqDance’s performance of 0.24 (SI Appendix, Figure S6C).
+S0179	These results suggest that, given similar model size and training data abundance, SeqDance and ESM2 perform similarly in predicting mutation effect on protein stabil ity.
+S0180	Overall, despite being pretrained exclusively on wild-type sequences and without reliance on evolutionary information, SeqDance is able to make meaningful predictions about mutation effect on protein stability, even for proteins with no homologs in the training set.
+S0181	ESMDance Enhances Prediction of Mutation Effect on Protein Stability.
+S0182	While both ESM2-35M, which leverages evolutionary properties, can predict mutation effect on protein stability, their individual performance remains modest at a model size of 35 million parameters.
+S0183	To harness the strengths of both approaches, we developed ESMDance that integrates evolutionary and dynamic information, also with 35 million parameters.
+S0184	Using the zero-shot approach illustrated in Figure 4A, ESMDance achieves a median Spearman correlation of 0.46 across 412 proteins (Figure 4F), significantly outperforming both ESM2-35M (0.33) and SeqDance (0.24).
+S0185	Remarkably, ESMDance also matches or surpasses SaProt35M (23) (0.45; SI Appendix, Figure S6D), which has similar model architecture but uses structure tokens as additional input, and much larger language models, including ESM2-650M (0.46; SI Appendix, Figure S6A) and ESM2-15B (0.43; SI Appendix, Figure S6B).
+S0186	Also, ESMDance shows robust generalization: its performance is independent of the presence of homologs in its training set or in UniRef50 (Figure 4 F and G and SI Appendix, Figure S6E).
+S0187	We note that proteins without homologs in UniRef50 also lack homologs in the ESMDance training set.
+S0188	Thus, the performance gains observed for these proteins are not attributable to the presence of their dynamic data in the ESMDance training.
+S0189	These models’ zero-shot predictions are correlated with ΔΔG, but not on the same physical scale.
+S0190	To align them with ΔΔG, we fitted supervised linear regression models.
+S0191	For each protein, 50% of mutations were randomly sampled for training and the remaining 50% were used for testing.
+S0192	Linear regression models of SeqDance- and ESMDance-predicted dynamic property changes (23 relative changes, Figure 4B) achieve median MAEs of 0.63 and 0.54 kcal/mol and median Spearman correlations of 0.44 and 0.58, respectively, on test mutations from 412 proteins (Figure 4 H and I), significantly outperforming their respective zero-shot correlations.
+S0193	As a baseline, a linear regression model using zero-shot predictions from three ESM2 models (35M, 650M, and 15B) achieves a median MAE of 0.56 kcal/mol, better than SeqDance but worse than ESMDance (Figure 4 H and I).
+S0194	We further trained regression models using predictions from multiple methods as inputs.
+S0195	Adding SaProt-35M predictions to ESM2 decreases the MAE to 0.53 kcal/mol, while adding SeqDance or ESMDance predictions yields larger improvements: ESM2 + SeqDance reaches 0.52 kcal/mol, ESM2 + ESMDance reaches 0.48 kcal/mol, and combining ESM2, SeqDance, and ESMDance achieves the best performance with a median MAE of 0.47 kcal/mol and a median Spearman correlation of 0.70 (Figure 4 H and I).
+S0196	Overall, these results shows that by integrating evolu tionary information learned by ESM2 with protein dynamic prop erties, ESMDance achieves superior performance in predicting mutation effect on protein stability.
+S0197	Also, our models provide additional information to evolution-based models, and their combination yields even greater predictive power.
+S0198	Biophysics-Based Pretraining Improves Mutation Effect Prediction for Designed and Viral Proteins.
+S0199	One limitation of ESM2 is that the evolutionary information it learns from natural proteins may fail to generalize to de novo designed proteins.
+S0200	To evaluate whether ESMDance can address this limitation, we analyzed a subset of 135 designed proteins that lack homologs in both UniRef50 and the SeqDance/ESMDance training set.
+S0201	ESM235M, -650M, and -15B achieve median Spearman correlations of 0.21, 0.32, and 0.29, respectively—significantly lower than their average performances (Figures 4E and 5A and SI Appendix, Figure S6 A and B).
+S0202	In contrast, ESMDance achieves a median Spearman correlation of 0.46, much outperforming SeqDance (0.20), SaProt-35M (0.06), and all ESM2 models (Figure 5A).
+S0203	Further analysis at the individual protein level revealed that the performances of different ESM2 models are highly correlated (Figure 5B).
+S0204	In contrast, both SeqDance and ESMDance exhibit orthogonal performance patterns to ESM2 (Figure 5 C and D), with ESMDance showing significant improvements for most proteins compared to ESM2-35M (Figure 5D).
+S0205	Also, we visualized zero-shot predictions for two designed proteins (highlighted in Figure 5 B–D).
+S0206	The first, r10_572_TrROS_ Hall (Figure 5E), was designed using TrRosetta spurious invented structure (43).
+S0207	Both SeqDance and ESMDance achieve significantly higher correlations (0.52 for both) compared to the ESM2 models (0.18, 0.25, and 0.20 for ESM2-35M, -650M, and -15B, respectively).
+S0208	The second, GG|run4_0284_0002 (Figure 5F), was designed using the EEHH method (43).
+S0209	Here, both ESM2 and SeqDance perform poorly (0.02, 0.09, −0.02, and 0.18 for ESM2-35M, -650M, -15B, and SeqDance, respectively), whereas ESMDance achieves a markedly higher correlation of 0.53.
+S0210	Linear regression models show similar results on test mutations of two proteins (SI Appendix, Figure S7).
+S0211	This result underscores the advantage of ESMDance in directly integrat ing dynamic properties and evolutionary information during model training, outperforming separate predictions from two models.
+S0212	Additionally, we benchmarked several established structurebased models.
+S0213	These included the inverse-folding model Protein MPNN (44), which predicts sequence from structure and whose predicted sequence likelihood correlates with mutation effects on stability, as well as the biophysics-based models Rosetta (45) and FoldX (46) (see Methods for details), which directly estimate muta tion ΔΔG values.
+S0214	We note that using the structure as input inher ently simplifies stability prediction, since mutations in buried sites typically have larger effects, whereas surface mutations tend to have smaller effects (Figure 5G).
+S0215	We first evaluated Spearman correlation, ESMDance zero-shot outperforms ProteinMPNN but performs below FoldX and Rosetta, while ESMDance linear regression per forms comparably to FoldX and Rosetta (Figure 5H).
+S0216	We also assessed the mean absolute error (MAE), and our linear regression models yield much lower MAE than both FoldX and Rosetta raw ΔΔG values.
+S0217	After calibrating FoldX and Rosetta raw ΔΔG values with experimental measurements using linear regression, their MAE becomes comparable to—but still slightly higher than—that of ESMDance linear regression model (Figure 5H).
+S0218	Overall, these results suggest that our linear regression models can serve as an alternative to traditional biophysics-based models while being orders of magnitude faster and requiring only sequence input.
+S0219	Besides designed proteins, we also examined their performances on viral proteins, which evolve rapidly and are underrepresented in UniProt.
+S0220	For deep mutational scanning experiments in ProteinGYM (47), ESM2 models and SaProt-35M consistently perform worse on viral proteins compared to the other proteins regardless of model size (SI Appendix, Figure S8).
+S0221	ESM2-35M achieves a median Spearman correlation around 0 on viral proteins (SI Appendix, Figure S8).
+S0222	For 23 viral proteins shorter than 1,024 residues, encompassing 187,902 mutations, SeqDance and ESMDance achieve median Spearman correlations of 0.18 and 0.25, respectively (Figure 5 I and J), using the zero-shot approach in Figure 4A (which may not be the optimal strategy for mutation effects beyond stability, see Discussion).
+S0223	They outperform ESM2-35M (0.03) and SaProt-35M (0.14) but are not as good as ESM2-15B (0.36; Figure 5I).
+S0224	Figure 2.
+S0225	SeqDance’s attention mechanism captures dynamic interactions and comovement in test sets.
+S0226	(A–I) For each attention head, Spearman correlation was calculated between attention values and pairwise dynamic properties, top five heads of SeqDance and ESM2-35M are shown.
+S0227	(D–I) show results for positively correlated residue pairs.
+S0228	The boxplots show the distributions of Spearman correlation on test proteins.
+S0229	Figure 3.
+S0230	SeqDance’s embeddings encode protein global conformational properties.
+S0231	(A–D) Performance comparison of SeqDance (35M parameters), METL, ProSE, and ESM2 (ESMDance embedding is identical to ESM2-35M) in predicting the end-to-end distance of disordered regions (A), asphericity of disordered regions (B), radius of gyration of disordered regions (C) and ordered proteins (D).
+S0232	The training and test split was 6:4 with a 20% sequence identity cutoff.
+S0233	Linear regression model was trained to predict conformational property using the first 200 principal components of mean-pooled embeddings from each method as input.
+S0234	Results presented are the distributions of the mean absolute error of 20 independent repeats.
+S0235	(E–G) Comparison of conformational properties of test IDRs obtained from coarse-grained MD simulations versus predictions from SeqDance embeddings.
+S0236	(H) Comparison of radius of gyration of test ordered proteins obtained from PDB structure versus predictions from SeqDance embeddings.
+S0237	Results in (E–H) are predictions from linear regression models using the full embeddings rather than the first 200 principal components.
+S0238	Each dot represents a test protein, the blue line indicates the linear fit, and the dashed black line represents the line of equality, marginal histogram shows the distribution of data.
+S0239	Figure 4.
+S0240	Predicting mutation effect on protein folding stability.
+S0241	(A) method of using SeqDance (35M parameters) or ESMDance (35M parameters) to predict mutation effects.
+S0242	(B) Distribution of zero-shot prediction performance (Spearman correlation) on 412 proteins of different dynamic properties; the random model (color gray) represents the randomly initialized model prior to pretraining.
+S0243	SASA mean, std: mean and SD of SASA.
+S0244	NMA properties 1, 2, 3: properties calculated from low-, median-, and high-frequency normal modes. vdw: van der Waals interaction; hbbb: backbone-to-backbone hydrogen bond; hbsb: sidechain-to-backbone hydrogen bond; hbss: side-chain-to-side-chain hydrogen bond; hp: hydrophobic interaction; sb: salt bridge; pc: Pi–cation interaction; ps: Pi–stacking interaction; ts: T-stacking interaction.
+S0245	(C) SeqDance zero-shot prediction performance split by the most similar proteins in SeqDance training set.
+S0246	We used cutoff of 95% sequence identity together with 95% coverage, 50% sequence identity together with 80% coverage, 20% sequence identity together with 50% coverage.
+S0247	(D–F) Relationship between zero-shot performance and the number of homologs (defined as 20% sequence identity and 50% coverage) in training set.
+S0248	The line represents a polynomial regression of order two, with the shaded area indicating the 95% CI.
+S0249	The x-axis shows the log-scaled number of homologs, with small random noises added to the x values to reduce overlap.
+S0250	(G) ESMDance zero-shot prediction performance split by the most similar proteins in ESMDance training set.
+S0251	(H and I) Performance of supervised linear regression models on test mutations from 412 proteins.
+S0252	For each protein, 50% of the mutations were used to train the regression model, and the remaining 50% were reserved as the test set.
+S0253	For SeqDance and ESMDance, the regression models used their 23 predicted dynamic property changes as input; for ESM2, the regression model used predictions from three models (35M, 650M, and 15B) as input; and for SaProt, the zero-shot predictions of SaProt-35M were used as input.
+S0254	In this work, we developed SeqDance and ESMDance, two pLMs pretrained with dynamic properties derived from MD simulations and NMA.
+S0255	SeqDance captures local dynamic interactions, residue comovement, and global conformational properties after pretrain ing, using only single sequence input and without relying on evo lutionary information.
+S0256	ESMDance integrates the evolutionary information encoded in ESM2 and the newly learned dynamic properties, significantly outperforms SeqDance and ESM2-35M in zero-shot prediction of mutation effects for designed and viral proteins.
+S0257	In the pretraining process, we did not directly predict full struc ture ensembles due to the immense size of the dataset (over 60 million frames) and the complexity of modeling entire ensembles.
+S0258	Instead, we used simplified dynamic property descriptors such as the mean, SD, and interval distribution of ensemble-derived prop erties.
+S0259	Prior study has demonstrated that mean values from struc ture ensembles provide significantly more information than those from static structures (48).
+S0260	This strategy enables SeqDance and ESMDance to learn from simplified but informative properties of protein dynamics, without the overwhelming computational demand of full ensemble modeling.
+S0261	During pretraining, the test losses plateaued early (SI Appendix, Figure S1), but we continued training to enable models to learn dynamic information more effectively from the training set, as the training set was Zero-shot performance on stability mutation scan of 135 designed proteins (no homolog in UniRef50/SeqDance training set) representative and relatively large, and extended training did not result in increased test loss.
+S0262	Using attention maps to predict pair wise properties constrains SeqDance to focus on interacting and comoving residue pairs.
+S0263	This approach is crucial for learning bio physically meaningful information and improves SeqDance’s abil ity to extrapolate to unseen proteins.
+S0264	Our results show that our pretraining strategy enables the transformer’s attentions to effec tively capture pairwise dynamic properties, using only 1/1,000th of the training sequences compared to ESM2.
+S0265	In Figures 1 and 2, both SeqDance and ESMDance achieve higher correlations for IDRs compared to ordered structures, likely because our models were trained on more IDR MD trajectories.
+S0266	In addition, the dynamics of IDRs are usually localized and easier to learn, whereas the dynamics of ordered structures often involve long-range interactions.
+S0267	SeqDance effectively learns global con formational properties of both ordered and disordered proteins (Figure 3), which are essential for understanding protein shape and flexibility.
+S0268	In comparison, METL (22) underperforms in predict ing the radius of gyration (Rg ) for ordered proteins (Figure 3D), despite having Rg prediction as a pretraining task.
+S0269	ProSE (9) per forms well in predicting the conformational properties of ordered regions but struggles with IDRs (Figure 3), likely because its pre training focused on ordered PDB structures.
+S0270	ESM2 performs well on both ordered and disordered proteins, as conformational prop erties are also conserved (41).
+S0271	Current methods for zero-shot prediction of mutation effects use evolutionary information and static structure.
+S0272	These methods are less effective for proteins without sufficient homologs and structures.
+S0273	We applied SeqDance and ESMDance to predict muta tion effects by calculating changes of dynamic properties between wild-type and mutated sequences.
+S0274	These results highlight the effectiveness and efficiency of integrating both evolutionary infor mation and dynamic properties for understanding mutation effects, particularly for proteins that cannot be accurately predicted using evolutionary information or static structure.
+S0275	While we apply this kind of zero-shot strategy to predict mutation effects on pro tein, analogous approaches like Enformer (49) and Borzoi (50) have been used to predict effect of noncoding mutations in DNA sequences, where evolutionary information is also less effective.
+S0276	Our current zero-shot strategy uses changes across the entire pro tein, which is reasonable for predicting mutation effects on protein stability but not optimal for mutation effects on function, binding, or activity, where dynamic changes at functional sites, binding interfaces, or catalytic centers may be more relevant.
+S0277	Also, for SeqDance, the presence of highly similar proteins in the train ing set leads to improved performance on mutation effect (Figure 4C).
+S0278	Thus, running MD simulations for a protein of interest and using the extracted features to fine-tune SeqDance may yield better predictions, but this may not work for ESMDance (Figure 4G).
+S0279	We did not compare our models to classical protein dynamics methods on specific proteins.
+S0280	This was a deliberate choice: Our models are not intended as drop-in replacements for existing approaches, but rather as a step toward a paradigm that learns dynamic information with pLMs.
+S0281	In our work, all evaluations were performed on proteins shorter than 1,024 residues.
+S0282	We envi sion several directions to further improve the models.
+S0283	First, expanding protein dynamics data: while high-resolution data remain limited relative to the vast number of sequences, lowerresolution sources, such as coarse-grained MD simulations and NMA, can still provide valuable training signals.
+S0284	Second, training models on more detailed dynamic properties that describe higherorder relationships and time-dependent behaviors to capture more nuanced aspects of protein motion.
+S0285	Third, employing more advanced model architectures [e.g., the Evoformer in AlphaFold2 (1)] and scaling up model size: as demonstrated in many areas of deep learning, larger models can learn more complex patterns.
+S0286	Last, incorporating structural information as additional input may fur ther improve performance on ordered structures and mutation effect on stability.
+S0287	In conclusion, SeqDance and ESMDance advance the integration of protein dynamic properties, captured through MD simulations and NMA, into deep learning frameworks.
+S0288	By complementing widely used evolutionary and static structure-based models, our models reveal insights into protein behavior and mutation effects, particularly for proteins lacking homologs, such as IDRs, designed and viral proteins.
+S0289	This underscores the practical utility of dynamic properties as a critical, yet underexplored, dimension in computa tional protein design and studies, offering a tool to bridge the gap between sequence, dynamics, and function.
+S0290	Figure 5.
+S0291	Predicting mutation effects for designed and viral proteins.
+S0292	(A–D) Performance comparison between ESM2, SaProt (35M parameters), SeqDance (35M parameters), and ESMDance (35M parameters) for 135 designed proteins with no homologs in both UniRef50 and the SeqDance training set.
+S0293	Two highlighted proteins are further shown in (E and F).
+S0294	(E and F) Structure and the relationship between predictions and ΔΔG values for two designed proteins.
+S0295	The kernel density estimate plot shows the distribution of experimentally measured folding ΔΔG values and zero-shot prediction values for the three methods.
+S0296	The line represents the linear regression, with the shaded area indicating the 95% CI.
+S0297	(G) Relationship between experimental ΔΔG and relative SASA of the mutation site.
+S0298	The line represents the linear regression fit.
+S0299	(H) The SeqDance/ESMDance zero-shot prediction uses the geometric mean of 23 relative changes in dynamic properties, whereas the SeqDance/ESMDance linear regression model uses a linear combination of the same 23 relative changes.
+S0300	For all linear regression models, 50% of mutations were randomly sampled as training set for each protein, and the remaining 50% were used as test, the performances on test mutations were shown here.
+S0301	(I and J) Zero-shot performance of ESM2, SaProt, SeqDance, and ESMDance on 23 viral proteins shorter than 1,024 residues in ProteinGYM.
+S0302	Model Architecture.
+S0303	The models consist of a transformer encoder and the dynamic property prediction heads.
+S0304	The transformer encoder uses the ESM2-35M architecture and the same sequence tokenizer.
+S0305	It comprises 12 layers with 20 attention heads each and employs rotational positional embeddings, with a final embedding dimension of 480.
+S0306	The choice of the 35M model is due to both the relatively small training dataset (compared to hundreds of millions of sequences) and our computational resources.
+S0307	Linear layers are added to predict residue-level properties from the residue embeddings of the last transformer layer.
+S0308	For pairwise feature prediction, pairwise embeddings are computed from residue embeddings as follows: ⨀ Qj, Qi − Qj ), Pij = concat(Qi [1] ((())) Q = W2 LayerNorm GELU W1 (E), [2] where E represents the final residue embeddings,W1 and W2 are learnable linear matrices. i and j are residue indexes, ⨀ represents element-wise multiplication, The pairwise embeddings Pij, along with attention values from 240 heads, are passed through a linear layer to predict pairwise features.
+S0309	The dynamic property prediction heads contain 1.2 million parameters in total.
+S0310	Using attention maps and pairwise embeddings allows the model to capture the distinct characteristics of two pairwise properties: the mean value of interaction frequency depends on the sequence length, as the maximum number of interactions a residue can form is constrained, while the mean value of movement correlation is length-independent.
+S0311	By combining length-dependent attention values (which sum to one after SoftMax operation in attention calculation) with length-independent pairwise embeddings, the model can capture both types of pairwise properties.
+S0312	Different activation functions were used for different properties: For secondary structure and dihedral angles, where the values for each property sum to one, SoftMax functions were used.
+S0313	For RMSF, which is normalized to (0,1], Sigmoid functions were applied. (RMSF measures how much each residue tends to move or fluctuate in a structural ensemble.)
+S0314	For correlation properties, Tanh functions were used to maintain values within (−1,1).
+S0315	For other nonnegative properties, SoftPlus functions were applied (ReLU led to the dead ReLU problem in our experiments).
+S0316	Pretraining Procedure.
+S0317	Models were implemented and trained using PyTorch (51) (v2.5.1) and the Transformers library (v4.48.2, https://huggingface.co/docs/transformers/index).
+S0318	Training was performed with a batch size of 128, parameters were updated every three batches, each from high-resolution data, IDRome, and the NMA dataset.
+S0319	Optimization was conducted using the AdamW optimizer, with a peak learning rate of 1 × 10−4, an epsilon value of 1 × 10−8, betas of (0.9, 0.98), and a weight decay of 0.01.
+S0320	The learning rate was linearly warmed up over the first 2,000 steps, followed by a linear decay to 1 × 10−5 over 90% of total training steps.
+S0321	To mitigate overfitting, a dropout rate of 0.1 was applied in both the transformer encoder and the dynamic property prediction heads.
+S0322	SeqDance was trained for 200,000 steps, with a maximum sequence length of 256 for the first 160,000 steps and 1,024 for the remaining 40,000 steps.
+S0323	ESMDance was trained for 60,000 steps, using a maximum sequence length of 256 for the first 40,000 steps and 1,024 for the final 20,000 steps.
+S0324	ESMDance has fewer trainable parameters, both its training and test losses plateaued earlier (SI Appendix, Figure S1).
+S0325	For sequences exceeding the maximum length, a region of the max length was randomly selected, the selected regions were different in each epoch.
+S0326	Two models were trained for 10 d using four Nvidia L40s GPUs.
+S0327	Due to computational constraints, hyperparameter tuning was not performed, which means the current model configuration may not be the best.
+S0328	Adjusting Weights of Dynamic Properties in the Loss Function.
+S0329	RMS error (RMSE) was used as the loss function for pretraining.
+S0330	For interaction frequencies, some interacting pairs exhibit frequencies close to zero, which are meaningful but treated similarly to zero in RMSE.
+S0331	To address this, we applied a cube root transformation to scale up low-frequency interactions.
+S0332	The models were pretrained on multiple tasks of varying scales.To balance the losses across tasks, we used the SD of dynamic properties to calculate task-specific weights.The SD of each property for each protein in the training set was computed.
+S0333	For multiclass features, such as secondary structures, the losses were calculated for each class and then averaged.
+S0334	These values were used to adjust the taskspecific weights.
+S0335	Given the higher complexity of pairwise properties compared to residue-level properties, we set the pairwise-to-residue loss ratio to 3:1.
+S0336	For NMA data, this ratio was adjusted independently for the three frequency ranges.
+S0337	The adjusted losses for SASA, RMSF, secondary structure, and dihedral angles were kept equal.The adjusted losses for the nine interactions were kept equal.The ratio between the summed interaction loss and the comovement loss was set to 3:1.
+S0338	The final losses for high-resolution data, IDRome data, and NMA data were further adjusted to be equal.
+S0339	The final weights for each property are available at https://huggingface.co/datasets/ChaoHou/protein_dynamic_properties.
+S0340	Attention Analysis.
+S0341	The attention map and the interaction map are not sym- metric (the interactions have direction), so, the means of the original matrixes and its transposes were used.
+S0342	Only residues farther than five amino acids in protein sequence are considered.
+S0343	The interaction frequencies of all nine interaction types were summed for analysis.
+S0344	Only proteins shorter than 1,024 residues were analyzed.
+S0345	Conformational properties asphericity, end-to-end distance (Re), and radius of gyration (Rg) from coarse-grained MD trajectories of over 40,000 IDRs (41) were from 32 to 384 residues in length were included (the sequence cutoff was used because we compared our model with STARLING, which can only generate conformation for sequence no longer than 384), IDRs with over 20% sequence identity and 50% coverage (determined using MMseqs2 (52) search with parameters: -s 7 -a 1) to any SeqDance training sequence were removed, resulting in a final set of 28,717 IDRs.
+S0346	Rg values were calculated for monomer PDB structures analyzed in the paper (42) using MDTraj (53), only proteins no longer than 800 were analyzed (the sequence cutoff was used because we compared our model with ESMFold, which runs out of GPU memory when processing long proteins).
+S0347	Both Re and Rg were first normalized to account for their inherent dependence on sequence length, as follows: normalized R = where L is the sequence length, and R0 is a prefactor determined by the biochemical properties of the protein, ν is the scaling exponent.
+S0348	The ν values for both Re and Rg (for ordered protein and IDR separately) were obtained by fitting a linear regression model between log(R) and log(L).
+S0349	For both IDRs and ordered structures, MMseqs2 easy-cluster was used to cluster sequences with the parameters: --min-seq-id 0.2 -c 0.5 --cov-mode 0.
+S0350	Sequences from 60% of randomly selected clusters were used as the training set, while the remaining sequences formed the test set.
+S0351	SeqDance was compared with METL (METL-G-50M-1D), ESM2 models, and ProSE.The last layer embeddings of SeqDance, METL, and ESM2, and concatenated embeddings of all layers of ProSE (as suggested in their GitHub: https://github.com/tbepler/prose) were used.
+S0352	All embeddings were mean-pooled along protein sequences.
+S0353	Linear regression (scikit-learn v1.4.1) with default parameters was used to predict conformational properties (asphericity, normalized Re, and normalized Rg), trained separately for the embeddings from each method.The predicted normalized Re and normalized Rg were then multiplied with Lv to get the final prediction.
+S0354	Principal component analysis was conducted with scikit-learn.
+S0355	STARLING was used to generate structure ensembles of IDRs with default parameters.
+S0356	ESMFold (3 billion parameters) was used to predict structure of ordered protein.
+S0357	Prediction of Mutation Effects.
+S0358	For SeqDance and ESMDance, the dynamic properties of both wild-type and mutated sequences were predicted.
+S0359	For property i, the zero-shot score Si is computed as ˛ ˜ ° P MT − P WT ° ° i i ° Si = mean ° °, [4] ° P WT ° ° ° i where PiWT and PiMT represent the predicted values of property i for the wild-type and mutated sequences, respectively.The relative change was computed element-wise.
+S0360	For example, in the case of secondary structure with eight classes, the resulting relative change matrix had a shape of L × 8 for a protein of length L, and the mean of absolute values of this matrix was used as the zero-shot score of secondary structure.
+S0361	To combine scores from different methods, multiple aggregation strategies were evaluated, including mean, max, weighted mean, and geometric mean, applied to both raw and quantile-normalized scores.
+S0362	Quantile normalization ensures that different score distributions are same by aligning their values as mean of raw values of each rank.Weighted mean and geometric mean were calculated as ∑M Si Si Sweighted = ∑i=1, [5] M S i=1 i ˜ M ˛ M1 ° Sgeometric = Si, i=1 where M is the number of all properties.
+S0363	All these zero-shot scores are nonnegative.
+S0364	To compare them with negative ΔΔG values, the negative of the zero-shot scores was used.
+S0365	Various strategies to combine the relative changes of different dynamic properties were tried but no improvement over using individual properties such as mean SASA or dihedral angle psi was observed.
+S0366	Users may use these two individual properties for applications.
+S0367	SeqDance and ESMDance are not suitable for cross-protein prediction in our experiment, as the effects of dynamic property changes vary between proteins.
+S0368	For ESM2 models and SaProt, we followed the method used in ProteinGYM.
+S0369	Each residue in a protein was sequentially masked, the model was used to predict the probabilities of 20 amino acids for the masked position.
+S0370	For a protein of length L, the model was run L times to obtain the wild-type and mutated residue probabilities at each site.
+S0371	The log-likelihood ratio (LLR) was then calculated for each mutation.
+S0372	For double mutations, the LLR scores of the two single mutations were summed to approximate the combined effect.
+S0373	For ESM2-15B, half-precision (float16) was used, as the model could not be loaded onto a single GPU with 48 GB of memory.
+S0374	For SaProt, structure tokens were used as additional input.
+S0375	For ProteinMPNN (44) (vanilla_model_weight v_48_020), full-sequence likelihoods were used to infer mutation effects.
+S0376	For FoldX (46), the structures were first repaired using the RepairPDB command, and the BuildModel command was then applied to compute ΔΔG values.
+S0377	For Rosetta, ΔΔG values were calculated using the RosettaDDGPrediction (45) protocol (Rosetta version 2022.11, cartddg2020_ref2015).
+S0378	Because Rosetta is computationally expensive, 100 mutations per protein were randomly sampled for evaluation.
+S0379	AlphaFold-predicted protein structures were used as input for these models.
+S0380	Mutation Datasets.
+S0381	For the evaluation of protein folding stability, the dataset ProteinGYM data and predictions for these mutations were downloaded from its website (https://proteingym.org/) and GitHub in June 2025.
+S0382	And Simons Foundation SFARI #1019623.
+S0383	We thank Dr.
+S0384	Guojie Zhong, Aziz Zafar, and Di Liu for helpful discussions and suggestions. model training, and evaluations are available on GitHub: https://github.com/ShenLab/SeqDance (54).
+S0385	Model weights are available at: https://doi.org/10.5281/zenodo.15047777 (55).
+S0386	The extracted dynamic properties (approximately 100 GB in total), sequences (including train-test splits), loss weights for different properties, and all other data required to reproduce main results in this paper are available at: https://huggingface.co/datasets/ChaoHou/protein_dynamic_properties (56).

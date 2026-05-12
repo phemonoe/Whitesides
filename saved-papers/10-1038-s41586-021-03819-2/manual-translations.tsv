@@ -1,0 +1,268 @@
+S0001	Proteins are essential for life, and knowing their 3D shape helps explain how they work.
+S0002	Scientists have experimentally solved about 100,000 unique protein structures, but there are billions of known protein sequences, so most structures are still unknown.
+S0003	The main bottleneck is that solving even one protein structure in the lab can take months or years of careful work.
+S0004	So we need accurate computer methods to close this gap and support large-scale structure analysis.
+S0005	A major open problem for 50+ years has been predicting a protein's 3D shape from only its amino acid sequence, which is the structure-prediction part of the protein-folding problem.
+S0006	Although methods improved recently, they are still far from atom-level accuracy, especially when no similar known structure exists.
+S0007	Here we present the first computational method that can regularly reach atom-level accuracy even when no related structure is known.
+S0008	We tested a completely redesigned neural-network AlphaFold in CASP14, a hard blind benchmark, and it was usually as accurate as experiments while clearly beating other methods.
+S0009	This AlphaFold version uses a new machine-learning design that builds in physical and biological knowledge and uses multiple-sequence alignments inside the deep-learning system.
+S0010	Work on predicting 3D protein structure from sequence has followed two main paths: one based on physics and one based on evolution.
+S0011	The physics path tries to model molecular forces directly using thermodynamic or kinetic simulations, or statistical approximations of them.
+S0012	That idea is attractive, but it is very hard in practice because simulations are computationally expensive, protein stability depends on context, and the physics models are not accurate enough.
+S0013	More recently, the evolution path has inferred structural constraints from sequence history, similarity to solved structures, and correlated mutations between residue pairs.
+S0014	This bioinformatics approach improved a lot thanks to growth of the PDB, huge increases in genome sequencing, and better deep-learning methods for reading these correlations.
+S0015	Even so, current physics-based and evolution-based methods are usually not close to experimental accuracy when no close homolog is known, which limits practical use.
+S0016	In this work, we built what we believe is the first computational method that predicts structures near experimental accuracy in most cases.
+S0017	We entered our new neural network, AlphaFold2, in CASP14 (May to July 2020); it was completely different from our CASP13 system.
+S0018	CASP runs every two years and uses newly solved structures that are not yet public, making it a blind test and the standard benchmark for structure-prediction accuracy.
+S0019	In CASP14, AlphaFold predictions were much more accurate than other methods.
+S0020	AlphaFold reached a median backbone error of 0.96 angstrom r.m.s.d.95 (95% CI 0.85 to 1.16), while the next best method was 2.8 angstrom (95% CI 2.7 to 4.0) on CASP domains; see Fig. 1a and Supplementary Fig. 14.
+S0021	For scale, a carbon atom is about 1.4 angstroms wide.
+S0022	AlphaFold predicted domains very accurately (Fig. 1b), often got side chains right when the backbone was right (Fig. 1c), and outperformed template methods even when good templates existed.
+S0023	AlphaFold's all-atom median error was 1.5 angstrom r.m.s.d.95 (95% CI 1.2 to 1.6) versus 3.5 angstrom (95% CI 3.1 to 4.2) for the best alternative.
+S0024	The method scales to very long proteins and can still place domains correctly, including a 2,180-residue protein with no structural homolog (Fig. 1d).
+S0025	The model also gives precise confidence estimates for each residue, which helps users decide where to trust a prediction.
+S0026	Panel a shows AlphaFold performance on CASP14 (87 domains) versus the top 15 groups out of 146 total entries; group numbers are CASP-assigned IDs.
+S0027	Values are medians with 95% confidence intervals from 10,000 bootstrap samples; panel b compares our prediction for target T1049 (PDB 6Y4F, blue) with the experimental structure (green).
+S0028	Four C-terminal residues in the crystal structure are B-factor outliers, so they are not shown; panel c is target T1056 (PDB 6YJ1).
+S0029	Panel c includes a well-predicted zinc-binding site (AlphaFold gets side chains right even without explicitly predicting the zinc ion), and panel d shows target T1044 (PDB 6VR4), a single 2,180-residue chain with correct domain packing predicted after CASP without manual intervention; panel e shows the model architecture.
+S0030	The arrows indicate how information moves between the model components described in the paper.
+S0031	Array dimensions are shown in parentheses: s is number of sequences (Nseq), r is number of residues (Nres), and c is number of channels.
+S0032	Figure 2a shows that AlphaFold's CASP14-level accuracy also holds on a large set of newly released PDB structures deposited after our training cutoff and analyzed as full chains (see Methods, Supplementary Fig. 15, Supplementary Table 6).
+S0033	We also see high side-chain accuracy when backbone accuracy is high (Fig. 2b), and our confidence score pLDDT predicts true lDDT-C-alpha accuracy reliably (Fig. 2c).
+S0034	We also show that TM-score, a global structure-similarity metric, can be estimated accurately (Fig. 2d).
+S0035	Overall, these tests confirm that AlphaFold's high accuracy and reliability transfer from CASP14 to an uncurated set of recent PDB entries, including new folds (see Supplementary Methods 1.15 and Supplementary Fig. 11).
+S0036	All analyzed structures are newer than anything in the training set.
+S0037	We also applied extra filtering to reduce redundancy (see Methods); panel a is a histogram of full-chain backbone r.m.s.d. (C-alpha r.m.s.d.95).
+S0038	Error bars show 95% Poisson confidence intervals.
+S0039	This dataset excludes proteins that had a training-set template found by hmmsearch with more than 40% sequence identity over more than 1% of the chain (n = 3,144 chains).
+S0040	The overall median error is 1.46 angstrom (95% CI 1.40 to 1.56).
+S0041	This metric is very sensitive to domain accuracy and domain packing, so some chains with uncertain packing are expected to have high r.m.s.d.; panel b shows backbone versus side-chain accuracy.
+S0042	Panel b is filtered to structures with observed side chains and resolution better than 2.5 angstrom (n = 5,317 chains); side chains were also filtered to B-factor under 30 angstrom squared.
+S0043	A rotamer is counted as correct when the predicted torsion angle is within 40 degrees.
+S0044	Each point combines a range of lDDT-C-alpha values, with bin size 2 above 70 and 5 otherwise.
+S0045	Points are mean accuracies, and error bars are 95% Student t confidence intervals of the mean on a per-residue basis; panel c compares predicted confidence with true chain accuracy.
+S0046	The least-squares fit is lDDT-C-alpha = 0.997 times pLDDT minus 1.17 (Pearson r = 0.76), with n = 10,795 chains.
+S0047	The shaded fit region is a 95% confidence interval from 10,000 bootstrap samples.
+S0048	The companion paper adds more analysis of how reliable pLDDT is as a confidence measure; panel d compares pTM with full-chain TM-score.
+S0049	The least-squares fit is TM-score = 0.98 times pTM plus 0.07 (Pearson r = 0.85), with n = 10,795 chains.
+S0050	The shaded fit region is a 95% confidence interval from 10,000 bootstrap samples.
+S0051	AlphaFold improves structure-prediction accuracy by combining new neural-network designs and training methods with evolutionary, physical, and geometric constraints of proteins.
+S0052	Specifically, we introduce joint MSA-plus-pair embeddings, a new output and loss for end-to-end prediction, an equivariant attention design, intermediate losses for iterative refinement, masked-MSA training, and self-distillation from unlabeled sequences with self-estimated confidence.
+S0053	Given a protein sequence plus aligned homologous sequences, AlphaFold directly predicts 3D coordinates for all heavy atoms (Fig. 1e; Methods gives input details, databases, MSA construction, and template use).
+S0054	Below we describe the most important ideas and components.
+S0055	The complete architecture and training process are in the Supplementary Methods.
+S0056	The network has two main stages.
+S0057	First, repeated Evoformer blocks process inputs into an Nseq by Nres array for the MSA and an Nres by Nres array for residue pairs.
+S0058	The MSA representation starts from the raw MSA input, with special handling for very deep MSAs described in Supplementary Methods 1.2.7.
+S0059	Evoformer blocks include both attention and non-attention components.
+S0060	In the Interpreting section, we show evidence that an initial structural guess appears early in Evoformer and is refined as blocks continue.
+S0061	The key Evoformer advances are new ways to pass information within and between MSA and pair representations so the model can reason directly about spatial and evolutionary relationships.
+S0062	After the trunk, the structure module creates explicit 3D structure by assigning each residue a rotation and translation (a global rigid-body frame).
+S0063	These frames start in a trivial state (identity rotations, origin positions) and quickly refine into an accurate atomic structure.
+S0064	Key innovations here include temporarily breaking chain constraints for parallel local refinement, a new equivariant transformer that helps reason about side-chain atoms not explicitly represented, and a loss that heavily rewards correct residue orientation.
+S0065	Inside the structure module and across the network, we enforce iterative refinement by repeatedly applying the final loss and feeding outputs back into the same modules.
+S0066	This full-network iterative loop, called recycling and related to computer-vision ideas, improves accuracy a lot with little extra training time.
+S0067	The core idea of Evoformer is to treat structure prediction as 3D graph inference where residues are nodes and nearby residues define edges.
+S0068	Pair-representation entries store information about relationships between residue pairs.
+S0069	In the MSA representation, columns correspond to residue positions in the target sequence and rows correspond to aligned sequences.
+S0070	Each Evoformer block applies several update operations in sequence within this framework.
+S0071	Panel a shows the Evoformer block.
+S0072	Arrows show how information flows.
+S0073	Parentheses show array shapes; panel b interprets the pair representation as directed graph edges; panel c shows triangle multiplicative update and triangle self-attention.
+S0074	In this diagram, each circle stands for one residue (one amino acid position).
+S0075	Directed edges illustrate entries in the pair representation, and in each diagram the edge being updated is i-j; panel d shows the structure module with invariant point attention (IPA).
+S0076	The single representation is copied from the first row of the MSA representation; panel e shows the residue-gas view: each residue is a free rigid body for backbone (blue triangles) plus chi angles for side chains (green circles).
+S0077	The matching atomic structure is shown below; panel f shows frame-aligned point error (FAPE).
+S0078	Green is predicted structure, grey is true structure, (Rk, tk) are frames, and xi are atom positions.
+S0079	The MSA representation updates the pair representation by taking an element-wise outer product and summing over the MSA sequence dimension.
+S0080	Unlike earlier work, this is done in every block, not once, so evolving MSA information continuously updates pair information.
+S0081	The pair representation uses two update patterns.
+S0082	Both are motivated by consistency: for pairwise residue relations to match one real 3D structure, many constraints must hold, including the triangle inequality for distances.
+S0083	Based on this, pair updates are organized around residue triangles involving three nodes.
+S0084	We add a logit bias to axial attention to include the missing triangle edge, and we add a non-attention triangle multiplicative update that uses two edges to update the third.
+S0085	Triangle multiplicative update was originally designed as a cheaper, more symmetric alternative to attention, and either attention-only or multiplicative-only networks can still be accurate.
+S0086	But using both together gives better accuracy.
+S0087	We also use a modified axial attention in the MSA representation.
+S0088	During per-sequence MSA attention, we project extra logits from the pair stack to bias MSA attention.
+S0089	This completes a feedback loop from pair back to MSA, letting Evoformer fully mix information before structure generation.
+S0090	The structure module uses the pair representation plus the first MSA row (single representation) while operating on an explicit 3D backbone.
+S0091	This backbone is represented as Nres independent rotations and translations in the global frame (residue gas).
+S0092	These transforms define N-C-alpha-C geometry, emphasizing backbone orientation so side-chain location is strongly constrained in each residue frame.
+S0093	By contrast, peptide-bond geometry is left unconstrained during structure-module updates, and the network often breaks chain continuity because that allows local refinement everywhere without hard loop-closure optimization.
+S0094	During fine-tuning, a violation loss encourages peptide-bond geometry to be satisfied.
+S0095	Exact peptide-bond geometry is enforced only afterward by post-prediction Amber force-field relaxation via gradient descent.
+S0096	In practice, this relaxation does not improve GDT or lDDT-C-alpha accuracy, but it removes distracting stereochemical violations without hurting accuracy.
+S0097	The residue-gas representation is updated iteratively in two stages.
+S0098	First, invariant point attention (IPA) updates per-residue activations without moving 3D positions; then an equivariant operation updates the residue gas using those activations.
+S0099	IPA adds 3D points to normal attention queries, keys, and values; points are created in each residue's local frame so outputs are invariant to global rotation and translation.
+S0100	These 3D queries and keys also add a strong spatial-locality bias, which helps iterative structure refinement.
+S0101	After each attention and transition block, the module updates each residue's backbone rotation and translation.
+S0102	Because updates are applied in each residue's local frame, the full attention-plus-update block is equivariant on the residue gas.
+S0103	Small per-residue heads on final activations predict side-chain chi angles and final per-residue confidence (pLDDT).
+S0104	Predicted TM-score (pTM) comes from pairwise error prediction obtained by a linear projection of the final pair representation.
+S0105	The main final loss, frame-aligned point error (FAPE), compares predicted and true atom positions under many different alignments.
+S0106	For each alignment, we align predicted frame (Rk, tk) to the matching true frame and measure distances from each predicted atom xi to its true position.
+S0107	The resulting Nframes by Natoms distances are penalized with a clamped L1 loss.
+S0108	This strongly encourages atoms to be correct in each residue's local frame and therefore in side-chain interactions, and it is also the main source of chirality information for AlphaFold.
+S0109	AlphaFold can reach high accuracy using only supervised PDB training, but we improve it further with a noisy-student-style self-distillation approach.
+S0110	We use a trained model to predict structures for about 350,000 diverse Uniclust30 sequences, then keep a high-confidence subset as a new pseudo-labeled dataset.
+S0111	We retrain the same architecture from scratch on a mix of real PDB structures and these predicted structures, with augmentations like cropping and MSA subsampling that prevent simply memorizing old predictions.
+S0112	This self-distillation uses unlabeled sequence data effectively and improves final accuracy.
+S0113	Panel a shows ablation results on two target sets: CASP14 domains (n = 87) and a PDB chain test set with template coverage less than or equal to 30% at 30% identity (n = 2,261).
+S0114	Domains are scored by GDT and chains by lDDT-C-alpha; each ablation is reported as the difference from the average of three baseline random seeds.
+S0115	Points are means and error bars are 95% bootstrap percentile intervals from 10,000 samples; panel b shows GDT trajectories across 4 recycling iterations and 48 Evoformer blocks for CASP14 targets LmrP (T1024) and Orf8 (T1064), with D1 and D2 as CASP domain labels.
+S0116	Both T1024 domains reach the correct structure early, while T1064 changes several times and needs almost full network depth to converge.
+S0117	One recycling iteration contains 48 Evoformer blocks.
+S0118	We also randomly mask or mutate residues in the MSA and train with a BERT-style objective to predict the masked MSA elements.
+S0119	This encourages the network to learn phylogenetic and covariation patterns directly instead of hardcoding one correlation statistic in the features.
+S0120	Unlike some recent work, this BERT objective is trained jointly with the normal PDB structure loss on the same examples rather than pretraining separately.
+S0121	To study how AlphaFold builds structures, we froze the main network and trained a separate structure module for each of the 48 Evoformer blocks.
+S0122	Including recycling, this gives 192 intermediate structures, one per full Evoformer block, each representing the model's current best-guess structure at that stage.
+S0123	After the first few blocks, trajectories are surprisingly smooth, showing steady incremental improvements until no further gain is possible.
+S0124	These trajectories also show why network depth matters.
+S0125	For hard proteins like SARS-CoV-2 ORF8 (T1064), the network explores and rearranges secondary structures for many layers before settling.
+S0126	For other proteins like LmrP (T1024), the network finds the final structure in the first few layers.
+S0127	Supplementary Videos 1 to 4 show trajectories for targets T1024, T1044, T1064, and T1091, illustrating clear iterative building across different sizes and difficulties.
+S0128	Supplementary Methods 1.16 and Supplementary Figures 12 and 13 analyze AlphaFold attention maps.
+S0129	Figure 4a includes detailed component ablations showing that many different mechanisms contribute to AlphaFold's accuracy.
+S0130	Supplementary Methods 1.13 and Supplementary Figure 10 provide full ablation definitions, training details, extended interpretation, and how MSA depth affects each ablation.
+S0131	AlphaFold is highly accurate on most deposited PDB structures, but some factors still reduce accuracy or limit where the model applies.
+S0132	The model depends on MSAs, and accuracy drops sharply when median alignment depth is below about 30 sequences.
+S0133	There is a threshold effect: increasing MSA depth beyond about 100 sequences brings only small additional gains.
+S0134	We think MSA information mainly helps find a rough correct fold early, while later high-accuracy refinement depends less on MSA depth.
+S0135	Another major weakness is proteins with few within-chain or same-type-chain contacts relative to cross-chain contacts.
+S0136	This often happens for bridging domains in larger complexes whose shape is determined mostly by interactions with other chains.
+S0137	By contrast, AlphaFold can often predict homomers accurately even when chains are strongly intertwined.
+S0138	We expect AlphaFold ideas can be extended to full hetero-complex prediction, which should reduce this hetero-contact limitation.
+S0139	Panel a shows backbone accuracy (lDDT-C-alpha) on a redundancy-reduced post-cutoff PDB set, limited to proteins where at most 25% of long-range contacts are between different heteromer chains.
+S0140	We also split proteins by template coverage at 30% sequence identity: more than 60% chain coverage (n = 6,743) versus less than 30% coverage (n = 1,596).
+S0141	MSA depth is computed as the median across residues of non-gap counts per position, using Neff weighting.
+S0142	Curves use Gaussian-kernel smoothing in log10(Neff) (window 0.2), and shaded regions are 95% bootstrap confidence intervals from 10,000 samples; panel b shows an intertwined homotrimer (PDB 6SK0) correctly predicted without stoichiometry input and with only a weak template (blue predicted, green experimental).
+S0143	Protein-structure prediction has a long, diverse history that many reviews describe in detail.
+S0144	Neural networks were applied to this problem for a long time, but only recently began to produce major accuracy improvements.
+S0145	These methods borrow advances from computer vision by treating structure prediction as translating an "image" of evolutionary couplings into an "image" of residue distances, then converting distances to final 3D coordinates with heuristic postprocessing.
+S0146	A few recent studies predict 3D coordinates directly, but their accuracy still lags traditional hand-engineered pipelines.
+S0147	At the same time, the success of attention models in language and then vision motivated attention-based methods for protein-sequence interpretation.
+S0148	AlphaFold's design combines bioinformatics and physics: we build components with physical and geometric inductive bias, but let them learn from PDB data with minimal hand-crafted features (for example, hydrogen-bond behavior emerges without an explicit score term).
+S0149	This gives a network that learns much more efficiently from limited PDB data while still handling diverse and complex structures.
+S0150	AlphaFold can often make accurate models even when physical context is missing, such as intertwined homomers or proteins that fold only with an unknown heme group present.
+S0151	Handling underspecified structural conditions is critical because the PDB reflects many different experimental conditions.
+S0152	In general, AlphaFold is trained to output the structure most likely to appear in a PDB entry.
+S0153	For example, if stoichiometry, ligand, or ion state can be inferred from sequence alone, AlphaFold will often produce a structure that implicitly respects those constraints.
+S0154	AlphaFold is already useful in experiments, including molecular replacement and interpretation of cryo-EM maps.
+S0155	Because AlphaFold outputs coordinates directly, runtime is roughly minutes to hours on GPUs depending on sequence length (for example, about one GPU minute per 384-residue model; see Methods).
+S0156	This makes proteome-scale prediction possible; the companion paper demonstrates AlphaFold on the entire human proteome.
+S0157	Rapid growth of sequencing has transformed bioinformatics, but difficult experimental structure determination has prevented matching growth in structural knowledge.
+S0158	By combining accurate structure prediction with large curated structure and sequence databases built by experimental scientists, we hope to speed structural bioinformatics so it can match the genomics pace.
+S0159	We expect AlphaFold, and methods that adapt its ideas to other biophysical problems, to become core tools in modern biology.
+S0160	Supplementary Methods 1.1 to 1.10 explain components and motivations in depth; Supplementary Algorithms 1 to 32 provide pseudocode; Supplementary Figures 1 to 8 show network diagrams; Supplementary Table 1 lists input features; and Supplementary Tables 2 and 3 add more detail.
+S0161	Training and inference details are in Supplementary Methods 1.11 to 1.12 and Supplementary Tables 4 and 5.
+S0162	IPA combines pair, single, and geometric representations to update the single representation.
+S0163	Each representation contributes to shared attention affinities and then uses those same attention weights to project its values into the output.
+S0164	IPA operates directly in 3D space.
+S0165	Each residue produces query, key, and value points in its own local frame.
+S0166	Those points are transformed into the global frame using that residue's backbone frame, where interactions are computed.
+S0167	The resulting points are then transformed back into local frames.
+S0168	Affinity in 3D is computed from squared distances, and these coordinate transforms make IPA invariant to the global reference frame.
+S0169	A related approach using classical geometric invariants instead of learned 3D points for pairwise features has also been used in protein design.
+S0170	Besides IPA, the model also uses standard dot-product attention on the single representation and a specialized attention on the pair representation.
+S0171	The pair representation modifies both attention logits and values, which is the main path by which pair information controls structure generation.
+S0172	Network inputs are the primary sequence, evolutionary related sequences as an MSA (built with tools like jackhmmer and HHBlits), and template 3D coordinates from a few homologous structures when available.
+S0173	MSA and template searches are tuned for high recall, so raw MSAs may include false matches, but that matches how the model was trained.
+S0174	One key database, BFD, was custom built, publicly released, and used by several CASP teams.
+S0175	BFD is among the largest public protein-family collections.
+S0176	It contains 65,983,866 families as MSAs and HMMs, covering 2,204,359,010 sequences from reference databases, metagenomes, and metatranscriptomes.
+S0177	BFD was created in three steps.
+S0178	First, they collected 2,423,213,294 sequences from UniProt (Swiss-Prot and TrEMBL, 2017-11), a soil reference catalog, and a marine eukaryotic reference catalog, then clustered at 30% identity with at least 90% coverage of the shorter sequence using MMseqs2/Linclust.
+S0179	This produced 345,159,030 clusters.
+S0180	For efficiency, clusters with fewer than three members were removed, leaving 61,083,719 clusters.
+S0181	Second, they added 166,510,624 representative Metaclust NR sequences (2017-05, excluding sequences shorter than 150 residues) by aligning them to cluster representatives with MMseqs2.
+S0182	Sequences meeting identity and coverage thresholds were assigned to the best-scoring cluster.
+S0183	The remaining 25,347,429 unassigned sequences were clustered separately and added as new clusters, producing the final clustering.
+S0184	Third, they built an MSA for each cluster using FAMSA and built HMMs using the Uniclust HH-suite protocol.
+S0185	The study used the following versions of public datasets.
+S0186	Models were trained on a PDB copy downloaded on 28 August 2019.
+S0187	For prediction-time template search, they used a PDB copy downloaded on 14 May 2020 and the PDB70 clustering database downloaded on 13 May 2020.
+S0188	For MSA lookup in training and prediction, they used UniRef90 v2020_01, BFD, Uniclust30 v2018_08, and MGnify v2018_12.
+S0189	For sequence distillation, they used Uniclust30 v2018_08 to build a distillation-structure dataset.
+S0190	Full details are in Supplementary Methods 1.2.
+S0191	For MSA search on BFD plus Uniclust30 and template search against PDB70, they used HHBlits and HHSearch from hh-suite v3.0-beta.3 (14/07/2017).
+S0192	For MSA search on UniRef90 and clustered MGnify, they used jackhmmer from HMMER3.
+S0193	For constrained structure relaxation, they used OpenMM v7.3.1 with the Amber99sb force field.
+S0194	For network building, execution, and analysis, they used TensorFlow, Sonnet, NumPy, Python, and Colab.
+S0195	To measure the contribution of different sequence databases, they reran CASP14 targets with the same models but changed MSA construction sources.
+S0196	Removing BFD lowered mean accuracy by 0.4 GDT, removing MGnify lowered it by 0.7 GDT, and removing both lowered it by 6.1 GDT.
+S0197	In each case, most targets changed little, but a few outliers changed a lot (more than 20 GDT).
+S0198	This matches Fig. 5a: MSA depth has limited effect until around 30 sequences, where effects become much larger.
+S0199	BFD and MGnify effects are mostly overlapping, but at least one metagenomics database is important for targets poorly represented in UniRef, and both were needed for full CASP performance.
+S0200	For training, they used PDB structures released on or before 30 April 2018.
+S0201	Chains were sampled inversely to cluster size in a 40%-identity clustering.
+S0202	They then randomly cropped chains to 256 residues and formed batches of 128.
+S0203	Training ran on TPU v3 with batch size 1 per core, using 128 TPU v3 cores total.
+S0204	Training continued to convergence (about 10 million samples), then fine-tuned with longer 384-residue crops, a larger MSA stack, and a lower learning rate.
+S0205	Initial training took about 1 week, and fine-tuning took about 4 more days.
+S0206	The network is trained with FAPE plus several auxiliary losses.
+S0207	First, the final pair representation is projected to a binned distance distribution (distogram) and trained with cross-entropy loss.
+S0208	Second, input MSAs are randomly masked and the network must reconstruct masked regions from output MSA representation using a BERT-like loss.
+S0209	Third, final single representations are used to predict binned per-residue lDDT-C-alpha values.
+S0210	Finally, training includes an auxiliary side-chain loss, and fine-tuning adds an auxiliary structure-violation loss.
+S0211	Supplementary Information gives full definitions and loss weights.
+S0212	A model trained with those objectives was used to predict structures for 355,993 Uniclust sequences using full MSAs.
+S0213	Those predictions were then used to train a final model with the same hyperparameters, except sampling 75% of examples from the Uniclust prediction set (with subsampled MSAs) and 25% from clustered PDB data.
+S0214	They trained five models with different random seeds, some with templates and some without, to increase prediction diversity.
+S0215	After CASP14, they fine-tuned these models to add a pTM objective and used those models for Fig. 2d.
+S0216	At inference time, they run the five trained models and choose the best per target using predicted confidence.
+S0217	In the CASP14 setup, the trunk is run multiple times with different random choices of MSA cluster centers as an ensemble.
+S0218	Total prediction time varies greatly with protein length.
+S0219	With one model on a V100 GPU, typical neural-network times are 4.8 minutes for 256 residues, 9.2 minutes for 384 residues, and 18 hours for 2,500 residues.
+S0220	These timings are from the open-source code, which is notably faster than their CASP14 code because it now uses the XLA compiler.
+S0221	Since CASP14, they found non-ensembled accuracy is very close or equal to ensembled accuracy, so they usually disable ensembling.
+S0222	Without ensembling, inference is about 8 times faster: 0.6 minutes for 256 residues, 1.1 minutes for 384 residues, and 2.1 hours for 2,500 residues.
+S0223	Large-protein inference can easily exceed memory on one GPU.
+S0224	On a 16 GB V100, they can predict up to roughly 1,300 residues without ensembling; the 256 and 384 residue timings use single-GPU memory.
+S0225	Memory scales roughly quadratically with residue count, so predicting 2,500 residues requires unified memory to exceed a single V100's local memory.
+S0226	In their cloud setup, computation for a 2,500-residue protein used one V100, but they requested four GPUs to provide enough memory.
+S0227	Preparing inputs by searching sequence databases and performing final structural relaxation needs extra CPU time but no GPU or TPU.
+S0228	Predicted structures are compared with true PDB structures using lDDT, because it measures domain accuracy without requiring explicit domain segmentation.
+S0229	Distances are computed either on all heavy atoms (lDDT) or only on C-alpha atoms (lDDT-C-alpha) for backbone accuracy.
+S0230	Because lDDT-C-alpha looks only at C-alpha atoms, it does not penalize structural violations and steric clashes.
+S0231	In CASP, domain accuracy is reported with GDT, and TM-score is used as a global full-chain superposition metric.
+S0232	They also report r.m.s.d.95 (C-alpha r.m.s.d. at 95% coverage).
+S0233	They run five rounds of: least-squares alignment between prediction and PDB on selected C-alpha atoms (all C-alpha in round 1), then selecting the 95% of C-alpha atoms with the smallest alignment error.
+S0234	The r.m.s.d. of atoms selected in the final round is called r.m.s.d.95.
+S0235	This metric is more robust to apparent errors from crystal artifacts, though sometimes the excluded 5% includes real modeling mistakes.
+S0236	For evaluation on recent PDB sequences (Figs. 2a to 2d, 4a, 5a), they used a PDB copy downloaded on 15 February 2021.
+S0237	They kept only structures released after 30 April 2018, the training cutoff date.
+S0238	They further removed single-amino-acid sequences and any sequences containing an ambiguous chemical component at any residue.
+S0239	Exact duplicates were removed, keeping the chain with the most resolved C-alpha atoms as representative.
+S0240	They then removed structures with fewer than 16 resolved residues, with unknown residues, or solved by NMR.
+S0241	Because the PDB has many near-duplicates, they kept only the highest-resolution chain in each 40%-identity cluster.
+S0242	They also removed sequences with fewer than 80 resolved C-alpha atoms and chains longer than 1,400 residues.
+S0243	The final dataset had 10,795 protein sequences.
+S0244	They filtered the recent PDB dataset by prior template identity using the following procedure.
+S0245	Hmmsearch was run with default settings against PDB SEQRES fasta downloaded on 15 February 2021.
+S0246	Template hits were kept only if the matched structure was released before 30 April 2018.
+S0247	Each query residue position was assigned the maximum sequence identity among template hits that cover that position.
+S0248	Final filtering then followed each figure legend, using combinations of maximum identity and coverage thresholds.
+S0249	MSA-depth analysis computed normalized effective sequence count (Neff) for each query position.
+S0250	Per-residue Neff came from counting non-gap residues at that position and weighting sequences with the Neff scheme at an 80% identity threshold measured on positions non-gap in either sequence.
+S0251	More research-design details are in the Nature Research Reporting Summary linked to the paper.
+S0252	Every input dataset can be accessed freely from public sources.
+S0253	PDB structures were used for training and templates (links provided), including associated sequence data and 40% sequence clusters.
+S0254	Training used a PDB version downloaded on 28 August 2019, while CASP14 template search used a version downloaded on 14 May 2020.
+S0255	Template search also used PDB70 downloaded on 13 May 2020 (link provided).
+S0256	We show experimental PDB structures with accession numbers 6Y4F, 6YJ1, 6VR4, 6SK0, 6FES, 6W6W, 6T1Z, and 7JTL.
+S0257	For MSA lookup in training and prediction, we used UniRef90 v2020_01, BFD, Uniclust30 v2018_08, and MGnify clusters v2018_12 (links provided).
+S0258	Uniclust30 v2018_08 was also used to build the distillation-structure dataset.
+S0259	AlphaFold source code, trained weights, and inference scripts are open source at the linked GitHub repository.
+S0260	Neural networks were built using TensorFlow v1, Sonnet v1, JAX v0.1.69, and Haiku v0.0.4 (links provided).
+S0261	XLA is bundled with JAX and has no separate version number.
+S0262	For BFD plus Uniclust30 MSA search and PDB70 template search, they used HHBlits and HHSearch from hh-suite v3.0-beta.3 (14/07/2017).
+S0263	For UniRef90 and clustered MGnify MSA search, they used jackhmmer from HMMER v3.3.
+S0264	For constrained structure relaxation, they used OpenMM v7.3.1 with Amber99sb force field.
+S0265	BFD construction used MMseqs2 v925AF and FAMSA v1.2.5.
+S0266	Data analysis used Python v3.6 plus NumPy v1.16.4, SciPy v1.2.1, seaborn v0.11.1, Matplotlib v3.3.4, bokeh v1.4.0, pandas v1.1.5, plotnine v0.8.0, statsmodels v0.12.2, and Colab.
+S0267	TM-align v20190822 was used to compute TM-scores.
+S0268	Structure images were generated in PyMOL v2.3.0.

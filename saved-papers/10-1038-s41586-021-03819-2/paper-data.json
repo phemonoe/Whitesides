@@ -1,0 +1,2158 @@
+{
+  "meta": {
+    "title": "Highly accurate protein structure prediction with AlphaFold",
+    "doi": "10.1038/s41586-021-03819-2",
+    "sourceUrl": "https://www.nature.com/articles/s41586-021-03819-2",
+    "generatedAt": "2026-02-28T22:12:41.990Z",
+    "sentenceCount": 268
+  },
+  "figures": [
+    {
+      "id": 1,
+      "image": "https://media.springernature.com/lw685/springer-static/image/art%3A10.1038%2Fs41586-021-03819-2/MediaObjects/41586_2021_3819_Fig1_HTML.png",
+      "caption": "Fig. 1: AlphaFold produces highly accurate structures."
+    },
+    {
+      "id": 2,
+      "image": "https://media.springernature.com/lw685/springer-static/image/art%3A10.1038%2Fs41586-021-03819-2/MediaObjects/41586_2021_3819_Fig2_HTML.png",
+      "caption": "Fig. 2: Accuracy of AlphaFold on recent PDB structures."
+    },
+    {
+      "id": 3,
+      "image": "https://media.springernature.com/lw685/springer-static/image/art%3A10.1038%2Fs41586-021-03819-2/MediaObjects/41586_2021_3819_Fig3_HTML.png",
+      "caption": "Fig. 3: Architectural details."
+    },
+    {
+      "id": 4,
+      "image": "https://media.springernature.com/lw685/springer-static/image/art%3A10.1038%2Fs41586-021-03819-2/MediaObjects/41586_2021_3819_Fig4_HTML.png",
+      "caption": "Fig. 4: Interpreting the neural network."
+    },
+    {
+      "id": 5,
+      "image": "https://media.springernature.com/lw685/springer-static/image/art%3A10.1038%2Fs41586-021-03819-2/MediaObjects/41586_2021_3819_Fig5_HTML.png",
+      "caption": "Fig. 5: Effect of MSA depth and cross-chain contacts."
+    }
+  ],
+  "sections": [
+    {
+      "id": "Abs1-section",
+      "title": "Abstract",
+      "paragraphs": [
+        {
+          "id": "Abs1-section-PAR1",
+          "source": "Proteins are essential to life, and understanding their structure can facilitate a mechanistic understanding of their function. Through an enormous experimental effort1,2,3,4, the structures of around 100,000 unique proteins have been determined5, but this represents a small fraction of the billions of known protein sequences6,7. Structural coverage is bottlenecked by the months to years of painstaking effort required to determine a single protein structure. Accurate computational approaches are needed to address this gap and to enable large-scale structural bioinformatics. Predicting the three-dimensional structure that a protein will adopt based solely on its amino acid sequence—the structure prediction component of the ‘protein folding problem’8—has been an important open research problem for more than 50 years9. Despite recent progress10,11,12,13,14, existing methods fall far short of atomic accuracy, especially when no homologous structure is available. Here we provide the first computational method that can regularly predict protein structures with atomic accuracy even in cases in which no similar structure is known. We validated an entirely redesigned version of our neural network-based model, AlphaFold, in the challenging 14th Critical Assessment of protein Structure Prediction (CASP14)15, demonstrating accuracy competitive with experimental structures in a majority of cases and greatly outperforming other methods. Underpinning the latest version of AlphaFold is a novel machine learning approach that incorporates physical and biological knowledge about protein structure, leveraging multi-sequence alignments, into the design of the deep learning algorithm.",
+          "sentences": [
+            {
+              "id": "S0001",
+              "source": "Proteins are essential to life, and understanding their structure can facilitate a mechanistic understanding of their function.",
+              "plain": "Proteins are essential for life, and knowing their 3D shape helps explain how they work.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0002",
+              "source": "Through an enormous experimental effort1,2,3,4, the structures of around 100,000 unique proteins have been determined5, but this represents a small fraction of the billions of known protein sequences6,7.",
+              "plain": "Scientists have experimentally solved about 100,000 unique protein structures, but there are billions of known protein sequences, so most structures are still unknown.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0003",
+              "source": "Structural coverage is bottlenecked by the months to years of painstaking effort required to determine a single protein structure.",
+              "plain": "The main bottleneck is that solving even one protein structure in the lab can take months or years of careful work.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0004",
+              "source": "Accurate computational approaches are needed to address this gap and to enable large-scale structural bioinformatics.",
+              "plain": "So we need accurate computer methods to close this gap and support large-scale structure analysis.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0005",
+              "source": "Predicting the three-dimensional structure that a protein will adopt based solely on its amino acid sequence—the structure prediction component of the ‘protein folding problem’8—has been an important open research problem for more than 50 years9.",
+              "plain": "A major open problem for 50+ years has been predicting a protein's 3D shape from only its amino acid sequence, which is the structure-prediction part of the protein-folding problem.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0006",
+              "source": "Despite recent progress10,11,12,13,14, existing methods fall far short of atomic accuracy, especially when no homologous structure is available.",
+              "plain": "Although methods improved recently, they are still far from atom-level accuracy, especially when no similar known structure exists.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0007",
+              "source": "Here we provide the first computational method that can regularly predict protein structures with atomic accuracy even in cases in which no similar structure is known.",
+              "plain": "Here we present the first computational method that can regularly reach atom-level accuracy even when no related structure is known.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0008",
+              "source": "We validated an entirely redesigned version of our neural network-based model, AlphaFold, in the challenging 14th Critical Assessment of protein Structure Prediction (CASP14)15, demonstrating accuracy competitive with experimental structures in a majority of cases and greatly outperforming other methods.",
+              "plain": "We tested a completely redesigned neural-network AlphaFold in CASP14, a hard blind benchmark, and it was usually as accurate as experiments while clearly beating other methods.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0009",
+              "source": "Underpinning the latest version of AlphaFold is a novel machine learning approach that incorporates physical and biological knowledge about protein structure, leveraging multi-sequence alignments, into the design of the deep learning algorithm.",
+              "plain": "This AlphaFold version uses a new machine-learning design that builds in physical and biological knowledge and uses multiple-sequence alignments inside the deep-learning system.",
+              "figureRefs": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "Sec1-section",
+      "title": "Main",
+      "paragraphs": [
+        {
+          "id": "Sec1-section-PAR1",
+          "source": "The development of computational methods to predict three-dimensional (3D) protein structures from the protein sequence has proceeded along two complementary paths that focus on either the physical interactions or the evolutionary history. The physical interaction programme heavily integrates our understanding of molecular driving forces into either thermodynamic or kinetic simulation of protein physics16 or statistical approximations thereof17. Although theoretically very appealing, this approach has proved highly challenging for even moderate-sized proteins due to the computational intractability of molecular simulation, the context dependence of protein stability and the difficulty of producing sufficiently accurate models of protein physics. The evolutionary programme has provided an alternative in recent years, in which the constraints on protein structure are derived from bioinformatics analysis of the evolutionary history of proteins, homology to solved structures18,19 and pairwise evolutionary correlations20,21,22,23,24. This bioinformatics approach has benefited greatly from the steady growth of experimental protein structures deposited in the Protein Data Bank (PDB)5, the explosion of genomic sequencing and the rapid development of deep learning techniques to interpret these correlations. Despite these advances, contemporary physical and evolutionary-history-based approaches produce predictions that are far short of experimental accuracy in the majority of cases in which a close homologue has not been solved experimentally and this has limited their utility for many biological applications.",
+          "sentences": [
+            {
+              "id": "S0010",
+              "source": "The development of computational methods to predict three-dimensional (3D) protein structures from the protein sequence has proceeded along two complementary paths that focus on either the physical interactions or the evolutionary history.",
+              "plain": "Work on predicting 3D protein structure from sequence has followed two main paths: one based on physics and one based on evolution.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0011",
+              "source": "The physical interaction programme heavily integrates our understanding of molecular driving forces into either thermodynamic or kinetic simulation of protein physics16 or statistical approximations thereof17.",
+              "plain": "The physics path tries to model molecular forces directly using thermodynamic or kinetic simulations, or statistical approximations of them.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0012",
+              "source": "Although theoretically very appealing, this approach has proved highly challenging for even moderate-sized proteins due to the computational intractability of molecular simulation, the context dependence of protein stability and the difficulty of producing sufficiently accurate models of protein physics.",
+              "plain": "That idea is attractive, but it is very hard in practice because simulations are computationally expensive, protein stability depends on context, and the physics models are not accurate enough.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0013",
+              "source": "The evolutionary programme has provided an alternative in recent years, in which the constraints on protein structure are derived from bioinformatics analysis of the evolutionary history of proteins, homology to solved structures18,19 and pairwise evolutionary correlations20,21,22,23,24.",
+              "plain": "More recently, the evolution path has inferred structural constraints from sequence history, similarity to solved structures, and correlated mutations between residue pairs.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0014",
+              "source": "This bioinformatics approach has benefited greatly from the steady growth of experimental protein structures deposited in the Protein Data Bank (PDB)5, the explosion of genomic sequencing and the rapid development of deep learning techniques to interpret these correlations.",
+              "plain": "This bioinformatics approach improved a lot thanks to growth of the PDB, huge increases in genome sequencing, and better deep-learning methods for reading these correlations.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0015",
+              "source": "Despite these advances, contemporary physical and evolutionary-history-based approaches produce predictions that are far short of experimental accuracy in the majority of cases in which a close homologue has not been solved experimentally and this has limited their utility for many biological applications.",
+              "plain": "Even so, current physics-based and evolution-based methods are usually not close to experimental accuracy when no close homolog is known, which limits practical use.",
+              "figureRefs": []
+            }
+          ]
+        },
+        {
+          "id": "Sec1-section-PAR2",
+          "source": "In this study, we develop the first, to our knowledge, computational approach capable of predicting protein structures to near experimental accuracy in a majority of cases. The neural network AlphaFold that we developed was entered into the CASP14 assessment (May–July 2020; entered under the team name ‘AlphaFold2’ and a completely different model from our CASP13 AlphaFold system10). The CASP assessment is carried out biennially using recently solved structures that have not been deposited in the PDB or publicly disclosed so that it is a blind test for the participating methods, and has long served as the gold-standard assessment for the accuracy of structure prediction25,26.",
+          "sentences": [
+            {
+              "id": "S0016",
+              "source": "In this study, we develop the first, to our knowledge, computational approach capable of predicting protein structures to near experimental accuracy in a majority of cases.",
+              "plain": "In this work, we built what we believe is the first computational method that predicts structures near experimental accuracy in most cases.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0017",
+              "source": "The neural network AlphaFold that we developed was entered into the CASP14 assessment (May–July 2020; entered under the team name ‘AlphaFold2’ and a completely different model from our CASP13 AlphaFold system10).",
+              "plain": "We entered our new neural network, AlphaFold2, in CASP14 (May to July 2020); it was completely different from our CASP13 system.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0018",
+              "source": "The CASP assessment is carried out biennially using recently solved structures that have not been deposited in the PDB or publicly disclosed so that it is a blind test for the participating methods, and has long served as the gold-standard assessment for the accuracy of structure prediction25,26.",
+              "plain": "CASP runs every two years and uses newly solved structures that are not yet public, making it a blind test and the standard benchmark for structure-prediction accuracy.",
+              "figureRefs": []
+            }
+          ]
+        },
+        {
+          "id": "Sec1-section-PAR3",
+          "source": "In CASP14, AlphaFold structures were vastly more accurate than competing methods. AlphaFold structures had a median backbone accuracy of 0.96 Å r.m.s.d.95 (Cα root-mean-square deviation at 95% residue coverage) (95% confidence interval = 0.85–1.16 Å) whereas the next best performing method had a median backbone accuracy of 2.8 Å r.m.s.d.95 (95% confidence interval = 2.7–4.0 Å) (measured on CASP domains; see Fig. 1a for backbone accuracy and Supplementary Fig. 14 for all-atom accuracy). As a comparison point for this accuracy, the width of a carbon atom is approximately 1.4 Å. In addition to very accurate domain structures (Fig. 1b), AlphaFold is able to produce highly accurate side chains (Fig. 1c) when the backbone is highly accurate and considerably improves over template-based methods even when strong templates are available. The all-atom accuracy of AlphaFold was 1.5 Å r.m.s.d.95 (95% confidence interval = 1.2–1.6 Å) compared with the 3.5 Å r.m.s.d.95 (95% confidence interval = 3.1–4.2 Å) of the best alternative method. Our methods are scalable to very long proteins with accurate domains and domain-packing (see Fig. 1d for the prediction of a 2,180-residue protein with no structural homologues). Finally, the model is able to provide precise, per-residue estimates of its reliability that should enable the confident use of these predictions.",
+          "sentences": [
+            {
+              "id": "S0019",
+              "source": "In CASP14, AlphaFold structures were vastly more accurate than competing methods.",
+              "plain": "In CASP14, AlphaFold predictions were much more accurate than other methods.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0020",
+              "source": "AlphaFold structures had a median backbone accuracy of 0.96 Å r.m.s.d.95 (Cα root-mean-square deviation at 95% residue coverage) (95% confidence interval = 0.85–1.16 Å) whereas the next best performing method had a median backbone accuracy of 2.8 Å r.m.s.d.95 (95% confidence interval = 2.7–4.0 Å) (measured on CASP domains; see Fig. 1a for backbone accuracy and Supplementary Fig. 14 for all-atom accuracy).",
+              "plain": "AlphaFold reached a median backbone error of 0.96 angstrom r.m.s.d.95 (95% CI 0.85 to 1.16), while the next best method was 2.8 angstrom (95% CI 2.7 to 4.0) on CASP domains; see Fig. 1a and Supplementary Fig. 14.",
+              "figureRefs": [
+                1,
+                14
+              ]
+            },
+            {
+              "id": "S0021",
+              "source": "As a comparison point for this accuracy, the width of a carbon atom is approximately 1.4 Å.",
+              "plain": "For scale, a carbon atom is about 1.4 angstroms wide.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0022",
+              "source": "In addition to very accurate domain structures (Fig. 1b), AlphaFold is able to produce highly accurate side chains (Fig. 1c) when the backbone is highly accurate and considerably improves over template-based methods even when strong templates are available.",
+              "plain": "AlphaFold predicted domains very accurately (Fig. 1b), often got side chains right when the backbone was right (Fig. 1c), and outperformed template methods even when good templates existed.",
+              "figureRefs": [
+                1
+              ]
+            },
+            {
+              "id": "S0023",
+              "source": "The all-atom accuracy of AlphaFold was 1.5 Å r.m.s.d.95 (95% confidence interval = 1.2–1.6 Å) compared with the 3.5 Å r.m.s.d.95 (95% confidence interval = 3.1–4.2 Å) of the best alternative method.",
+              "plain": "AlphaFold's all-atom median error was 1.5 angstrom r.m.s.d.95 (95% CI 1.2 to 1.6) versus 3.5 angstrom (95% CI 3.1 to 4.2) for the best alternative.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0024",
+              "source": "Our methods are scalable to very long proteins with accurate domains and domain-packing (see Fig. 1d for the prediction of a 2,180-residue protein with no structural homologues).",
+              "plain": "The method scales to very long proteins and can still place domains correctly, including a 2,180-residue protein with no structural homolog (Fig. 1d).",
+              "figureRefs": [
+                1
+              ]
+            },
+            {
+              "id": "S0025",
+              "source": "Finally, the model is able to provide precise, per-residue estimates of its reliability that should enable the confident use of these predictions.",
+              "plain": "The model also gives precise confidence estimates for each residue, which helps users decide where to trust a prediction.",
+              "figureRefs": []
+            }
+          ]
+        },
+        {
+          "id": "Sec1-section-PAR4",
+          "source": "a, The performance of AlphaFold on the CASP14 dataset (n = 87 protein domains) relative to the top-15 entries (out of 146 entries), group numbers correspond to the numbers assigned to entrants by CASP. Data are median and the 95% confidence interval of the median, estimated from 10,000 bootstrap samples. b, Our prediction of CASP14 target T1049 (PDB 6Y4F, blue) compared with the true (experimental) structure (green). Four residues in the C terminus of the crystal structure are B-factor outliers and are not depicted. c, CASP14 target T1056 (PDB 6YJ1). An example of a well-predicted zinc-binding site (AlphaFold has accurate side chains even though it does not explicitly predict the zinc ion). d, CASP target T1044 (PDB 6VR4)—a 2,180-residue single chain—was predicted with correct domain packing (the prediction was made after CASP using AlphaFold without intervention). e, Model architecture. Arrows show the information flow among the various components described in this paper. Array shapes are shown in parentheses with s, number of sequences (Nseq in the main text); r, number of residues (Nres in the main text); c, number of channels.",
+          "sentences": [
+            {
+              "id": "S0026",
+              "source": "a, The performance of AlphaFold on the CASP14 dataset (n = 87 protein domains) relative to the top-15 entries (out of 146 entries), group numbers correspond to the numbers assigned to entrants by CASP.",
+              "plain": "Panel a shows AlphaFold performance on CASP14 (87 domains) versus the top 15 groups out of 146 total entries; group numbers are CASP-assigned IDs.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0027",
+              "source": "Data are median and the 95% confidence interval of the median, estimated from 10,000 bootstrap samples. b, Our prediction of CASP14 target T1049 (PDB 6Y4F, blue) compared with the true (experimental) structure (green).",
+              "plain": "Values are medians with 95% confidence intervals from 10,000 bootstrap samples; panel b compares our prediction for target T1049 (PDB 6Y4F, blue) with the experimental structure (green).",
+              "figureRefs": []
+            },
+            {
+              "id": "S0028",
+              "source": "Four residues in the C terminus of the crystal structure are B-factor outliers and are not depicted. c, CASP14 target T1056 (PDB 6YJ1).",
+              "plain": "Four C-terminal residues in the crystal structure are B-factor outliers, so they are not shown; panel c is target T1056 (PDB 6YJ1).",
+              "figureRefs": []
+            },
+            {
+              "id": "S0029",
+              "source": "An example of a well-predicted zinc-binding site (AlphaFold has accurate side chains even though it does not explicitly predict the zinc ion). d, CASP target T1044 (PDB 6VR4)—a 2,180-residue single chain—was predicted with correct domain packing (the prediction was made after CASP using AlphaFold without intervention). e, Model architecture.",
+              "plain": "Panel c includes a well-predicted zinc-binding site (AlphaFold gets side chains right even without explicitly predicting the zinc ion), and panel d shows target T1044 (PDB 6VR4), a single 2,180-residue chain with correct domain packing predicted after CASP without manual intervention; panel e shows the model architecture.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0030",
+              "source": "Arrows show the information flow among the various components described in this paper.",
+              "plain": "The arrows indicate how information moves between the model components described in the paper.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0031",
+              "source": "Array shapes are shown in parentheses with s, number of sequences (Nseq in the main text); r, number of residues (Nres in the main text); c, number of channels.",
+              "plain": "Array dimensions are shown in parentheses: s is number of sequences (Nseq), r is number of residues (Nres), and c is number of channels.",
+              "figureRefs": []
+            }
+          ]
+        },
+        {
+          "id": "Sec1-section-PAR5",
+          "source": "We demonstrate in Fig. 2a that the high accuracy that AlphaFold demonstrated in CASP14 extends to a large sample of recently released PDB structures; in this dataset, all structures were deposited in the PDB after our training data cut-off and are analysed as full chains (see Methods, Supplementary Fig. 15 and Supplementary Table 6 for more details). Furthermore, we observe high side-chain accuracy when the backbone prediction is accurate (Fig. 2b) and we show that our confidence measure, the predicted local-distance difference test (pLDDT), reliably predicts the Cα local-distance difference test (lDDT-Cα) accuracy of the corresponding prediction (Fig. 2c). We also find that the global superposition metric template modelling score (TM-score)27 can be accurately estimated (Fig. 2d). Overall, these analyses validate that the high accuracy and reliability of AlphaFold on CASP14 proteins also transfers to an uncurated collection of recent PDB submissions, as would be expected (see Supplementary Methods 1.15 and Supplementary Fig. 11 for confirmation that this high accuracy extends to new folds).",
+          "sentences": [
+            {
+              "id": "S0032",
+              "source": "We demonstrate in Fig. 2a that the high accuracy that AlphaFold demonstrated in CASP14 extends to a large sample of recently released PDB structures; in this dataset, all structures were deposited in the PDB after our training data cut-off and are analysed as full chains (see Methods, Supplementary Fig. 15 and Supplementary Table 6 for more details).",
+              "plain": "Figure 2a shows that AlphaFold's CASP14-level accuracy also holds on a large set of newly released PDB structures deposited after our training cutoff and analyzed as full chains (see Methods, Supplementary Fig. 15, Supplementary Table 6).",
+              "figureRefs": [
+                2,
+                15
+              ]
+            },
+            {
+              "id": "S0033",
+              "source": "Furthermore, we observe high side-chain accuracy when the backbone prediction is accurate (Fig. 2b) and we show that our confidence measure, the predicted local-distance difference test (pLDDT), reliably predicts the Cα local-distance difference test (lDDT-Cα) accuracy of the corresponding prediction (Fig. 2c).",
+              "plain": "We also see high side-chain accuracy when backbone accuracy is high (Fig. 2b), and our confidence score pLDDT predicts true lDDT-C-alpha accuracy reliably (Fig. 2c).",
+              "figureRefs": [
+                2
+              ]
+            },
+            {
+              "id": "S0034",
+              "source": "We also find that the global superposition metric template modelling score (TM-score)27 can be accurately estimated (Fig. 2d).",
+              "plain": "We also show that TM-score, a global structure-similarity metric, can be estimated accurately (Fig. 2d).",
+              "figureRefs": [
+                2
+              ]
+            },
+            {
+              "id": "S0035",
+              "source": "Overall, these analyses validate that the high accuracy and reliability of AlphaFold on CASP14 proteins also transfers to an uncurated collection of recent PDB submissions, as would be expected (see Supplementary Methods 1.15 and Supplementary Fig. 11 for confirmation that this high accuracy extends to new folds).",
+              "plain": "Overall, these tests confirm that AlphaFold's high accuracy and reliability transfer from CASP14 to an uncurated set of recent PDB entries, including new folds (see Supplementary Methods 1.15 and Supplementary Fig. 11).",
+              "figureRefs": [
+                11
+              ]
+            }
+          ]
+        },
+        {
+          "id": "Sec1-section-PAR6",
+          "source": "The analysed structures are newer than any structure in the training set. Further filtering is applied to reduce redundancy (see Methods). a, Histogram of backbone r.m.s.d. for full chains (Cα r.m.s.d. at 95% coverage). Error bars are 95% confidence intervals (Poisson). This dataset excludes proteins with a template (identified by hmmsearch) from the training set with more than 40% sequence identity covering more than 1% of the chain (n = 3,144 protein chains). The overall median is 1.46 Å (95% confidence interval = 1.40–1.56 Å). Note that this measure will be highly sensitive to domain packing and domain accuracy; a high r.m.s.d. is expected for some chains with uncertain packing or packing errors. b, Correlation between backbone accuracy and side-chain accuracy. Filtered to structures with any observed side chains and resolution better than 2.5 Å (n = 5,317 protein chains); side chains were further filtered to B-factor <30 Å2. A rotamer is classified as correct if the predicted torsion angle is within 40°. Each point aggregates a range of lDDT-Cα, with a bin size of 2 units above 70 lDDT-Cα and 5 units otherwise. Points correspond to the mean accuracy; error bars are 95% confidence intervals (Student t-test) of the mean on a per-residue basis. c, Confidence score compared to the true accuracy on chains. Least-squares linear fit lDDT-Cα = 0.997 × pLDDT − 1.17 (Pearson’s r = 0.76). n = 10,795 protein chains. The shaded region of the linear fit represents a 95% confidence interval estimated from 10,000 bootstrap samples. In the companion paper39, additional quantification of the reliability of pLDDT as a confidence measure is provided. d, Correlation between pTM and full chain TM-score. Least-squares linear fit TM-score = 0.98 × pTM + 0.07 (Pearson’s r = 0.85). n = 10,795 protein chains. The shaded region of the linear fit represents a 95% confidence interval estimated from 10,000 bootstrap samples.",
+          "sentences": [
+            {
+              "id": "S0036",
+              "source": "The analysed structures are newer than any structure in the training set.",
+              "plain": "All analyzed structures are newer than anything in the training set.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0037",
+              "source": "Further filtering is applied to reduce redundancy (see Methods). a, Histogram of backbone r.m.s.d. for full chains (Cα r.m.s.d. at 95% coverage).",
+              "plain": "We also applied extra filtering to reduce redundancy (see Methods); panel a is a histogram of full-chain backbone r.m.s.d. (C-alpha r.m.s.d.95).",
+              "figureRefs": []
+            },
+            {
+              "id": "S0038",
+              "source": "Error bars are 95% confidence intervals (Poisson).",
+              "plain": "Error bars show 95% Poisson confidence intervals.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0039",
+              "source": "This dataset excludes proteins with a template (identified by hmmsearch) from the training set with more than 40% sequence identity covering more than 1% of the chain (n = 3,144 protein chains).",
+              "plain": "This dataset excludes proteins that had a training-set template found by hmmsearch with more than 40% sequence identity over more than 1% of the chain (n = 3,144 chains).",
+              "figureRefs": []
+            },
+            {
+              "id": "S0040",
+              "source": "The overall median is 1.46 Å (95% confidence interval = 1.40–1.56 Å).",
+              "plain": "The overall median error is 1.46 angstrom (95% CI 1.40 to 1.56).",
+              "figureRefs": []
+            },
+            {
+              "id": "S0041",
+              "source": "Note that this measure will be highly sensitive to domain packing and domain accuracy; a high r.m.s.d. is expected for some chains with uncertain packing or packing errors. b, Correlation between backbone accuracy and side-chain accuracy.",
+              "plain": "This metric is very sensitive to domain accuracy and domain packing, so some chains with uncertain packing are expected to have high r.m.s.d.; panel b shows backbone versus side-chain accuracy.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0042",
+              "source": "Filtered to structures with any observed side chains and resolution better than 2.5 Å (n = 5,317 protein chains); side chains were further filtered to B-factor <30 Å2.",
+              "plain": "Panel b is filtered to structures with observed side chains and resolution better than 2.5 angstrom (n = 5,317 chains); side chains were also filtered to B-factor under 30 angstrom squared.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0043",
+              "source": "A rotamer is classified as correct if the predicted torsion angle is within 40°.",
+              "plain": "A rotamer is counted as correct when the predicted torsion angle is within 40 degrees.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0044",
+              "source": "Each point aggregates a range of lDDT-Cα, with a bin size of 2 units above 70 lDDT-Cα and 5 units otherwise.",
+              "plain": "Each point combines a range of lDDT-C-alpha values, with bin size 2 above 70 and 5 otherwise.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0045",
+              "source": "Points correspond to the mean accuracy; error bars are 95% confidence intervals (Student t-test) of the mean on a per-residue basis. c, Confidence score compared to the true accuracy on chains.",
+              "plain": "Points are mean accuracies, and error bars are 95% Student t confidence intervals of the mean on a per-residue basis; panel c compares predicted confidence with true chain accuracy.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0046",
+              "source": "Least-squares linear fit lDDT-Cα = 0.997 × pLDDT − 1.17 (Pearson’s r = 0.76). n = 10,795 protein chains.",
+              "plain": "The least-squares fit is lDDT-C-alpha = 0.997 times pLDDT minus 1.17 (Pearson r = 0.76), with n = 10,795 chains.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0047",
+              "source": "The shaded region of the linear fit represents a 95% confidence interval estimated from 10,000 bootstrap samples.",
+              "plain": "The shaded fit region is a 95% confidence interval from 10,000 bootstrap samples.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0048",
+              "source": "In the companion paper39, additional quantification of the reliability of pLDDT as a confidence measure is provided. d, Correlation between pTM and full chain TM-score.",
+              "plain": "The companion paper adds more analysis of how reliable pLDDT is as a confidence measure; panel d compares pTM with full-chain TM-score.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0049",
+              "source": "Least-squares linear fit TM-score = 0.98 × pTM + 0.07 (Pearson’s r = 0.85). n = 10,795 protein chains.",
+              "plain": "The least-squares fit is TM-score = 0.98 times pTM plus 0.07 (Pearson r = 0.85), with n = 10,795 chains.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0050",
+              "source": "The shaded region of the linear fit represents a 95% confidence interval estimated from 10,000 bootstrap samples.",
+              "plain": "The shaded fit region is a 95% confidence interval from 10,000 bootstrap samples.",
+              "figureRefs": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "Sec2-section",
+      "title": "The AlphaFold network",
+      "paragraphs": [
+        {
+          "id": "Sec2-section-PAR1",
+          "source": "AlphaFold greatly improves the accuracy of structure prediction by incorporating novel neural network architectures and training procedures based on the evolutionary, physical and geometric constraints of protein structures. In particular, we demonstrate a new architecture to jointly embed multiple sequence alignments (MSAs) and pairwise features, a new output representation and associated loss that enable accurate end-to-end structure prediction, a new equivariant attention architecture, use of intermediate losses to achieve iterative refinement of predictions, masked MSA loss to jointly train with the structure, learning from unlabelled protein sequences using self-distillation and self-estimates of accuracy.",
+          "sentences": [
+            {
+              "id": "S0051",
+              "source": "AlphaFold greatly improves the accuracy of structure prediction by incorporating novel neural network architectures and training procedures based on the evolutionary, physical and geometric constraints of protein structures.",
+              "plain": "AlphaFold improves structure-prediction accuracy by combining new neural-network designs and training methods with evolutionary, physical, and geometric constraints of proteins.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0052",
+              "source": "In particular, we demonstrate a new architecture to jointly embed multiple sequence alignments (MSAs) and pairwise features, a new output representation and associated loss that enable accurate end-to-end structure prediction, a new equivariant attention architecture, use of intermediate losses to achieve iterative refinement of predictions, masked MSA loss to jointly train with the structure, learning from unlabelled protein sequences using self-distillation and self-estimates of accuracy.",
+              "plain": "Specifically, we introduce joint MSA-plus-pair embeddings, a new output and loss for end-to-end prediction, an equivariant attention design, intermediate losses for iterative refinement, masked-MSA training, and self-distillation from unlabeled sequences with self-estimated confidence.",
+              "figureRefs": []
+            }
+          ]
+        },
+        {
+          "id": "Sec2-section-PAR2",
+          "source": "The AlphaFold network directly predicts the 3D coordinates of all heavy atoms for a given protein using the primary amino acid sequence and aligned sequences of homologues as inputs (Fig. 1e; see Methods for details of inputs including databases, MSA construction and use of templates). A description of the most important ideas and components is provided below. The full network architecture and training procedure are provided in the Supplementary Methods.",
+          "sentences": [
+            {
+              "id": "S0053",
+              "source": "The AlphaFold network directly predicts the 3D coordinates of all heavy atoms for a given protein using the primary amino acid sequence and aligned sequences of homologues as inputs (Fig. 1e; see Methods for details of inputs including databases, MSA construction and use of templates).",
+              "plain": "Given a protein sequence plus aligned homologous sequences, AlphaFold directly predicts 3D coordinates for all heavy atoms (Fig. 1e; Methods gives input details, databases, MSA construction, and template use).",
+              "figureRefs": [
+                1
+              ]
+            },
+            {
+              "id": "S0054",
+              "source": "A description of the most important ideas and components is provided below.",
+              "plain": "Below we describe the most important ideas and components.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0055",
+              "source": "The full network architecture and training procedure are provided in the Supplementary Methods.",
+              "plain": "The complete architecture and training process are in the Supplementary Methods.",
+              "figureRefs": []
+            }
+          ]
+        },
+        {
+          "id": "Sec2-section-PAR3",
+          "source": "The network comprises two main stages. First, the trunk of the network processes the inputs through repeated layers of a novel neural network block that we term Evoformer to produce an Nseq × Nres array (Nseq, number of sequences; Nres, number of residues) that represents a processed MSA and an Nres × Nres array that represents residue pairs. The MSA representation is initialized with the raw MSA (although see Supplementary Methods 1.2.7 for details of handling very deep MSAs). The Evoformer blocks contain a number of attention-based and non-attention-based components. We show evidence in ‘Interpreting the neural network’ that a concrete structural hypothesis arises early within the Evoformer blocks and is continuously refined. The key innovations in the Evoformer block are new mechanisms to exchange information within the MSA and pair representations that enable direct reasoning about the spatial and evolutionary relationships.",
+          "sentences": [
+            {
+              "id": "S0056",
+              "source": "The network comprises two main stages.",
+              "plain": "The network has two main stages.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0057",
+              "source": "First, the trunk of the network processes the inputs through repeated layers of a novel neural network block that we term Evoformer to produce an Nseq × Nres array (Nseq, number of sequences; Nres, number of residues) that represents a processed MSA and an Nres × Nres array that represents residue pairs.",
+              "plain": "First, repeated Evoformer blocks process inputs into an Nseq by Nres array for the MSA and an Nres by Nres array for residue pairs.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0058",
+              "source": "The MSA representation is initialized with the raw MSA (although see Supplementary Methods 1.2.7 for details of handling very deep MSAs).",
+              "plain": "The MSA representation starts from the raw MSA input, with special handling for very deep MSAs described in Supplementary Methods 1.2.7.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0059",
+              "source": "The Evoformer blocks contain a number of attention-based and non-attention-based components.",
+              "plain": "Evoformer blocks include both attention and non-attention components.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0060",
+              "source": "We show evidence in ‘Interpreting the neural network’ that a concrete structural hypothesis arises early within the Evoformer blocks and is continuously refined.",
+              "plain": "In the Interpreting section, we show evidence that an initial structural guess appears early in Evoformer and is refined as blocks continue.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0061",
+              "source": "The key innovations in the Evoformer block are new mechanisms to exchange information within the MSA and pair representations that enable direct reasoning about the spatial and evolutionary relationships.",
+              "plain": "The key Evoformer advances are new ways to pass information within and between MSA and pair representations so the model can reason directly about spatial and evolutionary relationships.",
+              "figureRefs": []
+            }
+          ]
+        },
+        {
+          "id": "Sec2-section-PAR4",
+          "source": "The trunk of the network is followed by the structure module that introduces an explicit 3D structure in the form of a rotation and translation for each residue of the protein (global rigid body frames). These representations are initialized in a trivial state with all rotations set to the identity and all positions set to the origin, but rapidly develop and refine a highly accurate protein structure with precise atomic details. Key innovations in this section of the network include breaking the chain structure to allow simultaneous local refinement of all parts of the structure, a novel equivariant transformer to allow the network to implicitly reason about the unrepresented side-chain atoms and a loss term that places substantial weight on the orientational correctness of the residues. Both within the structure module and throughout the whole network, we reinforce the notion of iterative refinement by repeatedly applying the final loss to outputs and then feeding the outputs recursively into the same modules. The iterative refinement using the whole network (which we term ‘recycling’ and is related to approaches in computer vision28,29) contributes markedly to accuracy with minor extra training time (see Supplementary Methods 1.8 for details).",
+          "sentences": [
+            {
+              "id": "S0062",
+              "source": "The trunk of the network is followed by the structure module that introduces an explicit 3D structure in the form of a rotation and translation for each residue of the protein (global rigid body frames).",
+              "plain": "After the trunk, the structure module creates explicit 3D structure by assigning each residue a rotation and translation (a global rigid-body frame).",
+              "figureRefs": []
+            },
+            {
+              "id": "S0063",
+              "source": "These representations are initialized in a trivial state with all rotations set to the identity and all positions set to the origin, but rapidly develop and refine a highly accurate protein structure with precise atomic details.",
+              "plain": "These frames start in a trivial state (identity rotations, origin positions) and quickly refine into an accurate atomic structure.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0064",
+              "source": "Key innovations in this section of the network include breaking the chain structure to allow simultaneous local refinement of all parts of the structure, a novel equivariant transformer to allow the network to implicitly reason about the unrepresented side-chain atoms and a loss term that places substantial weight on the orientational correctness of the residues.",
+              "plain": "Key innovations here include temporarily breaking chain constraints for parallel local refinement, a new equivariant transformer that helps reason about side-chain atoms not explicitly represented, and a loss that heavily rewards correct residue orientation.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0065",
+              "source": "Both within the structure module and throughout the whole network, we reinforce the notion of iterative refinement by repeatedly applying the final loss to outputs and then feeding the outputs recursively into the same modules.",
+              "plain": "Inside the structure module and across the network, we enforce iterative refinement by repeatedly applying the final loss and feeding outputs back into the same modules.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0066",
+              "source": "The iterative refinement using the whole network (which we term ‘recycling’ and is related to approaches in computer vision28,29) contributes markedly to accuracy with minor extra training time (see Supplementary Methods 1.8 for details).",
+              "plain": "This full-network iterative loop, called recycling and related to computer-vision ideas, improves accuracy a lot with little extra training time.",
+              "figureRefs": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "Sec3-section",
+      "title": "Evoformer",
+      "paragraphs": [
+        {
+          "id": "Sec3-section-PAR1",
+          "source": "The key principle of the building block of the network—named Evoformer (Figs. 1e, 3a)—is to view the prediction of protein structures as a graph inference problem in 3D space in which the edges of the graph are defined by residues in proximity. The elements of the pair representation encode information about the relation between the residues (Fig. 3b). The columns of the MSA representation encode the individual residues of the input sequence while the rows represent the sequences in which those residues appear. Within this framework, we define a number of update operations that are applied in each block in which the different update operations are applied in series.",
+          "sentences": [
+            {
+              "id": "S0067",
+              "source": "The key principle of the building block of the network—named Evoformer (Figs. 1e, 3a)—is to view the prediction of protein structures as a graph inference problem in 3D space in which the edges of the graph are defined by residues in proximity.",
+              "plain": "The core idea of Evoformer is to treat structure prediction as 3D graph inference where residues are nodes and nearby residues define edges.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0068",
+              "source": "The elements of the pair representation encode information about the relation between the residues (Fig. 3b).",
+              "plain": "Pair-representation entries store information about relationships between residue pairs.",
+              "figureRefs": [
+                3
+              ]
+            },
+            {
+              "id": "S0069",
+              "source": "The columns of the MSA representation encode the individual residues of the input sequence while the rows represent the sequences in which those residues appear.",
+              "plain": "In the MSA representation, columns correspond to residue positions in the target sequence and rows correspond to aligned sequences.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0070",
+              "source": "Within this framework, we define a number of update operations that are applied in each block in which the different update operations are applied in series.",
+              "plain": "Each Evoformer block applies several update operations in sequence within this framework.",
+              "figureRefs": []
+            }
+          ]
+        },
+        {
+          "id": "Sec3-section-PAR2",
+          "source": "a, Evoformer block. Arrows show the information flow. The shape of the arrays is shown in parentheses. b, The pair representation interpreted as directed edges in a graph. c, Triangle multiplicative update and triangle self-attention. The circles represent residues. Entries in the pair representation are illustrated as directed edges and in each diagram, the edge being updated is ij. d, Structure module including Invariant point attention (IPA) module. The single representation is a copy of the first row of the MSA representation. e, Residue gas: a representation of each residue as one free-floating rigid body for the backbone (blue triangles) and χ angles for the side chains (green circles). The corresponding atomic structure is shown below. f, Frame aligned point error (FAPE). Green, predicted structure; grey, true structure; (Rk, tk), frames; xi, atom positions.",
+          "sentences": [
+            {
+              "id": "S0071",
+              "source": "a, Evoformer block.",
+              "plain": "Panel a shows the Evoformer block.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0072",
+              "source": "Arrows show the information flow.",
+              "plain": "Arrows show how information flows.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0073",
+              "source": "The shape of the arrays is shown in parentheses. b, The pair representation interpreted as directed edges in a graph. c, Triangle multiplicative update and triangle self-attention.",
+              "plain": "Parentheses show array shapes; panel b interprets the pair representation as directed graph edges; panel c shows triangle multiplicative update and triangle self-attention.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0074",
+              "source": "The circles represent residues.",
+              "plain": "In this diagram, each circle stands for one residue (one amino acid position).",
+              "figureRefs": []
+            },
+            {
+              "id": "S0075",
+              "source": "Entries in the pair representation are illustrated as directed edges and in each diagram, the edge being updated is ij. d, Structure module including Invariant point attention (IPA) module.",
+              "plain": "Directed edges illustrate entries in the pair representation, and in each diagram the edge being updated is i-j; panel d shows the structure module with invariant point attention (IPA).",
+              "figureRefs": []
+            },
+            {
+              "id": "S0076",
+              "source": "The single representation is a copy of the first row of the MSA representation. e, Residue gas: a representation of each residue as one free-floating rigid body for the backbone (blue triangles) and χ angles for the side chains (green circles).",
+              "plain": "The single representation is copied from the first row of the MSA representation; panel e shows the residue-gas view: each residue is a free rigid body for backbone (blue triangles) plus chi angles for side chains (green circles).",
+              "figureRefs": []
+            },
+            {
+              "id": "S0077",
+              "source": "The corresponding atomic structure is shown below. f, Frame aligned point error (FAPE).",
+              "plain": "The matching atomic structure is shown below; panel f shows frame-aligned point error (FAPE).",
+              "figureRefs": []
+            },
+            {
+              "id": "S0078",
+              "source": "Green, predicted structure; grey, true structure; (Rk, tk), frames; xi, atom positions.",
+              "plain": "Green is predicted structure, grey is true structure, (Rk, tk) are frames, and xi are atom positions.",
+              "figureRefs": []
+            }
+          ]
+        },
+        {
+          "id": "Sec3-section-PAR3",
+          "source": "The MSA representation updates the pair representation through an element-wise outer product that is summed over the MSA sequence dimension. In contrast to previous work30, this operation is applied within every block rather than once in the network, which enables the continuous communication from the evolving MSA representation to the pair representation.",
+          "sentences": [
+            {
+              "id": "S0079",
+              "source": "The MSA representation updates the pair representation through an element-wise outer product that is summed over the MSA sequence dimension.",
+              "plain": "The MSA representation updates the pair representation by taking an element-wise outer product and summing over the MSA sequence dimension.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0080",
+              "source": "In contrast to previous work30, this operation is applied within every block rather than once in the network, which enables the continuous communication from the evolving MSA representation to the pair representation.",
+              "plain": "Unlike earlier work, this is done in every block, not once, so evolving MSA information continuously updates pair information.",
+              "figureRefs": []
+            }
+          ]
+        },
+        {
+          "id": "Sec3-section-PAR4",
+          "source": "Within the pair representation, there are two different update patterns. Both are inspired by the necessity of consistency of the pair representation—for a pairwise description of amino acids to be representable as a single 3D structure, many constraints must be satisfied including the triangle inequality on distances. On the basis of this intuition, we arrange the update operations on the pair representation in terms of triangles of edges involving three different nodes (Fig. 3c). In particular, we add an extra logit bias to axial attention31 to include the ‘missing edge’ of the triangle and we define a non-attention update operation ‘triangle multiplicative update’ that uses two edges to update the missing third edge (see Supplementary Methods 1.6.5 for details). The triangle multiplicative update was developed originally as a more symmetric and cheaper replacement for the attention, and networks that use only the attention or multiplicative update are both able to produce high-accuracy structures. However, the combination of the two updates is more accurate.",
+          "sentences": [
+            {
+              "id": "S0081",
+              "source": "Within the pair representation, there are two different update patterns.",
+              "plain": "The pair representation uses two update patterns.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0082",
+              "source": "Both are inspired by the necessity of consistency of the pair representation—for a pairwise description of amino acids to be representable as a single 3D structure, many constraints must be satisfied including the triangle inequality on distances.",
+              "plain": "Both are motivated by consistency: for pairwise residue relations to match one real 3D structure, many constraints must hold, including the triangle inequality for distances.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0083",
+              "source": "On the basis of this intuition, we arrange the update operations on the pair representation in terms of triangles of edges involving three different nodes (Fig. 3c).",
+              "plain": "Based on this, pair updates are organized around residue triangles involving three nodes.",
+              "figureRefs": [
+                3
+              ]
+            },
+            {
+              "id": "S0084",
+              "source": "In particular, we add an extra logit bias to axial attention31 to include the ‘missing edge’ of the triangle and we define a non-attention update operation ‘triangle multiplicative update’ that uses two edges to update the missing third edge (see Supplementary Methods 1.6.5 for details).",
+              "plain": "We add a logit bias to axial attention to include the missing triangle edge, and we add a non-attention triangle multiplicative update that uses two edges to update the third.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0085",
+              "source": "The triangle multiplicative update was developed originally as a more symmetric and cheaper replacement for the attention, and networks that use only the attention or multiplicative update are both able to produce high-accuracy structures.",
+              "plain": "Triangle multiplicative update was originally designed as a cheaper, more symmetric alternative to attention, and either attention-only or multiplicative-only networks can still be accurate.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0086",
+              "source": "However, the combination of the two updates is more accurate.",
+              "plain": "But using both together gives better accuracy.",
+              "figureRefs": []
+            }
+          ]
+        },
+        {
+          "id": "Sec3-section-PAR5",
+          "source": "We also use a variant of axial attention within the MSA representation. During the per-sequence attention in the MSA, we project additional logits from the pair stack to bias the MSA attention. This closes the loop by providing information flow from the pair representation back into the MSA representation, ensuring that the overall Evoformer block is able to fully mix information between the pair and MSA representations and prepare for structure generation within the structure module.",
+          "sentences": [
+            {
+              "id": "S0087",
+              "source": "We also use a variant of axial attention within the MSA representation.",
+              "plain": "We also use a modified axial attention in the MSA representation.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0088",
+              "source": "During the per-sequence attention in the MSA, we project additional logits from the pair stack to bias the MSA attention.",
+              "plain": "During per-sequence MSA attention, we project extra logits from the pair stack to bias MSA attention.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0089",
+              "source": "This closes the loop by providing information flow from the pair representation back into the MSA representation, ensuring that the overall Evoformer block is able to fully mix information between the pair and MSA representations and prepare for structure generation within the structure module.",
+              "plain": "This completes a feedback loop from pair back to MSA, letting Evoformer fully mix information before structure generation.",
+              "figureRefs": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "Sec4-section",
+      "title": "End-to-end structure prediction",
+      "paragraphs": [
+        {
+          "id": "Sec4-section-PAR1",
+          "source": "The structure module (Fig. 3d) operates on a concrete 3D backbone structure using the pair representation and the original sequence row (single representation) of the MSA representation from the trunk. The 3D backbone structure is represented as Nres independent rotations and translations, each with respect to the global frame (residue gas) (Fig. 3e). These rotations and translations—representing the geometry of the N-Cα-C atoms—prioritize the orientation of the protein backbone so that the location of the side chain of each residue is highly constrained within that frame. Conversely, the peptide bond geometry is completely unconstrained and the network is observed to frequently violate the chain constraint during the application of the structure module as breaking this constraint enables the local refinement of all parts of the chain without solving complex loop closure problems. Satisfaction of the peptide bond geometry is encouraged during fine-tuning by a violation loss term. Exact enforcement of peptide bond geometry is only achieved in the post-prediction relaxation of the structure by gradient descent in the Amber32 force field. Empirically, this final relaxation does not improve the accuracy of the model as measured by the global distance test (GDT)33 or lDDT-Cα34 but does remove distracting stereochemical violations without the loss of accuracy.",
+          "sentences": [
+            {
+              "id": "S0090",
+              "source": "The structure module (Fig. 3d) operates on a concrete 3D backbone structure using the pair representation and the original sequence row (single representation) of the MSA representation from the trunk.",
+              "plain": "The structure module uses the pair representation plus the first MSA row (single representation) while operating on an explicit 3D backbone.",
+              "figureRefs": [
+                3
+              ]
+            },
+            {
+              "id": "S0091",
+              "source": "The 3D backbone structure is represented as Nres independent rotations and translations, each with respect to the global frame (residue gas) (Fig. 3e).",
+              "plain": "This backbone is represented as Nres independent rotations and translations in the global frame (residue gas).",
+              "figureRefs": [
+                3
+              ]
+            },
+            {
+              "id": "S0092",
+              "source": "These rotations and translations—representing the geometry of the N-Cα-C atoms—prioritize the orientation of the protein backbone so that the location of the side chain of each residue is highly constrained within that frame.",
+              "plain": "These transforms define N-C-alpha-C geometry, emphasizing backbone orientation so side-chain location is strongly constrained in each residue frame.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0093",
+              "source": "Conversely, the peptide bond geometry is completely unconstrained and the network is observed to frequently violate the chain constraint during the application of the structure module as breaking this constraint enables the local refinement of all parts of the chain without solving complex loop closure problems.",
+              "plain": "By contrast, peptide-bond geometry is left unconstrained during structure-module updates, and the network often breaks chain continuity because that allows local refinement everywhere without hard loop-closure optimization.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0094",
+              "source": "Satisfaction of the peptide bond geometry is encouraged during fine-tuning by a violation loss term.",
+              "plain": "During fine-tuning, a violation loss encourages peptide-bond geometry to be satisfied.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0095",
+              "source": "Exact enforcement of peptide bond geometry is only achieved in the post-prediction relaxation of the structure by gradient descent in the Amber32 force field.",
+              "plain": "Exact peptide-bond geometry is enforced only afterward by post-prediction Amber force-field relaxation via gradient descent.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0096",
+              "source": "Empirically, this final relaxation does not improve the accuracy of the model as measured by the global distance test (GDT)33 or lDDT-Cα34 but does remove distracting stereochemical violations without the loss of accuracy.",
+              "plain": "In practice, this relaxation does not improve GDT or lDDT-C-alpha accuracy, but it removes distracting stereochemical violations without hurting accuracy.",
+              "figureRefs": []
+            }
+          ]
+        },
+        {
+          "id": "Sec4-section-PAR2",
+          "source": "The residue gas representation is updated iteratively in two stages (Fig. 3d). First, a geometry-aware attention operation that we term ‘invariant point attention’ (IPA) is used to update an Nres set of neural activations (single representation) without changing the 3D positions, then an equivariant update operation is performed on the residue gas using the updated activations. The IPA augments each of the usual attention queries, keys and values with 3D points that are produced in the local frame of each residue such that the final value is invariant to global rotations and translations (see Methods ‘IPA’ for details). The 3D queries and keys also impose a strong spatial/locality bias on the attention, which is well-suited to the iterative refinement of the protein structure. After each attention operation and element-wise transition block, the module computes an update to the rotation and translation of each backbone frame. The application of these updates within the local frame of each residue makes the overall attention and update block an equivariant operation on the residue gas.",
+          "sentences": [
+            {
+              "id": "S0097",
+              "source": "The residue gas representation is updated iteratively in two stages (Fig. 3d).",
+              "plain": "The residue-gas representation is updated iteratively in two stages.",
+              "figureRefs": [
+                3
+              ]
+            },
+            {
+              "id": "S0098",
+              "source": "First, a geometry-aware attention operation that we term ‘invariant point attention’ (IPA) is used to update an Nres set of neural activations (single representation) without changing the 3D positions, then an equivariant update operation is performed on the residue gas using the updated activations.",
+              "plain": "First, invariant point attention (IPA) updates per-residue activations without moving 3D positions; then an equivariant operation updates the residue gas using those activations.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0099",
+              "source": "The IPA augments each of the usual attention queries, keys and values with 3D points that are produced in the local frame of each residue such that the final value is invariant to global rotations and translations (see Methods ‘IPA’ for details).",
+              "plain": "IPA adds 3D points to normal attention queries, keys, and values; points are created in each residue's local frame so outputs are invariant to global rotation and translation.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0100",
+              "source": "The 3D queries and keys also impose a strong spatial/locality bias on the attention, which is well-suited to the iterative refinement of the protein structure.",
+              "plain": "These 3D queries and keys also add a strong spatial-locality bias, which helps iterative structure refinement.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0101",
+              "source": "After each attention operation and element-wise transition block, the module computes an update to the rotation and translation of each backbone frame.",
+              "plain": "After each attention and transition block, the module updates each residue's backbone rotation and translation.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0102",
+              "source": "The application of these updates within the local frame of each residue makes the overall attention and update block an equivariant operation on the residue gas.",
+              "plain": "Because updates are applied in each residue's local frame, the full attention-plus-update block is equivariant on the residue gas.",
+              "figureRefs": []
+            }
+          ]
+        },
+        {
+          "id": "Sec4-section-PAR3",
+          "source": "Predictions of side-chain χ angles as well as the final, per-residue accuracy of the structure (pLDDT) are computed with small per-residue networks on the final activations at the end of the network. The estimate of the TM-score (pTM) is obtained from a pairwise error prediction that is computed as a linear projection from the final pair representation. The final loss (which we term the frame-aligned point error (FAPE) (Fig. 3f)) compares the predicted atom positions to the true positions under many different alignments. For each alignment, defined by aligning the predicted frame (Rk, tk) to the corresponding true frame, we compute the distance of all predicted atom positions xi from the true atom positions. The resulting Nframes × Natoms distances are penalized with a clamped L1 loss. This creates a strong bias for atoms to be correct relative to the local frame of each residue and hence correct with respect to its side-chain interactions, as well as providing the main source of chirality for AlphaFold (Supplementary Methods 1.9.3 and Supplementary Fig. 9).",
+          "sentences": [
+            {
+              "id": "S0103",
+              "source": "Predictions of side-chain χ angles as well as the final, per-residue accuracy of the structure (pLDDT) are computed with small per-residue networks on the final activations at the end of the network.",
+              "plain": "Small per-residue heads on final activations predict side-chain chi angles and final per-residue confidence (pLDDT).",
+              "figureRefs": []
+            },
+            {
+              "id": "S0104",
+              "source": "The estimate of the TM-score (pTM) is obtained from a pairwise error prediction that is computed as a linear projection from the final pair representation.",
+              "plain": "Predicted TM-score (pTM) comes from pairwise error prediction obtained by a linear projection of the final pair representation.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0105",
+              "source": "The final loss (which we term the frame-aligned point error (FAPE) (Fig. 3f)) compares the predicted atom positions to the true positions under many different alignments.",
+              "plain": "The main final loss, frame-aligned point error (FAPE), compares predicted and true atom positions under many different alignments.",
+              "figureRefs": [
+                3
+              ]
+            },
+            {
+              "id": "S0106",
+              "source": "For each alignment, defined by aligning the predicted frame (Rk, tk) to the corresponding true frame, we compute the distance of all predicted atom positions xi from the true atom positions.",
+              "plain": "For each alignment, we align predicted frame (Rk, tk) to the matching true frame and measure distances from each predicted atom xi to its true position.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0107",
+              "source": "The resulting Nframes × Natoms distances are penalized with a clamped L1 loss.",
+              "plain": "The resulting Nframes by Natoms distances are penalized with a clamped L1 loss.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0108",
+              "source": "This creates a strong bias for atoms to be correct relative to the local frame of each residue and hence correct with respect to its side-chain interactions, as well as providing the main source of chirality for AlphaFold (Supplementary Methods 1.9.3 and Supplementary Fig. 9).",
+              "plain": "This strongly encourages atoms to be correct in each residue's local frame and therefore in side-chain interactions, and it is also the main source of chirality information for AlphaFold.",
+              "figureRefs": [
+                9
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "Sec5-section",
+      "title": "Training with labelled and unlabelled data",
+      "paragraphs": [
+        {
+          "id": "Sec5-section-PAR1",
+          "source": "The AlphaFold architecture is able to train to high accuracy using only supervised learning on PDB data, but we are able to enhance accuracy (Fig. 4a) using an approach similar to noisy student self-distillation35. In this procedure, we use a trained network to predict the structure of around 350,000 diverse sequences from Uniclust3036 and make a new dataset of predicted structures filtered to a high-confidence subset. We then train the same architecture again from scratch using a mixture of PDB data and this new dataset of predicted structures as the training data, in which the various training data augmentations such as cropping and MSA subsampling make it challenging for the network to recapitulate the previously predicted structures. This self-distillation procedure makes effective use of the unlabelled sequence data and considerably improves the accuracy of the resulting network.",
+          "sentences": [
+            {
+              "id": "S0109",
+              "source": "The AlphaFold architecture is able to train to high accuracy using only supervised learning on PDB data, but we are able to enhance accuracy (Fig. 4a) using an approach similar to noisy student self-distillation35.",
+              "plain": "AlphaFold can reach high accuracy using only supervised PDB training, but we improve it further with a noisy-student-style self-distillation approach.",
+              "figureRefs": [
+                4
+              ]
+            },
+            {
+              "id": "S0110",
+              "source": "In this procedure, we use a trained network to predict the structure of around 350,000 diverse sequences from Uniclust3036 and make a new dataset of predicted structures filtered to a high-confidence subset.",
+              "plain": "We use a trained model to predict structures for about 350,000 diverse Uniclust30 sequences, then keep a high-confidence subset as a new pseudo-labeled dataset.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0111",
+              "source": "We then train the same architecture again from scratch using a mixture of PDB data and this new dataset of predicted structures as the training data, in which the various training data augmentations such as cropping and MSA subsampling make it challenging for the network to recapitulate the previously predicted structures.",
+              "plain": "We retrain the same architecture from scratch on a mix of real PDB structures and these predicted structures, with augmentations like cropping and MSA subsampling that prevent simply memorizing old predictions.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0112",
+              "source": "This self-distillation procedure makes effective use of the unlabelled sequence data and considerably improves the accuracy of the resulting network.",
+              "plain": "This self-distillation uses unlabeled sequence data effectively and improves final accuracy.",
+              "figureRefs": []
+            }
+          ]
+        },
+        {
+          "id": "Sec5-section-PAR2",
+          "source": "a, Ablation results on two target sets: the CASP14 set of domains (n = 87 protein domains) and the PDB test set of chains with template coverage of ≤30% at 30% identity (n = 2,261 protein chains). Domains are scored with GDT and chains are scored with lDDT-Cα. The ablations are reported as a difference compared with the average of the three baseline seeds. Means (points) and 95% bootstrap percentile intervals (error bars) are computed using bootstrap estimates of 10,000 samples. b, Domain GDT trajectory over 4 recycling iterations and 48 Evoformer blocks on CASP14 targets LmrP (T1024) and Orf8 (T1064) where D1 and D2 refer to the individual domains as defined by the CASP assessment. Both T1024 domains obtain the correct structure early in the network, whereas the structure of T1064 changes multiple times and requires nearly the full depth of the network to reach the final structure. Note, 48 Evoformer blocks comprise one recycling iteration.",
+          "sentences": [
+            {
+              "id": "S0113",
+              "source": "a, Ablation results on two target sets: the CASP14 set of domains (n = 87 protein domains) and the PDB test set of chains with template coverage of ≤30% at 30% identity (n = 2,261 protein chains).",
+              "plain": "Panel a shows ablation results on two target sets: CASP14 domains (n = 87) and a PDB chain test set with template coverage less than or equal to 30% at 30% identity (n = 2,261).",
+              "figureRefs": []
+            },
+            {
+              "id": "S0114",
+              "source": "Domains are scored with GDT and chains are scored with lDDT-Cα. The ablations are reported as a difference compared with the average of the three baseline seeds.",
+              "plain": "Domains are scored by GDT and chains by lDDT-C-alpha; each ablation is reported as the difference from the average of three baseline random seeds.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0115",
+              "source": "Means (points) and 95% bootstrap percentile intervals (error bars) are computed using bootstrap estimates of 10,000 samples. b, Domain GDT trajectory over 4 recycling iterations and 48 Evoformer blocks on CASP14 targets LmrP (T1024) and Orf8 (T1064) where D1 and D2 refer to the individual domains as defined by the CASP assessment.",
+              "plain": "Points are means and error bars are 95% bootstrap percentile intervals from 10,000 samples; panel b shows GDT trajectories across 4 recycling iterations and 48 Evoformer blocks for CASP14 targets LmrP (T1024) and Orf8 (T1064), with D1 and D2 as CASP domain labels.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0116",
+              "source": "Both T1024 domains obtain the correct structure early in the network, whereas the structure of T1064 changes multiple times and requires nearly the full depth of the network to reach the final structure.",
+              "plain": "Both T1024 domains reach the correct structure early, while T1064 changes several times and needs almost full network depth to converge.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0117",
+              "source": "Note, 48 Evoformer blocks comprise one recycling iteration.",
+              "plain": "One recycling iteration contains 48 Evoformer blocks.",
+              "figureRefs": []
+            }
+          ]
+        },
+        {
+          "id": "Sec5-section-PAR3",
+          "source": "Additionally, we randomly mask out or mutate individual residues within the MSA and have a Bidirectional Encoder Representations from Transformers (BERT)-style37 objective to predict the masked elements of the MSA sequences. This objective encourages the network to learn to interpret phylogenetic and covariation relationships without hardcoding a particular correlation statistic into the features. The BERT objective is trained jointly with the normal PDB structure loss on the same training examples and is not pre-trained, in contrast to recent independent work38.",
+          "sentences": [
+            {
+              "id": "S0118",
+              "source": "Additionally, we randomly mask out or mutate individual residues within the MSA and have a Bidirectional Encoder Representations from Transformers (BERT)-style37 objective to predict the masked elements of the MSA sequences.",
+              "plain": "We also randomly mask or mutate residues in the MSA and train with a BERT-style objective to predict the masked MSA elements.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0119",
+              "source": "This objective encourages the network to learn to interpret phylogenetic and covariation relationships without hardcoding a particular correlation statistic into the features.",
+              "plain": "This encourages the network to learn phylogenetic and covariation patterns directly instead of hardcoding one correlation statistic in the features.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0120",
+              "source": "The BERT objective is trained jointly with the normal PDB structure loss on the same training examples and is not pre-trained, in contrast to recent independent work38.",
+              "plain": "Unlike some recent work, this BERT objective is trained jointly with the normal PDB structure loss on the same examples rather than pretraining separately.",
+              "figureRefs": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "Sec6-section",
+      "title": "Interpreting the neural network",
+      "paragraphs": [
+        {
+          "id": "Sec6-section-PAR1",
+          "source": "To understand how AlphaFold predicts protein structure, we trained a separate structure module for each of the 48 Evoformer blocks in the network while keeping all parameters of the main network frozen (Supplementary Methods 1.14). Including our recycling stages, this provides a trajectory of 192 intermediate structures—one per full Evoformer block—in which each intermediate represents the belief of the network of the most likely structure at that block. The resulting trajectories are surprisingly smooth after the first few blocks, showing that AlphaFold makes constant incremental improvements to the structure until it can no longer improve (see Fig. 4b for a trajectory of accuracy). These trajectories also illustrate the role of network depth. For very challenging proteins such as ORF8 of SARS-CoV-2 (T1064), the network searches and rearranges secondary structure elements for many layers before settling on a good structure. For other proteins such as LmrP (T1024), the network finds the final structure within the first few layers. Structure trajectories of CASP14 targets T1024, T1044, T1064 and T1091 that demonstrate a clear iterative building process for a range of protein sizes and difficulties are shown in Supplementary Videos 1–4. In Supplementary Methods 1.16 and Supplementary Figs. 12, 13, we interpret the attention maps produced by AlphaFold layers.",
+          "sentences": [
+            {
+              "id": "S0121",
+              "source": "To understand how AlphaFold predicts protein structure, we trained a separate structure module for each of the 48 Evoformer blocks in the network while keeping all parameters of the main network frozen (Supplementary Methods 1.14).",
+              "plain": "To study how AlphaFold builds structures, we froze the main network and trained a separate structure module for each of the 48 Evoformer blocks.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0122",
+              "source": "Including our recycling stages, this provides a trajectory of 192 intermediate structures—one per full Evoformer block—in which each intermediate represents the belief of the network of the most likely structure at that block.",
+              "plain": "Including recycling, this gives 192 intermediate structures, one per full Evoformer block, each representing the model's current best-guess structure at that stage.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0123",
+              "source": "The resulting trajectories are surprisingly smooth after the first few blocks, showing that AlphaFold makes constant incremental improvements to the structure until it can no longer improve (see Fig. 4b for a trajectory of accuracy).",
+              "plain": "After the first few blocks, trajectories are surprisingly smooth, showing steady incremental improvements until no further gain is possible.",
+              "figureRefs": [
+                4
+              ]
+            },
+            {
+              "id": "S0124",
+              "source": "These trajectories also illustrate the role of network depth.",
+              "plain": "These trajectories also show why network depth matters.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0125",
+              "source": "For very challenging proteins such as ORF8 of SARS-CoV-2 (T1064), the network searches and rearranges secondary structure elements for many layers before settling on a good structure.",
+              "plain": "For hard proteins like SARS-CoV-2 ORF8 (T1064), the network explores and rearranges secondary structures for many layers before settling.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0126",
+              "source": "For other proteins such as LmrP (T1024), the network finds the final structure within the first few layers.",
+              "plain": "For other proteins like LmrP (T1024), the network finds the final structure in the first few layers.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0127",
+              "source": "Structure trajectories of CASP14 targets T1024, T1044, T1064 and T1091 that demonstrate a clear iterative building process for a range of protein sizes and difficulties are shown in Supplementary Videos 1–4.",
+              "plain": "Supplementary Videos 1 to 4 show trajectories for targets T1024, T1044, T1064, and T1091, illustrating clear iterative building across different sizes and difficulties.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0128",
+              "source": "In Supplementary Methods 1.16 and Supplementary Figs. 12, 13, we interpret the attention maps produced by AlphaFold layers.",
+              "plain": "Supplementary Methods 1.16 and Supplementary Figures 12 and 13 analyze AlphaFold attention maps.",
+              "figureRefs": []
+            }
+          ]
+        },
+        {
+          "id": "Sec6-section-PAR2",
+          "source": "Figure 4a contains detailed ablations of the components of AlphaFold that demonstrate that a variety of different mechanisms contribute to AlphaFold accuracy. Detailed descriptions of each ablation model, their training details, extended discussion of ablation results and the effect of MSA depth on each ablation are provided in Supplementary Methods 1.13 and Supplementary Fig. 10.",
+          "sentences": [
+            {
+              "id": "S0129",
+              "source": "Figure 4a contains detailed ablations of the components of AlphaFold that demonstrate that a variety of different mechanisms contribute to AlphaFold accuracy.",
+              "plain": "Figure 4a includes detailed component ablations showing that many different mechanisms contribute to AlphaFold's accuracy.",
+              "figureRefs": [
+                4
+              ]
+            },
+            {
+              "id": "S0130",
+              "source": "Detailed descriptions of each ablation model, their training details, extended discussion of ablation results and the effect of MSA depth on each ablation are provided in Supplementary Methods 1.13 and Supplementary Fig. 10.",
+              "plain": "Supplementary Methods 1.13 and Supplementary Figure 10 provide full ablation definitions, training details, extended interpretation, and how MSA depth affects each ablation.",
+              "figureRefs": [
+                10
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "Sec7-section",
+      "title": "MSA depth and cross-chain contacts",
+      "paragraphs": [
+        {
+          "id": "Sec7-section-PAR1",
+          "source": "Although AlphaFold has a high accuracy across the vast majority of deposited PDB structures, we note that there are still factors that affect accuracy or limit the applicability of the model. The model uses MSAs and the accuracy decreases substantially when the median alignment depth is less than around 30 sequences (see Fig. 5a for details). We observe a threshold effect where improvements in MSA depth over around 100 sequences lead to small gains. We hypothesize that the MSA information is needed to coarsely find the correct structure within the early stages of the network, but refinement of that prediction into a high-accuracy model does not depend crucially on the MSA information. The other substantial limitation that we have observed is that AlphaFold is much weaker for proteins that have few intra-chain or homotypic contacts compared to the number of heterotypic contacts (further details are provided in a companion paper39). This typically occurs for bridging domains within larger complexes in which the shape of the protein is created almost entirely by interactions with other chains in the complex. Conversely, AlphaFold is often able to give high-accuracy predictions for homomers, even when the chains are substantially intertwined (Fig. 5b). We expect that the ideas of AlphaFold are readily applicable to predicting full hetero-complexes in a future system and that this will remove the difficulty with protein chains that have a large number of hetero-contacts.",
+          "sentences": [
+            {
+              "id": "S0131",
+              "source": "Although AlphaFold has a high accuracy across the vast majority of deposited PDB structures, we note that there are still factors that affect accuracy or limit the applicability of the model.",
+              "plain": "AlphaFold is highly accurate on most deposited PDB structures, but some factors still reduce accuracy or limit where the model applies.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0132",
+              "source": "The model uses MSAs and the accuracy decreases substantially when the median alignment depth is less than around 30 sequences (see Fig. 5a for details).",
+              "plain": "The model depends on MSAs, and accuracy drops sharply when median alignment depth is below about 30 sequences.",
+              "figureRefs": [
+                5
+              ]
+            },
+            {
+              "id": "S0133",
+              "source": "We observe a threshold effect where improvements in MSA depth over around 100 sequences lead to small gains.",
+              "plain": "There is a threshold effect: increasing MSA depth beyond about 100 sequences brings only small additional gains.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0134",
+              "source": "We hypothesize that the MSA information is needed to coarsely find the correct structure within the early stages of the network, but refinement of that prediction into a high-accuracy model does not depend crucially on the MSA information.",
+              "plain": "We think MSA information mainly helps find a rough correct fold early, while later high-accuracy refinement depends less on MSA depth.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0135",
+              "source": "The other substantial limitation that we have observed is that AlphaFold is much weaker for proteins that have few intra-chain or homotypic contacts compared to the number of heterotypic contacts (further details are provided in a companion paper39).",
+              "plain": "Another major weakness is proteins with few within-chain or same-type-chain contacts relative to cross-chain contacts.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0136",
+              "source": "This typically occurs for bridging domains within larger complexes in which the shape of the protein is created almost entirely by interactions with other chains in the complex.",
+              "plain": "This often happens for bridging domains in larger complexes whose shape is determined mostly by interactions with other chains.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0137",
+              "source": "Conversely, AlphaFold is often able to give high-accuracy predictions for homomers, even when the chains are substantially intertwined (Fig. 5b).",
+              "plain": "By contrast, AlphaFold can often predict homomers accurately even when chains are strongly intertwined.",
+              "figureRefs": [
+                5
+              ]
+            },
+            {
+              "id": "S0138",
+              "source": "We expect that the ideas of AlphaFold are readily applicable to predicting full hetero-complexes in a future system and that this will remove the difficulty with protein chains that have a large number of hetero-contacts.",
+              "plain": "We expect AlphaFold ideas can be extended to full hetero-complex prediction, which should reduce this hetero-contact limitation.",
+              "figureRefs": []
+            }
+          ]
+        },
+        {
+          "id": "Sec7-section-PAR2",
+          "source": "a, Backbone accuracy (lDDT-Cα) for the redundancy-reduced set of the PDB after our training data cut-off, restricting to proteins in which at most 25% of the long-range contacts are between different heteromer chains. We further consider two groups of proteins based on template coverage at 30% sequence identity: covering more than 60% of the chain (n = 6,743 protein chains) and covering less than 30% of the chain (n = 1,596 protein chains). MSA depth is computed by counting the number of non-gap residues for each position in the MSA (using the Neff weighting scheme; see Methods for details) and taking the median across residues. The curves are obtained through Gaussian kernel average smoothing (window size is 0.2 units in log10(Neff)); the shaded area is the 95% confidence interval estimated using bootstrap of 10,000 samples. b, An intertwined homotrimer (PDB 6SK0) is correctly predicted without input stoichiometry and only a weak template (blue is predicted and green is experimental).",
+          "sentences": [
+            {
+              "id": "S0139",
+              "source": "a, Backbone accuracy (lDDT-Cα) for the redundancy-reduced set of the PDB after our training data cut-off, restricting to proteins in which at most 25% of the long-range contacts are between different heteromer chains.",
+              "plain": "Panel a shows backbone accuracy (lDDT-C-alpha) on a redundancy-reduced post-cutoff PDB set, limited to proteins where at most 25% of long-range contacts are between different heteromer chains.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0140",
+              "source": "We further consider two groups of proteins based on template coverage at 30% sequence identity: covering more than 60% of the chain (n = 6,743 protein chains) and covering less than 30% of the chain (n = 1,596 protein chains).",
+              "plain": "We also split proteins by template coverage at 30% sequence identity: more than 60% chain coverage (n = 6,743) versus less than 30% coverage (n = 1,596).",
+              "figureRefs": []
+            },
+            {
+              "id": "S0141",
+              "source": "MSA depth is computed by counting the number of non-gap residues for each position in the MSA (using the Neff weighting scheme; see Methods for details) and taking the median across residues.",
+              "plain": "MSA depth is computed as the median across residues of non-gap counts per position, using Neff weighting.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0142",
+              "source": "The curves are obtained through Gaussian kernel average smoothing (window size is 0.2 units in log10(Neff)); the shaded area is the 95% confidence interval estimated using bootstrap of 10,000 samples. b, An intertwined homotrimer (PDB 6SK0) is correctly predicted without input stoichiometry and only a weak template (blue is predicted and green is experimental).",
+              "plain": "Curves use Gaussian-kernel smoothing in log10(Neff) (window 0.2), and shaded regions are 95% bootstrap confidence intervals from 10,000 samples; panel b shows an intertwined homotrimer (PDB 6SK0) correctly predicted without stoichiometry input and with only a weak template (blue predicted, green experimental).",
+              "figureRefs": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "Sec8-section",
+      "title": "Related work",
+      "paragraphs": [
+        {
+          "id": "Sec8-section-PAR1",
+          "source": "The prediction of protein structures has had a long and varied development, which is extensively covered in a number of reviews14,40,41,42,43. Despite the long history of applying neural networks to structure prediction14,42,43, they have only recently come to improve structure prediction10,11,44,45. These approaches effectively leverage the rapid improvement in computer vision systems46 by treating the problem of protein structure prediction as converting an ‘image’ of evolutionary couplings22,23,24 to an ‘image’ of the protein distance matrix and then integrating the distance predictions into a heuristic system that produces the final 3D coordinate prediction. A few recent studies have been developed to predict the 3D coordinates directly47,48,49,50, but the accuracy of these approaches does not match traditional, hand-crafted structure prediction pipelines51. In parallel, the success of attention-based networks for language processing52 and, more recently, computer vision31,53 has inspired the exploration of attention-based methods for interpreting protein sequences54,55,56.",
+          "sentences": [
+            {
+              "id": "S0143",
+              "source": "The prediction of protein structures has had a long and varied development, which is extensively covered in a number of reviews14,40,41,42,43.",
+              "plain": "Protein-structure prediction has a long, diverse history that many reviews describe in detail.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0144",
+              "source": "Despite the long history of applying neural networks to structure prediction14,42,43, they have only recently come to improve structure prediction10,11,44,45.",
+              "plain": "Neural networks were applied to this problem for a long time, but only recently began to produce major accuracy improvements.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0145",
+              "source": "These approaches effectively leverage the rapid improvement in computer vision systems46 by treating the problem of protein structure prediction as converting an ‘image’ of evolutionary couplings22,23,24 to an ‘image’ of the protein distance matrix and then integrating the distance predictions into a heuristic system that produces the final 3D coordinate prediction.",
+              "plain": "These methods borrow advances from computer vision by treating structure prediction as translating an \"image\" of evolutionary couplings into an \"image\" of residue distances, then converting distances to final 3D coordinates with heuristic postprocessing.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0146",
+              "source": "A few recent studies have been developed to predict the 3D coordinates directly47,48,49,50, but the accuracy of these approaches does not match traditional, hand-crafted structure prediction pipelines51.",
+              "plain": "A few recent studies predict 3D coordinates directly, but their accuracy still lags traditional hand-engineered pipelines.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0147",
+              "source": "In parallel, the success of attention-based networks for language processing52 and, more recently, computer vision31,53 has inspired the exploration of attention-based methods for interpreting protein sequences54,55,56.",
+              "plain": "At the same time, the success of attention models in language and then vision motivated attention-based methods for protein-sequence interpretation.",
+              "figureRefs": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "Sec9-section",
+      "title": "Discussion",
+      "paragraphs": [
+        {
+          "id": "Sec9-section-PAR1",
+          "source": "The methodology that we have taken in designing AlphaFold is a combination of the bioinformatics and physical approaches: we use a physical and geometric inductive bias to build components that learn from PDB data with minimal imposition of handcrafted features (for example, AlphaFold builds hydrogen bonds effectively without a hydrogen bond score function). This results in a network that learns far more efficiently from the limited data in the PDB but is able to cope with the complexity and variety of structural data.",
+          "sentences": [
+            {
+              "id": "S0148",
+              "source": "The methodology that we have taken in designing AlphaFold is a combination of the bioinformatics and physical approaches: we use a physical and geometric inductive bias to build components that learn from PDB data with minimal imposition of handcrafted features (for example, AlphaFold builds hydrogen bonds effectively without a hydrogen bond score function).",
+              "plain": "AlphaFold's design combines bioinformatics and physics: we build components with physical and geometric inductive bias, but let them learn from PDB data with minimal hand-crafted features (for example, hydrogen-bond behavior emerges without an explicit score term).",
+              "figureRefs": []
+            },
+            {
+              "id": "S0149",
+              "source": "This results in a network that learns far more efficiently from the limited data in the PDB but is able to cope with the complexity and variety of structural data.",
+              "plain": "This gives a network that learns much more efficiently from limited PDB data while still handling diverse and complex structures.",
+              "figureRefs": []
+            }
+          ]
+        },
+        {
+          "id": "Sec9-section-PAR2",
+          "source": "In particular, AlphaFold is able to handle missing the physical context and produce accurate models in challenging cases such as intertwined homomers or proteins that only fold in the presence of an unknown haem group. The ability to handle underspecified structural conditions is essential to learning from PDB structures as the PDB represents the full range of conditions in which structures have been solved. In general, AlphaFold is trained to produce the protein structure most likely to appear as part of a PDB structure. For example, in cases in which a particular stochiometry, ligand or ion is predictable from the sequence alone, AlphaFold is likely to produce a structure that respects those constraints implicitly.",
+          "sentences": [
+            {
+              "id": "S0150",
+              "source": "In particular, AlphaFold is able to handle missing the physical context and produce accurate models in challenging cases such as intertwined homomers or proteins that only fold in the presence of an unknown haem group.",
+              "plain": "AlphaFold can often make accurate models even when physical context is missing, such as intertwined homomers or proteins that fold only with an unknown heme group present.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0151",
+              "source": "The ability to handle underspecified structural conditions is essential to learning from PDB structures as the PDB represents the full range of conditions in which structures have been solved.",
+              "plain": "Handling underspecified structural conditions is critical because the PDB reflects many different experimental conditions.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0152",
+              "source": "In general, AlphaFold is trained to produce the protein structure most likely to appear as part of a PDB structure.",
+              "plain": "In general, AlphaFold is trained to output the structure most likely to appear in a PDB entry.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0153",
+              "source": "For example, in cases in which a particular stochiometry, ligand or ion is predictable from the sequence alone, AlphaFold is likely to produce a structure that respects those constraints implicitly.",
+              "plain": "For example, if stoichiometry, ligand, or ion state can be inferred from sequence alone, AlphaFold will often produce a structure that implicitly respects those constraints.",
+              "figureRefs": []
+            }
+          ]
+        },
+        {
+          "id": "Sec9-section-PAR3",
+          "source": "AlphaFold has already demonstrated its utility to the experimental community, both for molecular replacement57 and for interpreting cryogenic electron microscopy maps58. Moreover, because AlphaFold outputs protein coordinates directly, AlphaFold produces predictions in graphics processing unit (GPU) minutes to GPU hours depending on the length of the protein sequence (for example, around one GPU minute per model for 384 residues; see Methods for details). This opens up the exciting possibility of predicting structures at the proteome-scale and beyond—in a companion paper39, we demonstrate the application of AlphaFold to the entire human proteome39.",
+          "sentences": [
+            {
+              "id": "S0154",
+              "source": "AlphaFold has already demonstrated its utility to the experimental community, both for molecular replacement57 and for interpreting cryogenic electron microscopy maps58.",
+              "plain": "AlphaFold is already useful in experiments, including molecular replacement and interpretation of cryo-EM maps.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0155",
+              "source": "Moreover, because AlphaFold outputs protein coordinates directly, AlphaFold produces predictions in graphics processing unit (GPU) minutes to GPU hours depending on the length of the protein sequence (for example, around one GPU minute per model for 384 residues; see Methods for details).",
+              "plain": "Because AlphaFold outputs coordinates directly, runtime is roughly minutes to hours on GPUs depending on sequence length (for example, about one GPU minute per 384-residue model; see Methods).",
+              "figureRefs": []
+            },
+            {
+              "id": "S0156",
+              "source": "This opens up the exciting possibility of predicting structures at the proteome-scale and beyond—in a companion paper39, we demonstrate the application of AlphaFold to the entire human proteome39.",
+              "plain": "This makes proteome-scale prediction possible; the companion paper demonstrates AlphaFold on the entire human proteome.",
+              "figureRefs": []
+            }
+          ]
+        },
+        {
+          "id": "Sec9-section-PAR4",
+          "source": "The explosion in available genomic sequencing techniques and data has revolutionized bioinformatics but the intrinsic challenge of experimental structure determination has prevented a similar expansion in our structural knowledge. By developing an accurate protein structure prediction algorithm, coupled with existing large and well-curated structure and sequence databases assembled by the experimental community, we hope to accelerate the advancement of structural bioinformatics that can keep pace with the genomics revolution. We hope that AlphaFold—and computational approaches that apply its techniques for other biophysical problems—will become essential tools of modern biology.",
+          "sentences": [
+            {
+              "id": "S0157",
+              "source": "The explosion in available genomic sequencing techniques and data has revolutionized bioinformatics but the intrinsic challenge of experimental structure determination has prevented a similar expansion in our structural knowledge.",
+              "plain": "Rapid growth of sequencing has transformed bioinformatics, but difficult experimental structure determination has prevented matching growth in structural knowledge.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0158",
+              "source": "By developing an accurate protein structure prediction algorithm, coupled with existing large and well-curated structure and sequence databases assembled by the experimental community, we hope to accelerate the advancement of structural bioinformatics that can keep pace with the genomics revolution.",
+              "plain": "By combining accurate structure prediction with large curated structure and sequence databases built by experimental scientists, we hope to speed structural bioinformatics so it can match the genomics pace.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0159",
+              "source": "We hope that AlphaFold—and computational approaches that apply its techniques for other biophysical problems—will become essential tools of modern biology.",
+              "plain": "We expect AlphaFold, and methods that adapt its ideas to other biophysical problems, to become core tools in modern biology.",
+              "figureRefs": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "Sec10-section",
+      "title": "Methods",
+      "paragraphs": [
+        {
+          "id": "Sec10-section-PAR1",
+          "source": "Extensive explanations of the components and their motivations are available in Supplementary Methods 1.1–1.10, in addition, pseudocode is available in Supplementary Information Algorithms 1–32, network diagrams in Supplementary Figs. 1–8, input features in Supplementary Table 1 and additional details are provided in Supplementary Tables 2, 3. Training and inference details are provided in Supplementary Methods 1.11–1.12 and Supplementary Tables 4, 5.",
+          "sentences": [
+            {
+              "id": "S0160",
+              "source": "Extensive explanations of the components and their motivations are available in Supplementary Methods 1.1–1.10, in addition, pseudocode is available in Supplementary Information Algorithms 1–32, network diagrams in Supplementary Figs. 1–8, input features in Supplementary Table 1 and additional details are provided in Supplementary Tables 2, 3.",
+              "plain": "Supplementary Methods 1.1 to 1.10 explain components and motivations in depth; Supplementary Algorithms 1 to 32 provide pseudocode; Supplementary Figures 1 to 8 show network diagrams; Supplementary Table 1 lists input features; and Supplementary Tables 2 and 3 add more detail.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0161",
+              "source": "Training and inference details are provided in Supplementary Methods 1.11–1.12 and Supplementary Tables 4, 5.",
+              "plain": "Training and inference details are in Supplementary Methods 1.11 to 1.12 and Supplementary Tables 4 and 5.",
+              "figureRefs": []
+            }
+          ]
+        },
+        {
+          "id": "Sec10-section-PAR2",
+          "source": "The IPA module combines the pair representation, the single representation and the geometric representation to update the single representation (Supplementary Fig. 8). Each of these representations contributes affinities to the shared attention weights and then uses these weights to map its values to the output. The IPA operates in 3D space. Each residue produces query points, key points and value points in its local frame. These points are projected into the global frame using the backbone frame of the residue in which they interact with each other. The resulting points are then projected back into the local frame. The affinity computation in the 3D space uses squared distances and the coordinate transformations ensure the invariance of this module with respect to the global frame (see Supplementary Methods 1.8.2 ‘Invariant point attention (IPA)’ for the algorithm, proof of invariance and a description of the full multi-head version). A related construction that uses classic geometric invariants to construct pairwise features in place of the learned 3D points has been applied to protein design59.",
+          "sentences": [
+            {
+              "id": "S0162",
+              "source": "The IPA module combines the pair representation, the single representation and the geometric representation to update the single representation (Supplementary Fig. 8).",
+              "plain": "IPA combines pair, single, and geometric representations to update the single representation.",
+              "figureRefs": [
+                8
+              ]
+            },
+            {
+              "id": "S0163",
+              "source": "Each of these representations contributes affinities to the shared attention weights and then uses these weights to map its values to the output.",
+              "plain": "Each representation contributes to shared attention affinities and then uses those same attention weights to project its values into the output.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0164",
+              "source": "The IPA operates in 3D space.",
+              "plain": "IPA operates directly in 3D space.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0165",
+              "source": "Each residue produces query points, key points and value points in its local frame.",
+              "plain": "Each residue produces query, key, and value points in its own local frame.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0166",
+              "source": "These points are projected into the global frame using the backbone frame of the residue in which they interact with each other.",
+              "plain": "Those points are transformed into the global frame using that residue's backbone frame, where interactions are computed.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0167",
+              "source": "The resulting points are then projected back into the local frame.",
+              "plain": "The resulting points are then transformed back into local frames.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0168",
+              "source": "The affinity computation in the 3D space uses squared distances and the coordinate transformations ensure the invariance of this module with respect to the global frame (see Supplementary Methods 1.8.2 ‘Invariant point attention (IPA)’ for the algorithm, proof of invariance and a description of the full multi-head version).",
+              "plain": "Affinity in 3D is computed from squared distances, and these coordinate transforms make IPA invariant to the global reference frame.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0169",
+              "source": "A related construction that uses classic geometric invariants to construct pairwise features in place of the learned 3D points has been applied to protein design59.",
+              "plain": "A related approach using classical geometric invariants instead of learned 3D points for pairwise features has also been used in protein design.",
+              "figureRefs": []
+            }
+          ]
+        },
+        {
+          "id": "Sec10-section-PAR3",
+          "source": "In addition to the IPA, standard dot product attention is computed on the abstract single representation and a special attention on the pair representation. The pair representation augments both the logits and the values of the attention process, which is the primary way in which the pair representation controls the structure generation.",
+          "sentences": [
+            {
+              "id": "S0170",
+              "source": "In addition to the IPA, standard dot product attention is computed on the abstract single representation and a special attention on the pair representation.",
+              "plain": "Besides IPA, the model also uses standard dot-product attention on the single representation and a specialized attention on the pair representation.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0171",
+              "source": "The pair representation augments both the logits and the values of the attention process, which is the primary way in which the pair representation controls the structure generation.",
+              "plain": "The pair representation modifies both attention logits and values, which is the main path by which pair information controls structure generation.",
+              "figureRefs": []
+            }
+          ]
+        },
+        {
+          "id": "Sec10-section-PAR4",
+          "source": "Inputs to the network are the primary sequence, sequences from evolutionarily related proteins in the form of a MSA created by standard tools including jackhmmer60 and HHBlits61, and 3D atom coordinates of a small number of homologous structures (templates) where available. For both the MSA and templates, the search processes are tuned for high recall; spurious matches will probably appear in the raw MSA but this matches the training condition of the network.",
+          "sentences": [
+            {
+              "id": "S0172",
+              "source": "Inputs to the network are the primary sequence, sequences from evolutionarily related proteins in the form of a MSA created by standard tools including jackhmmer60 and HHBlits61, and 3D atom coordinates of a small number of homologous structures (templates) where available.",
+              "plain": "Network inputs are the primary sequence, evolutionary related sequences as an MSA (built with tools like jackhmmer and HHBlits), and template 3D coordinates from a few homologous structures when available.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0173",
+              "source": "For both the MSA and templates, the search processes are tuned for high recall; spurious matches will probably appear in the raw MSA but this matches the training condition of the network.",
+              "plain": "MSA and template searches are tuned for high recall, so raw MSAs may include false matches, but that matches how the model was trained.",
+              "figureRefs": []
+            }
+          ]
+        },
+        {
+          "id": "Sec10-section-PAR5",
+          "source": "One of the sequence databases used, Big Fantastic Database (BFD), was custom-made and released publicly (see ‘Data availability’) and was used by several CASP teams. BFD is one of the largest publicly available collections of protein families. It consists of 65,983,866 families represented as MSAs and hidden Markov models (HMMs) covering 2,204,359,010 protein sequences from reference databases, metagenomes and metatranscriptomes.",
+          "sentences": [
+            {
+              "id": "S0174",
+              "source": "One of the sequence databases used, Big Fantastic Database (BFD), was custom-made and released publicly (see ‘Data availability’) and was used by several CASP teams.",
+              "plain": "One key database, BFD, was custom built, publicly released, and used by several CASP teams.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0175",
+              "source": "BFD is one of the largest publicly available collections of protein families.",
+              "plain": "BFD is among the largest public protein-family collections.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0176",
+              "source": "It consists of 65,983,866 families represented as MSAs and hidden Markov models (HMMs) covering 2,204,359,010 protein sequences from reference databases, metagenomes and metatranscriptomes.",
+              "plain": "It contains 65,983,866 families as MSAs and HMMs, covering 2,204,359,010 sequences from reference databases, metagenomes, and metatranscriptomes.",
+              "figureRefs": []
+            }
+          ]
+        },
+        {
+          "id": "Sec10-section-PAR6",
+          "source": "BFD was built in three steps. First, 2,423,213,294 protein sequences were collected from UniProt (Swiss-Prot&TrEMBL, 2017-11)62, a soil reference protein catalogue and the marine eukaryotic reference catalogue7, and clustered to 30% sequence identity, while enforcing a 90% alignment coverage of the shorter sequences using MMseqs2/Linclust63. This resulted in 345,159,030 clusters. For computational efficiency, we removed all clusters with less than three members, resulting in 61,083,719 clusters. Second, we added 166,510,624 representative protein sequences from Metaclust NR (2017-05; discarding all sequences shorter than 150 residues)63 by aligning them against the cluster representatives using MMseqs264. Sequences that fulfilled the sequence identity and coverage criteria were assigned to the best scoring cluster. The remaining 25,347,429 sequences that could not be assigned were clustered separately and added as new clusters, resulting in the final clustering. Third, for each of the clusters, we computed an MSA using FAMSA65 and computed the HMMs following the Uniclust HH-suite database protocol36.",
+          "sentences": [
+            {
+              "id": "S0177",
+              "source": "BFD was built in three steps.",
+              "plain": "BFD was created in three steps.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0178",
+              "source": "First, 2,423,213,294 protein sequences were collected from UniProt (Swiss-Prot&TrEMBL, 2017-11)62, a soil reference protein catalogue and the marine eukaryotic reference catalogue7, and clustered to 30% sequence identity, while enforcing a 90% alignment coverage of the shorter sequences using MMseqs2/Linclust63.",
+              "plain": "First, they collected 2,423,213,294 sequences from UniProt (Swiss-Prot and TrEMBL, 2017-11), a soil reference catalog, and a marine eukaryotic reference catalog, then clustered at 30% identity with at least 90% coverage of the shorter sequence using MMseqs2/Linclust.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0179",
+              "source": "This resulted in 345,159,030 clusters.",
+              "plain": "This produced 345,159,030 clusters.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0180",
+              "source": "For computational efficiency, we removed all clusters with less than three members, resulting in 61,083,719 clusters.",
+              "plain": "For efficiency, clusters with fewer than three members were removed, leaving 61,083,719 clusters.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0181",
+              "source": "Second, we added 166,510,624 representative protein sequences from Metaclust NR (2017-05; discarding all sequences shorter than 150 residues)63 by aligning them against the cluster representatives using MMseqs264.",
+              "plain": "Second, they added 166,510,624 representative Metaclust NR sequences (2017-05, excluding sequences shorter than 150 residues) by aligning them to cluster representatives with MMseqs2.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0182",
+              "source": "Sequences that fulfilled the sequence identity and coverage criteria were assigned to the best scoring cluster.",
+              "plain": "Sequences meeting identity and coverage thresholds were assigned to the best-scoring cluster.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0183",
+              "source": "The remaining 25,347,429 sequences that could not be assigned were clustered separately and added as new clusters, resulting in the final clustering.",
+              "plain": "The remaining 25,347,429 unassigned sequences were clustered separately and added as new clusters, producing the final clustering.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0184",
+              "source": "Third, for each of the clusters, we computed an MSA using FAMSA65 and computed the HMMs following the Uniclust HH-suite database protocol36.",
+              "plain": "Third, they built an MSA for each cluster using FAMSA and built HMMs using the Uniclust HH-suite protocol.",
+              "figureRefs": []
+            }
+          ]
+        },
+        {
+          "id": "Sec10-section-PAR7",
+          "source": "The following versions of public datasets were used in this study. Our models were trained on a copy of the PDB5 downloaded on 28 August 2019. For finding template structures at prediction time, we used a copy of the PDB downloaded on 14 May 2020, and the PDB7066 clustering database downloaded on 13 May 2020. For MSA lookup at both training and prediction time, we used Uniref9067 v.2020_01, BFD, Uniclust3036 v.2018_08 and MGnify6 v.2018_12. For sequence distillation, we used Uniclust3036 v.2018_08 to construct a distillation structure dataset. Full details are provided in Supplementary Methods 1.2.",
+          "sentences": [
+            {
+              "id": "S0185",
+              "source": "The following versions of public datasets were used in this study.",
+              "plain": "The study used the following versions of public datasets.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0186",
+              "source": "Our models were trained on a copy of the PDB5 downloaded on 28 August 2019.",
+              "plain": "Models were trained on a PDB copy downloaded on 28 August 2019.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0187",
+              "source": "For finding template structures at prediction time, we used a copy of the PDB downloaded on 14 May 2020, and the PDB7066 clustering database downloaded on 13 May 2020.",
+              "plain": "For prediction-time template search, they used a PDB copy downloaded on 14 May 2020 and the PDB70 clustering database downloaded on 13 May 2020.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0188",
+              "source": "For MSA lookup at both training and prediction time, we used Uniref9067 v.2020_01, BFD, Uniclust3036 v.2018_08 and MGnify6 v.2018_12.",
+              "plain": "For MSA lookup in training and prediction, they used UniRef90 v2020_01, BFD, Uniclust30 v2018_08, and MGnify v2018_12.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0189",
+              "source": "For sequence distillation, we used Uniclust3036 v.2018_08 to construct a distillation structure dataset.",
+              "plain": "For sequence distillation, they used Uniclust30 v2018_08 to build a distillation-structure dataset.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0190",
+              "source": "Full details are provided in Supplementary Methods 1.2.",
+              "plain": "Full details are in Supplementary Methods 1.2.",
+              "figureRefs": []
+            }
+          ]
+        },
+        {
+          "id": "Sec10-section-PAR8",
+          "source": "For MSA search on BFD + Uniclust30, and template search against PDB70, we used HHBlits61 and HHSearch66 from hh-suite v.3.0-beta.3 (version 14/07/2017). For MSA search on Uniref90 and clustered MGnify, we used jackhmmer from HMMER368. For constrained relaxation of structures, we used OpenMM v.7.3.169 with the Amber99sb force field32. For neural network construction, running and other analyses, we used TensorFlow70, Sonnet71, NumPy72, Python73 and Colab74.",
+          "sentences": [
+            {
+              "id": "S0191",
+              "source": "For MSA search on BFD + Uniclust30, and template search against PDB70, we used HHBlits61 and HHSearch66 from hh-suite v.3.0-beta.3 (version 14/07/2017).",
+              "plain": "For MSA search on BFD plus Uniclust30 and template search against PDB70, they used HHBlits and HHSearch from hh-suite v3.0-beta.3 (14/07/2017).",
+              "figureRefs": []
+            },
+            {
+              "id": "S0192",
+              "source": "For MSA search on Uniref90 and clustered MGnify, we used jackhmmer from HMMER368.",
+              "plain": "For MSA search on UniRef90 and clustered MGnify, they used jackhmmer from HMMER3.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0193",
+              "source": "For constrained relaxation of structures, we used OpenMM v.7.3.169 with the Amber99sb force field32.",
+              "plain": "For constrained structure relaxation, they used OpenMM v7.3.1 with the Amber99sb force field.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0194",
+              "source": "For neural network construction, running and other analyses, we used TensorFlow70, Sonnet71, NumPy72, Python73 and Colab74.",
+              "plain": "For network building, execution, and analysis, they used TensorFlow, Sonnet, NumPy, Python, and Colab.",
+              "figureRefs": []
+            }
+          ]
+        },
+        {
+          "id": "Sec10-section-PAR9",
+          "source": "To quantify the effect of the different sequence data sources, we re-ran the CASP14 proteins using the same models but varying how the MSA was constructed. Removing BFD reduced the mean accuracy by 0.4 GDT, removing Mgnify reduced the mean accuracy by 0.7 GDT, and removing both reduced the mean accuracy by 6.1 GDT. In each case, we found that most targets had very small changes in accuracy but a few outliers had very large (20+ GDT) differences. This is consistent with the results in Fig. 5a in which the depth of the MSA is relatively unimportant until it approaches a threshold value of around 30 sequences when the MSA size effects become quite large. We observe mostly overlapping effects between inclusion of BFD and Mgnify, but having at least one of these metagenomics databases is very important for target classes that are poorly represented in UniRef, and having both was necessary to achieve full CASP accuracy.",
+          "sentences": [
+            {
+              "id": "S0195",
+              "source": "To quantify the effect of the different sequence data sources, we re-ran the CASP14 proteins using the same models but varying how the MSA was constructed.",
+              "plain": "To measure the contribution of different sequence databases, they reran CASP14 targets with the same models but changed MSA construction sources.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0196",
+              "source": "Removing BFD reduced the mean accuracy by 0.4 GDT, removing Mgnify reduced the mean accuracy by 0.7 GDT, and removing both reduced the mean accuracy by 6.1 GDT.",
+              "plain": "Removing BFD lowered mean accuracy by 0.4 GDT, removing MGnify lowered it by 0.7 GDT, and removing both lowered it by 6.1 GDT.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0197",
+              "source": "In each case, we found that most targets had very small changes in accuracy but a few outliers had very large (20+ GDT) differences.",
+              "plain": "In each case, most targets changed little, but a few outliers changed a lot (more than 20 GDT).",
+              "figureRefs": []
+            },
+            {
+              "id": "S0198",
+              "source": "This is consistent with the results in Fig. 5a in which the depth of the MSA is relatively unimportant until it approaches a threshold value of around 30 sequences when the MSA size effects become quite large.",
+              "plain": "This matches Fig. 5a: MSA depth has limited effect until around 30 sequences, where effects become much larger.",
+              "figureRefs": [
+                5
+              ]
+            },
+            {
+              "id": "S0199",
+              "source": "We observe mostly overlapping effects between inclusion of BFD and Mgnify, but having at least one of these metagenomics databases is very important for target classes that are poorly represented in UniRef, and having both was necessary to achieve full CASP accuracy.",
+              "plain": "BFD and MGnify effects are mostly overlapping, but at least one metagenomics database is important for targets poorly represented in UniRef, and both were needed for full CASP performance.",
+              "figureRefs": []
+            }
+          ]
+        },
+        {
+          "id": "Sec10-section-PAR10",
+          "source": "To train, we use structures from the PDB with a maximum release date of 30 April 2018. Chains are sampled in inverse proportion to cluster size of a 40% sequence identity clustering. We then randomly crop them to 256 residues and assemble into batches of size 128. We train the model on Tensor Processing Unit (TPU) v3 with a batch size of 1 per TPU core, hence the model uses 128 TPU v3 cores. The model is trained until convergence (around 10 million samples) and further fine-tuned using longer crops of 384 residues, larger MSA stack and reduced learning rate (see Supplementary Methods 1.11 for the exact configuration). The initial training stage takes approximately 1 week, and the fine-tuning stage takes approximately 4 additional days.",
+          "sentences": [
+            {
+              "id": "S0200",
+              "source": "To train, we use structures from the PDB with a maximum release date of 30 April 2018.",
+              "plain": "For training, they used PDB structures released on or before 30 April 2018.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0201",
+              "source": "Chains are sampled in inverse proportion to cluster size of a 40% sequence identity clustering.",
+              "plain": "Chains were sampled inversely to cluster size in a 40%-identity clustering.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0202",
+              "source": "We then randomly crop them to 256 residues and assemble into batches of size 128.",
+              "plain": "They then randomly cropped chains to 256 residues and formed batches of 128.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0203",
+              "source": "We train the model on Tensor Processing Unit (TPU) v3 with a batch size of 1 per TPU core, hence the model uses 128 TPU v3 cores.",
+              "plain": "Training ran on TPU v3 with batch size 1 per core, using 128 TPU v3 cores total.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0204",
+              "source": "The model is trained until convergence (around 10 million samples) and further fine-tuned using longer crops of 384 residues, larger MSA stack and reduced learning rate (see Supplementary Methods 1.11 for the exact configuration).",
+              "plain": "Training continued to convergence (about 10 million samples), then fine-tuned with longer 384-residue crops, a larger MSA stack, and a lower learning rate.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0205",
+              "source": "The initial training stage takes approximately 1 week, and the fine-tuning stage takes approximately 4 additional days.",
+              "plain": "Initial training took about 1 week, and fine-tuning took about 4 more days.",
+              "figureRefs": []
+            }
+          ]
+        },
+        {
+          "id": "Sec10-section-PAR11",
+          "source": "The network is supervised by the FAPE loss and a number of auxiliary losses. First, the final pair representation is linearly projected to a binned distance distribution (distogram) prediction, scored with a cross-entropy loss. Second, we use random masking on the input MSAs and require the network to reconstruct the masked regions from the output MSA representation using a BERT-like loss37. Third, the output single representations of the structure module are used to predict binned per-residue lDDT-Cα values. Finally, we use an auxiliary side-chain loss during training, and an auxiliary structure violation loss during fine-tuning. Detailed descriptions and weighting are provided in the Supplementary Information.",
+          "sentences": [
+            {
+              "id": "S0206",
+              "source": "The network is supervised by the FAPE loss and a number of auxiliary losses.",
+              "plain": "The network is trained with FAPE plus several auxiliary losses.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0207",
+              "source": "First, the final pair representation is linearly projected to a binned distance distribution (distogram) prediction, scored with a cross-entropy loss.",
+              "plain": "First, the final pair representation is projected to a binned distance distribution (distogram) and trained with cross-entropy loss.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0208",
+              "source": "Second, we use random masking on the input MSAs and require the network to reconstruct the masked regions from the output MSA representation using a BERT-like loss37.",
+              "plain": "Second, input MSAs are randomly masked and the network must reconstruct masked regions from output MSA representation using a BERT-like loss.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0209",
+              "source": "Third, the output single representations of the structure module are used to predict binned per-residue lDDT-Cα values.",
+              "plain": "Third, final single representations are used to predict binned per-residue lDDT-C-alpha values.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0210",
+              "source": "Finally, we use an auxiliary side-chain loss during training, and an auxiliary structure violation loss during fine-tuning.",
+              "plain": "Finally, training includes an auxiliary side-chain loss, and fine-tuning adds an auxiliary structure-violation loss.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0211",
+              "source": "Detailed descriptions and weighting are provided in the Supplementary Information.",
+              "plain": "Supplementary Information gives full definitions and loss weights.",
+              "figureRefs": []
+            }
+          ]
+        },
+        {
+          "id": "Sec10-section-PAR12",
+          "source": "An initial model trained with the above objectives was used to make structure predictions for a Uniclust dataset of 355,993 sequences with the full MSAs. These predictions were then used to train a final model with identical hyperparameters, except for sampling examples 75% of the time from the Uniclust prediction set, with sub-sampled MSAs, and 25% of the time from the clustered PDB set.",
+          "sentences": [
+            {
+              "id": "S0212",
+              "source": "An initial model trained with the above objectives was used to make structure predictions for a Uniclust dataset of 355,993 sequences with the full MSAs.",
+              "plain": "A model trained with those objectives was used to predict structures for 355,993 Uniclust sequences using full MSAs.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0213",
+              "source": "These predictions were then used to train a final model with identical hyperparameters, except for sampling examples 75% of the time from the Uniclust prediction set, with sub-sampled MSAs, and 25% of the time from the clustered PDB set.",
+              "plain": "Those predictions were then used to train a final model with the same hyperparameters, except sampling 75% of examples from the Uniclust prediction set (with subsampled MSAs) and 25% from clustered PDB data.",
+              "figureRefs": []
+            }
+          ]
+        },
+        {
+          "id": "Sec10-section-PAR13",
+          "source": "We train five different models using different random seeds, some with templates and some without, to encourage diversity in the predictions (see Supplementary Table 5 and Supplementary Methods 1.12.1 for details). We also fine-tuned these models after CASP14 to add a pTM prediction objective (Supplementary Methods 1.9.7) and use the obtained models for Fig. 2d.",
+          "sentences": [
+            {
+              "id": "S0214",
+              "source": "We train five different models using different random seeds, some with templates and some without, to encourage diversity in the predictions (see Supplementary Table 5 and Supplementary Methods 1.12.1 for details).",
+              "plain": "They trained five models with different random seeds, some with templates and some without, to increase prediction diversity.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0215",
+              "source": "We also fine-tuned these models after CASP14 to add a pTM prediction objective (Supplementary Methods 1.9.7) and use the obtained models for Fig. 2d.",
+              "plain": "After CASP14, they fine-tuned these models to add a pTM objective and used those models for Fig. 2d.",
+              "figureRefs": [
+                2
+              ]
+            }
+          ]
+        },
+        {
+          "id": "Sec10-section-PAR14",
+          "source": "We inference the five trained models and use the predicted confidence score to select the best model per target.",
+          "sentences": [
+            {
+              "id": "S0216",
+              "source": "We inference the five trained models and use the predicted confidence score to select the best model per target.",
+              "plain": "At inference time, they run the five trained models and choose the best per target using predicted confidence.",
+              "figureRefs": []
+            }
+          ]
+        },
+        {
+          "id": "Sec10-section-PAR15",
+          "source": "Using our CASP14 configuration for AlphaFold, the trunk of the network is run multiple times with different random choices for the MSA cluster centres (see Supplementary Methods 1.11.2 for details of the ensembling procedure). The full time to make a structure prediction varies considerably depending on the length of the protein. Representative timings for the neural network using a single model on V100 GPU are 4.8 min with 256 residues, 9.2 min with 384 residues and 18 h at 2,500 residues. These timings are measured using our open-source code, and the open-source code is notably faster than the version we ran in CASP14 as we now use the XLA compiler75.",
+          "sentences": [
+            {
+              "id": "S0217",
+              "source": "Using our CASP14 configuration for AlphaFold, the trunk of the network is run multiple times with different random choices for the MSA cluster centres (see Supplementary Methods 1.11.2 for details of the ensembling procedure).",
+              "plain": "In the CASP14 setup, the trunk is run multiple times with different random choices of MSA cluster centers as an ensemble.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0218",
+              "source": "The full time to make a structure prediction varies considerably depending on the length of the protein.",
+              "plain": "Total prediction time varies greatly with protein length.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0219",
+              "source": "Representative timings for the neural network using a single model on V100 GPU are 4.8 min with 256 residues, 9.2 min with 384 residues and 18 h at 2,500 residues.",
+              "plain": "With one model on a V100 GPU, typical neural-network times are 4.8 minutes for 256 residues, 9.2 minutes for 384 residues, and 18 hours for 2,500 residues.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0220",
+              "source": "These timings are measured using our open-source code, and the open-source code is notably faster than the version we ran in CASP14 as we now use the XLA compiler75.",
+              "plain": "These timings are from the open-source code, which is notably faster than their CASP14 code because it now uses the XLA compiler.",
+              "figureRefs": []
+            }
+          ]
+        },
+        {
+          "id": "Sec10-section-PAR16",
+          "source": "Since CASP14, we have found that the accuracy of the network without ensembling is very close or equal to the accuracy with ensembling and we turn off ensembling for most inference. Without ensembling, the network is 8× faster and the representative timings for a single model are 0.6 min with 256 residues, 1.1 min with 384 residues and 2.1 h with 2,500 residues.",
+          "sentences": [
+            {
+              "id": "S0221",
+              "source": "Since CASP14, we have found that the accuracy of the network without ensembling is very close or equal to the accuracy with ensembling and we turn off ensembling for most inference.",
+              "plain": "Since CASP14, they found non-ensembled accuracy is very close or equal to ensembled accuracy, so they usually disable ensembling.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0222",
+              "source": "Without ensembling, the network is 8× faster and the representative timings for a single model are 0.6 min with 256 residues, 1.1 min with 384 residues and 2.1 h with 2,500 residues.",
+              "plain": "Without ensembling, inference is about 8 times faster: 0.6 minutes for 256 residues, 1.1 minutes for 384 residues, and 2.1 hours for 2,500 residues.",
+              "figureRefs": []
+            }
+          ]
+        },
+        {
+          "id": "Sec10-section-PAR17",
+          "source": "Inferencing large proteins can easily exceed the memory of a single GPU. For a V100 with 16 GB of memory, we can predict the structure of proteins up to around 1,300 residues without ensembling and the 256- and 384-residue inference times are using the memory of a single GPU. The memory usage is approximately quadratic in the number of residues, so a 2,500-residue protein involves using unified memory so that we can greatly exceed the memory of a single V100. In our cloud setup, a single V100 is used for computation on a 2,500-residue protein but we requested four GPUs to have sufficient memory.",
+          "sentences": [
+            {
+              "id": "S0223",
+              "source": "Inferencing large proteins can easily exceed the memory of a single GPU.",
+              "plain": "Large-protein inference can easily exceed memory on one GPU.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0224",
+              "source": "For a V100 with 16 GB of memory, we can predict the structure of proteins up to around 1,300 residues without ensembling and the 256- and 384-residue inference times are using the memory of a single GPU.",
+              "plain": "On a 16 GB V100, they can predict up to roughly 1,300 residues without ensembling; the 256 and 384 residue timings use single-GPU memory.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0225",
+              "source": "The memory usage is approximately quadratic in the number of residues, so a 2,500-residue protein involves using unified memory so that we can greatly exceed the memory of a single V100.",
+              "plain": "Memory scales roughly quadratically with residue count, so predicting 2,500 residues requires unified memory to exceed a single V100's local memory.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0226",
+              "source": "In our cloud setup, a single V100 is used for computation on a 2,500-residue protein but we requested four GPUs to have sufficient memory.",
+              "plain": "In their cloud setup, computation for a 2,500-residue protein used one V100, but they requested four GPUs to provide enough memory.",
+              "figureRefs": []
+            }
+          ]
+        },
+        {
+          "id": "Sec10-section-PAR18",
+          "source": "Searching genetic sequence databases to prepare inputs and final relaxation of the structures take additional central processing unit (CPU) time but do not require a GPU or TPU.",
+          "sentences": [
+            {
+              "id": "S0227",
+              "source": "Searching genetic sequence databases to prepare inputs and final relaxation of the structures take additional central processing unit (CPU) time but do not require a GPU or TPU.",
+              "plain": "Preparing inputs by searching sequence databases and performing final structural relaxation needs extra CPU time but no GPU or TPU.",
+              "figureRefs": []
+            }
+          ]
+        },
+        {
+          "id": "Sec10-section-PAR19",
+          "source": "The predicted structure is compared to the true structure from the PDB in terms of lDDT metric34, as this metric reports the domain accuracy without requiring a domain segmentation of chain structures. The distances are either computed between all heavy atoms (lDDT) or only the Cα atoms to measure the backbone accuracy (lDDT-Cα). As lDDT-Cα only focuses on the Cα atoms, it does not include the penalty for structural violations and clashes. Domain accuracies in CASP are reported as GDT33 and the TM-score27 is used as a full chain global superposition metric.",
+          "sentences": [
+            {
+              "id": "S0228",
+              "source": "The predicted structure is compared to the true structure from the PDB in terms of lDDT metric34, as this metric reports the domain accuracy without requiring a domain segmentation of chain structures.",
+              "plain": "Predicted structures are compared with true PDB structures using lDDT, because it measures domain accuracy without requiring explicit domain segmentation.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0229",
+              "source": "The distances are either computed between all heavy atoms (lDDT) or only the Cα atoms to measure the backbone accuracy (lDDT-Cα).",
+              "plain": "Distances are computed either on all heavy atoms (lDDT) or only on C-alpha atoms (lDDT-C-alpha) for backbone accuracy.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0230",
+              "source": "As lDDT-Cα only focuses on the Cα atoms, it does not include the penalty for structural violations and clashes.",
+              "plain": "Because lDDT-C-alpha looks only at C-alpha atoms, it does not penalize structural violations and steric clashes.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0231",
+              "source": "Domain accuracies in CASP are reported as GDT33 and the TM-score27 is used as a full chain global superposition metric.",
+              "plain": "In CASP, domain accuracy is reported with GDT, and TM-score is used as a global full-chain superposition metric.",
+              "figureRefs": []
+            }
+          ]
+        },
+        {
+          "id": "Sec10-section-PAR20",
+          "source": "We also report accuracies using the r.m.s.d.95 (Cα r.m.s.d. at 95% coverage). We perform five iterations of (1) a least-squares alignment of the predicted structure and the PDB structure on the currently chosen Cα atoms (using all Cα atoms in the first iteration); (2) selecting the 95% of Cα atoms with the lowest alignment error. The r.m.s.d. of the atoms chosen for the final iterations is the r.m.s.d.95. This metric is more robust to apparent errors that can originate from crystal structure artefacts, although in some cases the removed 5% of residues will contain genuine modelling errors.",
+          "sentences": [
+            {
+              "id": "S0232",
+              "source": "We also report accuracies using the r.m.s.d.95 (Cα r.m.s.d. at 95% coverage).",
+              "plain": "They also report r.m.s.d.95 (C-alpha r.m.s.d. at 95% coverage).",
+              "figureRefs": []
+            },
+            {
+              "id": "S0233",
+              "source": "We perform five iterations of (1) a least-squares alignment of the predicted structure and the PDB structure on the currently chosen Cα atoms (using all Cα atoms in the first iteration); (2) selecting the 95% of Cα atoms with the lowest alignment error.",
+              "plain": "They run five rounds of: least-squares alignment between prediction and PDB on selected C-alpha atoms (all C-alpha in round 1), then selecting the 95% of C-alpha atoms with the smallest alignment error.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0234",
+              "source": "The r.m.s.d. of the atoms chosen for the final iterations is the r.m.s.d.95.",
+              "plain": "The r.m.s.d. of atoms selected in the final round is called r.m.s.d.95.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0235",
+              "source": "This metric is more robust to apparent errors that can originate from crystal structure artefacts, although in some cases the removed 5% of residues will contain genuine modelling errors.",
+              "plain": "This metric is more robust to apparent errors from crystal artifacts, though sometimes the excluded 5% includes real modeling mistakes.",
+              "figureRefs": []
+            }
+          ]
+        },
+        {
+          "id": "Sec10-section-PAR21",
+          "source": "For evaluation on recent PDB sequences (Figs. 2a–d, 4a, 5a), we used a copy of the PDB downloaded 15 February 2021. Structures were filtered to those with a release date after 30 April 2018 (the date limit for inclusion in the training set for AlphaFold). Chains were further filtered to remove sequences that consisted of a single amino acid as well as sequences with an ambiguous chemical component at any residue position. Exact duplicates were removed, with the chain with the most resolved Cα atoms used as the representative sequence. Subsequently, structures with less than 16 resolved residues, with unknown residues or solved by NMR methods were removed. As the PDB contains many near-duplicate sequences, the chain with the highest resolution was selected from each cluster in the PDB 40% sequence clustering of the data. Furthermore, we removed all sequences for which fewer than 80 amino acids had the alpha carbon resolved and removed chains with more than 1,400 residues. The final dataset contained 10,795 protein sequences.",
+          "sentences": [
+            {
+              "id": "S0236",
+              "source": "For evaluation on recent PDB sequences (Figs. 2a–d, 4a, 5a), we used a copy of the PDB downloaded 15 February 2021.",
+              "plain": "For evaluation on recent PDB sequences (Figs. 2a to 2d, 4a, 5a), they used a PDB copy downloaded on 15 February 2021.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0237",
+              "source": "Structures were filtered to those with a release date after 30 April 2018 (the date limit for inclusion in the training set for AlphaFold).",
+              "plain": "They kept only structures released after 30 April 2018, the training cutoff date.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0238",
+              "source": "Chains were further filtered to remove sequences that consisted of a single amino acid as well as sequences with an ambiguous chemical component at any residue position.",
+              "plain": "They further removed single-amino-acid sequences and any sequences containing an ambiguous chemical component at any residue.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0239",
+              "source": "Exact duplicates were removed, with the chain with the most resolved Cα atoms used as the representative sequence.",
+              "plain": "Exact duplicates were removed, keeping the chain with the most resolved C-alpha atoms as representative.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0240",
+              "source": "Subsequently, structures with less than 16 resolved residues, with unknown residues or solved by NMR methods were removed.",
+              "plain": "They then removed structures with fewer than 16 resolved residues, with unknown residues, or solved by NMR.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0241",
+              "source": "As the PDB contains many near-duplicate sequences, the chain with the highest resolution was selected from each cluster in the PDB 40% sequence clustering of the data.",
+              "plain": "Because the PDB has many near-duplicates, they kept only the highest-resolution chain in each 40%-identity cluster.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0242",
+              "source": "Furthermore, we removed all sequences for which fewer than 80 amino acids had the alpha carbon resolved and removed chains with more than 1,400 residues.",
+              "plain": "They also removed sequences with fewer than 80 resolved C-alpha atoms and chains longer than 1,400 residues.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0243",
+              "source": "The final dataset contained 10,795 protein sequences.",
+              "plain": "The final dataset had 10,795 protein sequences.",
+              "figureRefs": []
+            }
+          ]
+        },
+        {
+          "id": "Sec10-section-PAR22",
+          "source": "The procedure for filtering the recent PDB dataset based on prior template identity was as follows. Hmmsearch was run with default parameters against a copy of the PDB SEQRES fasta downloaded 15 February 2021. Template hits were accepted if the associated structure had a release date earlier than 30 April 2018. Each residue position in a query sequence was assigned the maximum identity of any template hit covering that position. Filtering then proceeded as described in the individual figure legends, based on a combination of maximum identity and sequence coverage.",
+          "sentences": [
+            {
+              "id": "S0244",
+              "source": "The procedure for filtering the recent PDB dataset based on prior template identity was as follows.",
+              "plain": "They filtered the recent PDB dataset by prior template identity using the following procedure.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0245",
+              "source": "Hmmsearch was run with default parameters against a copy of the PDB SEQRES fasta downloaded 15 February 2021.",
+              "plain": "Hmmsearch was run with default settings against PDB SEQRES fasta downloaded on 15 February 2021.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0246",
+              "source": "Template hits were accepted if the associated structure had a release date earlier than 30 April 2018.",
+              "plain": "Template hits were kept only if the matched structure was released before 30 April 2018.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0247",
+              "source": "Each residue position in a query sequence was assigned the maximum identity of any template hit covering that position.",
+              "plain": "Each query residue position was assigned the maximum sequence identity among template hits that cover that position.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0248",
+              "source": "Filtering then proceeded as described in the individual figure legends, based on a combination of maximum identity and sequence coverage.",
+              "plain": "Final filtering then followed each figure legend, using combinations of maximum identity and coverage thresholds.",
+              "figureRefs": []
+            }
+          ]
+        },
+        {
+          "id": "Sec10-section-PAR23",
+          "source": "The MSA depth analysis was based on computing the normalized number of effective sequences (Neff) for each position of a query sequence. Per-residue Neff values were obtained by counting the number of non-gap residues in the MSA for this position and weighting the sequences using the Neff scheme76 with a threshold of 80% sequence identity measured on the region that is non-gap in either sequence.",
+          "sentences": [
+            {
+              "id": "S0249",
+              "source": "The MSA depth analysis was based on computing the normalized number of effective sequences (Neff) for each position of a query sequence.",
+              "plain": "MSA-depth analysis computed normalized effective sequence count (Neff) for each query position.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0250",
+              "source": "Per-residue Neff values were obtained by counting the number of non-gap residues in the MSA for this position and weighting the sequences using the Neff scheme76 with a threshold of 80% sequence identity measured on the region that is non-gap in either sequence.",
+              "plain": "Per-residue Neff came from counting non-gap residues at that position and weighting sequences with the Neff scheme at an 80% identity threshold measured on positions non-gap in either sequence.",
+              "figureRefs": []
+            }
+          ]
+        },
+        {
+          "id": "Sec10-section-PAR24",
+          "source": "Further information on research design is available in the Nature Research Reporting Summary linked to this paper.",
+          "sentences": [
+            {
+              "id": "S0251",
+              "source": "Further information on research design is available in the Nature Research Reporting Summary linked to this paper.",
+              "plain": "More research-design details are in the Nature Research Reporting Summary linked to the paper.",
+              "figureRefs": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "data-availability-section",
+      "title": "Data availability",
+      "paragraphs": [
+        {
+          "id": "data-availability-section-PAR1",
+          "source": "All input data are freely available from public sources.",
+          "sentences": [
+            {
+              "id": "S0252",
+              "source": "All input data are freely available from public sources.",
+              "plain": "Every input dataset can be accessed freely from public sources.",
+              "figureRefs": []
+            }
+          ]
+        },
+        {
+          "id": "data-availability-section-PAR2",
+          "source": "Structures from the PDB were used for training and as templates (https://www.wwpdb.org/ftp/pdb-ftp-sites; for the associated sequence data and 40% sequence clustering see also https://ftp.wwpdb.org/pub/pdb/derived_data/ and https://cdn.rcsb.org/resources/sequence/clusters/bc-40.out). Training used a version of the PDB downloaded 28 August 2019, while the CASP14 template search used a version downloaded 14 May 2020. The template search also used the PDB70 database, downloaded 13 May 2020 (https://wwwuser.gwdg.de/~compbiol/data/hhsuite/databases/hhsuite_dbs/).",
+          "sentences": [
+            {
+              "id": "S0253",
+              "source": "Structures from the PDB were used for training and as templates (https://www.wwpdb.org/ftp/pdb-ftp-sites; for the associated sequence data and 40% sequence clustering see also https://ftp.wwpdb.org/pub/pdb/derived_data/ and https://cdn.rcsb.org/resources/sequence/clusters/bc-40.out).",
+              "plain": "PDB structures were used for training and templates (links provided), including associated sequence data and 40% sequence clusters.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0254",
+              "source": "Training used a version of the PDB downloaded 28 August 2019, while the CASP14 template search used a version downloaded 14 May 2020.",
+              "plain": "Training used a PDB version downloaded on 28 August 2019, while CASP14 template search used a version downloaded on 14 May 2020.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0255",
+              "source": "The template search also used the PDB70 database, downloaded 13 May 2020 (https://wwwuser.gwdg.de/~compbiol/data/hhsuite/databases/hhsuite_dbs/).",
+              "plain": "Template search also used PDB70 downloaded on 13 May 2020 (link provided).",
+              "figureRefs": []
+            }
+          ]
+        },
+        {
+          "id": "data-availability-section-PAR3",
+          "source": "We show experimental structures from the PDB with accession numbers 6Y4F77, 6YJ178, 6VR479, 6SK080, 6FES81, 6W6W82, 6T1Z83 and 7JTL84.",
+          "sentences": [
+            {
+              "id": "S0256",
+              "source": "We show experimental structures from the PDB with accession numbers 6Y4F77, 6YJ178, 6VR479, 6SK080, 6FES81, 6W6W82, 6T1Z83 and 7JTL84.",
+              "plain": "We show experimental PDB structures with accession numbers 6Y4F, 6YJ1, 6VR4, 6SK0, 6FES, 6W6W, 6T1Z, and 7JTL.",
+              "figureRefs": []
+            }
+          ]
+        },
+        {
+          "id": "data-availability-section-PAR4",
+          "source": "For MSA lookup at both the training and prediction time, we used UniRef90 v.2020_01 (https://ftp.ebi.ac.uk/pub/databases/uniprot/previous_releases/release-2020_01/uniref/), BFD (https://bfd.mmseqs.com), Uniclust30 v.2018_08 (https://wwwuser.gwdg.de/~compbiol/uniclust/2018_08/) and MGnify clusters v.2018_12 (https://ftp.ebi.ac.uk/pub/databases/metagenomics/peptide_database/2018_12/). Uniclust30 v.2018_08 was also used as input for constructing a distillation structure dataset.",
+          "sentences": [
+            {
+              "id": "S0257",
+              "source": "For MSA lookup at both the training and prediction time, we used UniRef90 v.2020_01 (https://ftp.ebi.ac.uk/pub/databases/uniprot/previous_releases/release-2020_01/uniref/), BFD (https://bfd.mmseqs.com), Uniclust30 v.2018_08 (https://wwwuser.gwdg.de/~compbiol/uniclust/2018_08/) and MGnify clusters v.2018_12 (https://ftp.ebi.ac.uk/pub/databases/metagenomics/peptide_database/2018_12/).",
+              "plain": "For MSA lookup in training and prediction, we used UniRef90 v2020_01, BFD, Uniclust30 v2018_08, and MGnify clusters v2018_12 (links provided).",
+              "figureRefs": []
+            },
+            {
+              "id": "S0258",
+              "source": "Uniclust30 v.2018_08 was also used as input for constructing a distillation structure dataset.",
+              "plain": "Uniclust30 v2018_08 was also used to build the distillation-structure dataset.",
+              "figureRefs": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "code-availability-section",
+      "title": "Code availability",
+      "paragraphs": [
+        {
+          "id": "code-availability-section-PAR1",
+          "source": "Source code for the AlphaFold model, trained weights and inference script are available under an open-source license at https://github.com/deepmind/alphafold.",
+          "sentences": [
+            {
+              "id": "S0259",
+              "source": "Source code for the AlphaFold model, trained weights and inference script are available under an open-source license at https://github.com/deepmind/alphafold.",
+              "plain": "AlphaFold source code, trained weights, and inference scripts are open source at the linked GitHub repository.",
+              "figureRefs": []
+            }
+          ]
+        },
+        {
+          "id": "code-availability-section-PAR2",
+          "source": "Neural networks were developed with TensorFlow v.1 (https://github.com/tensorflow/tensorflow), Sonnet v.1 (https://github.com/deepmind/sonnet), JAX v.0.1.69 (https://github.com/google/jax/) and Haiku v.0.0.4 (https://github.com/deepmind/dm-haiku). The XLA compiler is bundled with JAX and does not have a separate version number.",
+          "sentences": [
+            {
+              "id": "S0260",
+              "source": "Neural networks were developed with TensorFlow v.1 (https://github.com/tensorflow/tensorflow), Sonnet v.1 (https://github.com/deepmind/sonnet), JAX v.0.1.69 (https://github.com/google/jax/) and Haiku v.0.0.4 (https://github.com/deepmind/dm-haiku).",
+              "plain": "Neural networks were built using TensorFlow v1, Sonnet v1, JAX v0.1.69, and Haiku v0.0.4 (links provided).",
+              "figureRefs": []
+            },
+            {
+              "id": "S0261",
+              "source": "The XLA compiler is bundled with JAX and does not have a separate version number.",
+              "plain": "XLA is bundled with JAX and has no separate version number.",
+              "figureRefs": []
+            }
+          ]
+        },
+        {
+          "id": "code-availability-section-PAR3",
+          "source": "For MSA search on BFD+Uniclust30, and for template search against PDB70, we used HHBlits and HHSearch from hh-suite v.3.0-beta.3 release 14/07/2017 (https://github.com/soedinglab/hh-suite). For MSA search on UniRef90 and clustered MGnify, we used jackhmmer from HMMER v.3.3 (http://eddylab.org/software/hmmer/). For constrained relaxation of structures, we used OpenMM v.7.3.1 (https://github.com/openmm/openmm) with the Amber99sb force field.",
+          "sentences": [
+            {
+              "id": "S0262",
+              "source": "For MSA search on BFD+Uniclust30, and for template search against PDB70, we used HHBlits and HHSearch from hh-suite v.3.0-beta.3 release 14/07/2017 (https://github.com/soedinglab/hh-suite).",
+              "plain": "For BFD plus Uniclust30 MSA search and PDB70 template search, they used HHBlits and HHSearch from hh-suite v3.0-beta.3 (14/07/2017).",
+              "figureRefs": []
+            },
+            {
+              "id": "S0263",
+              "source": "For MSA search on UniRef90 and clustered MGnify, we used jackhmmer from HMMER v.3.3 (http://eddylab.org/software/hmmer/).",
+              "plain": "For UniRef90 and clustered MGnify MSA search, they used jackhmmer from HMMER v3.3.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0264",
+              "source": "For constrained relaxation of structures, we used OpenMM v.7.3.1 (https://github.com/openmm/openmm) with the Amber99sb force field.",
+              "plain": "For constrained structure relaxation, they used OpenMM v7.3.1 with Amber99sb force field.",
+              "figureRefs": []
+            }
+          ]
+        },
+        {
+          "id": "code-availability-section-PAR4",
+          "source": "Construction of BFD used MMseqs2 v.925AF (https://github.com/soedinglab/MMseqs2) and FAMSA v.1.2.5 (https://github.com/refresh-bio/FAMSA).",
+          "sentences": [
+            {
+              "id": "S0265",
+              "source": "Construction of BFD used MMseqs2 v.925AF (https://github.com/soedinglab/MMseqs2) and FAMSA v.1.2.5 (https://github.com/refresh-bio/FAMSA).",
+              "plain": "BFD construction used MMseqs2 v925AF and FAMSA v1.2.5.",
+              "figureRefs": []
+            }
+          ]
+        },
+        {
+          "id": "code-availability-section-PAR5",
+          "source": "Data analysis used Python v.3.6 (https://www.python.org/), NumPy v.1.16.4 (https://github.com/numpy/numpy), SciPy v.1.2.1 (https://www.scipy.org/), seaborn v.0.11.1 (https://github.com/mwaskom/seaborn), Matplotlib v.3.3.4 (https://github.com/matplotlib/matplotlib), bokeh v.1.4.0 (https://github.com/bokeh/bokeh), pandas v.1.1.5 (https://github.com/pandas-dev/pandas), plotnine v.0.8.0 (https://github.com/has2k1/plotnine), statsmodels v.0.12.2 (https://github.com/statsmodels/statsmodels) and Colab (https://research.google.com/colaboratory). TM-align v.20190822 (https://zhanglab.dcmb.med.umich.edu/TM-align/) was used for computing TM-scores. Structure visualizations were created in Pymol v.2.3.0 (https://github.com/schrodinger/pymol-open-source).",
+          "sentences": [
+            {
+              "id": "S0266",
+              "source": "Data analysis used Python v.3.6 (https://www.python.org/), NumPy v.1.16.4 (https://github.com/numpy/numpy), SciPy v.1.2.1 (https://www.scipy.org/), seaborn v.0.11.1 (https://github.com/mwaskom/seaborn), Matplotlib v.3.3.4 (https://github.com/matplotlib/matplotlib), bokeh v.1.4.0 (https://github.com/bokeh/bokeh), pandas v.1.1.5 (https://github.com/pandas-dev/pandas), plotnine v.0.8.0 (https://github.com/has2k1/plotnine), statsmodels v.0.12.2 (https://github.com/statsmodels/statsmodels) and Colab (https://research.google.com/colaboratory).",
+              "plain": "Data analysis used Python v3.6 plus NumPy v1.16.4, SciPy v1.2.1, seaborn v0.11.1, Matplotlib v3.3.4, bokeh v1.4.0, pandas v1.1.5, plotnine v0.8.0, statsmodels v0.12.2, and Colab.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0267",
+              "source": "TM-align v.20190822 (https://zhanglab.dcmb.med.umich.edu/TM-align/) was used for computing TM-scores.",
+              "plain": "TM-align v20190822 was used to compute TM-scores.",
+              "figureRefs": []
+            },
+            {
+              "id": "S0268",
+              "source": "Structure visualizations were created in Pymol v.2.3.0 (https://github.com/schrodinger/pymol-open-source).",
+              "plain": "Structure images were generated in PyMOL v2.3.0.",
+              "figureRefs": []
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
