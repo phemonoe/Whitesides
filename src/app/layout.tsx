@@ -1,18 +1,6 @@
 import type { Metadata } from "next";
-import { IBM_Plex_Sans, Merriweather } from "next/font/google";
+import { FontModeToggle } from "@/components/font-mode-toggle";
 import "./globals.css";
-
-const bodyFont = IBM_Plex_Sans({
-  variable: "--font-body",
-  subsets: ["latin"],
-  weight: ["400", "500", "600"],
-});
-
-const displayFont = Merriweather({
-  variable: "--font-display",
-  subsets: ["latin"],
-  weight: ["700", "900"],
-});
 
 export const metadata: Metadata = {
   title: "Paper Translation Library",
@@ -27,8 +15,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${bodyFont.variable} ${displayFont.variable} antialiased`}>
+      <body>
         {children}
+        <FontModeToggle />
       </body>
     </html>
   );

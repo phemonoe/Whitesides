@@ -20,6 +20,8 @@ export type SectionEntry = {
 export type FigureEntry = {
   id: number;
   image: string;
+  width?: number;
+  height?: number;
   caption: string;
 };
 

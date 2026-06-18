@@ -1,0 +1,488 @@
+S0001	Today, chemists often use standard computer calculations to predict molecular shapes, reaction energies, energy barriers, and spectra.
+S0002	Most of those quantum-chemistry calculations use density functional theory, or DFT, together with atomic-orbital basis sets, which are mathematical building blocks for describing electrons around atoms.
+S0003	This article gives practical advice for running DFT calculations in three parts: first, it introduces a decision tree for choosing a computational setup that matches the real experiment as closely as possible.
+S0004	Second, it gives a recommendation table for choosing the DFT functional and basis set that fit the specific job.
+S0005	A central theme is balancing three needs at once: accuracy, reliability, and reasonable computational cost, often by combining cheaper and more expensive calculation levels.
+S0006	Finally, the paper works through representative examples to show how the recommended protocols behave and how different technical choices change the answer.
+S0007	Chemistry and synthesis help address major problems such as energy storage, sustainable food production, and affordable medicines.
+S0008	In each of those areas, researchers need to design molecules and materials rationally, such as catalysts, battery electrolytes, electronic materials, and drugs.
+S0009	To do that well, chemists must understand atoms and electrons, using experiments, spectroscopy, and quantum-chemistry calculations together.
+S0010	Computational chemistry, especially Kohn-Sham DFT, has become a third major tool alongside making molecules and measuring them experimentally.
+S0011	The authors argue that DFT is important because it often gives a lot of chemical insight for the amount of time, money, and effort spent.
+S0012	In principle, DFT starts from fundamental quantum mechanics, but in practice it uses empirical approximations to handle the many-electron problem behind chemistry, biology, and physics.
+S0013	When DFT is paired with models for nuclear motion, such as molecular dynamics or harmonic potential-energy approximations, it can answer many chemistry and physics questions accurately enough to be useful.
+S0014	The deeper theory of DFT has already been covered in a separate open review, so this paper points readers there for detailed theoretical issues and stays focused on practical use.
+S0015	For broader challenges in theoretical and computational chemistry, the authors direct readers to references [2] and [3].
+S0016	Compared with other methods, DFT is a middle ground: it is slower but more dependable than semi-empirical quantum mechanics, and faster but usually less rigorous than wavefunction methods such as coupled-cluster theory, as sketched in Figure 1.
+S0017	Efficient coupled-cluster variants, including DLPNO-CCSD(T), can sometimes compete with high-level DFT, but this paper does not focus on them.
+S0018	DFT can also save researcher time and computer power.
+S0019	Another advantage is robustness: DFT usually does not fail catastrophically, even for difficult molecules or unusual chemistry.
+S0020	Semi-empirical and other more empirical methods need more careful checking because they are more likely to give misleading results.
+S0021	Because of this reliability, non-specialists can often use DFT as a practical black-box tool for chemical problems.
+S0022	Typical uses include checking whether proposed structures and mechanisms make sense, or plotting frontier orbitals and HOMO/LUMO energies to interpret electrochemistry in materials science.
+S0023	Even so, choosing a method that is affordable, reliable, and accurate remains hard, even for experienced computational chemists.
+S0024	One reason is that recent years have produced a huge number of possible method combinations.
+S0025	Even the basic pairing of a density functional with an atomic-orbital basis set can involve hundreds or thousands of options in common software.
+S0026	For tiny molecules, using a very expensive method may be acceptable, but systems with 50-100 atoms or many low-energy shapes force researchers to make careful cost-versus-accuracy compromises.
+S0027	Some quantum-chemistry programs also still offer outdated defaults, which can lead inexperienced users toward methods that are no longer recommended.
+S0028	A key example is B3LYP/6-31G*, which remains common even though it can perform poorly because it misses London dispersion and suffers from basis-set superposition error; awareness of these problems has spread slowly beyond theory specialists.
+S0029	Tutorials that explain these weaknesses and show better choices, such as work by Peverati and Morgante or by Mobley, are therefore useful for the field.
+S0030	Over the past 10-20 years, better dispersion corrections and BSSE corrections have made routine B3LYP/6-31G* calculations obsolete.
+S0031	Researchers now have alternatives that are often more accurate, more robust, and sometimes cheaper, including composite methods such as B3LYP-3c, r2SCAN-3c, B3LYP-D3DCP, and B97M-V/def2-SVPD/DFT-C.
+S0032	These newer methods are designed to remove the systematic problems of B3LYP/6-31G* without making the calculation more expensive.
+S0033	Figure 1 compares the computational cost of the main approaches, and Sections 4.2 and 4.3 show concrete failures of B3LYP/6-31G* and ways to avoid them.
+S0034	The paper's main aim is to introduce these improved methods to chemists who are interested but not specialists, including readers with some theory background.
+S0035	It gives best-practice advice for common tasks such as finding structures and conformer ensembles, calculating reaction energies and barriers, estimating free energies, and treating solvation.
+S0036	It also briefly explains how reliable DFT calculations can be embedded in multi-level workflows to study solvated and temperature-averaged sets of conformers, protomers, or tautomers.
+S0037	Because quantum chemistry is broad, the paper mostly leaves aside topics such as theoretical spectroscopy, excited states, periodic materials, and heavy-element chemistry.
+S0038	It also does not cover detailed analyses of atom and fragment interactions, such as energy decomposition analysis or natural bonding orbital analysis.
+S0039	The recommendations draw on more than 25 years of work in DFT, functional development, thermochemical benchmarks, and many collaborative chemistry applications.
+S0040	Most advice is evidence-based, relying on large benchmark comparisons between approximate DFT, experiment, and high-accuracy coupled-cluster calculations.
+S0041	Some judgments, however, are hard to prove cleanly with statistics because method performance can depend on the model, basis set, functional, and chemical case.
+S0042	For that reason, the guidance also reflects the authors' practical experience.
+S0043	The authors value robustness more than best-case benchmark ranking, because in predictive chemistry avoiding large unexpected errors matters more than being exact to the final kcal mol-1.
+S0044	The authors stress that standard DFT still uses approximations, so even a robust functional cannot guarantee perfect answers; they also note that in computational chemistry, thermochemistry commonly includes reaction barriers as well as reaction energies.
+S0045	Choosing an appropriate theoretical method is essential for describing a chemical system accurately.
+S0046	That choice includes both the electronic-structure method and the model system used to represent the real physical and chemical situation.
+S0047	In practice, this requires several connected decisions.
+S0048	Figure 2 gives a flowchart for those decisions across many common molecular quantum-chemistry applications.
+S0049	The first major question is whether ordinary DFT is suitable: is one main electronic configuration enough, or does the system need several configurations and therefore a multireference treatment?
+S0050	Fortunately, most routine cases belong to the single-reference category.
+S0051	Those systems can usually be described with the DFT methods discussed in the paper.
+S0052	This is especially true for most diamagnetic closed-shell organic molecules, which normally have a single-reference electronic structure.
+S0053	Exceptions such as biradicals can have nearby triplet states, and an unrestricted broken-symmetry DFT calculation can help detect that problem.
+S0054	Multireference behavior is more likely for radicals, small HOMO-LUMO gap systems, open-shell bond-breaking transition states, and transition-metal complexes.
+S0055	Partly filled 3d transition metals are especially prone to this because their ligand fields can create several close electronic arrangements.
+S0056	In such cases, several nearly equal electronic configurations with different orbital occupations may contribute, making the electronic structure complicated.
+S0057	Therefore, researchers should check early whether these systems are multireference cases.
+S0058	Although a full test is difficult, simple warning signs can often give a useful first assessment.
+S0059	One warning sign is a very small HOMO-LUMO gap, below about 0.5-1 eV in a test GGA calculation, together with unusually slow self-consistent-field convergence.
+S0060	This is an extraction artifact from the journal header, not scientific content to interpret.
+S0061	The broken text continues the previous warning: poor convergence can indicate unusual electronic complexity.
+S0062	If those rough signs appear, researchers should use more advanced checks.
+S0063	Most rigorous checks use wavefunction theory, which makes them practical mainly for small molecules.
+S0064	A more accessible DFT-based option is the fractional-occupation-number-weighted density, or FOD, estimate.
+S0065	In that approach, researchers slightly raise the electronic temperature so low-lying problematic electronic states become populated and visible.
+S0066	If a system shows clear multireference character, standard DFT is not recommended and a specialist in multireference methods should be consulted.
+S0067	Reference [44] discusses the distinction between true multireference cases and related multi-determinant behavior in low-spin open-shell systems.
+S0068	The practical recommendations are to check HOMO-LUMO gaps or FOD, be extra cautious with open-shell systems, and avoid ordinary single-reference DFT for multireference cases; the extracted sentence also contains the start of the next solvation discussion.
+S0069	Explicitly modeling individual solvent molecules can make the energy landscape very crowded with local minima, so it should be used cautiously.
+S0070	Ignoring solvent effects, especially for polar or charged molecules, can badly distort thermochemical results and can even give the wrong electronic structure, for example in zwitterions.
+S0071	The next basic question is the molecule's physical environment: is it isolated, in a solid, in solution, or part of a mixture?
+S0072	Nearby molecules in a solid or solvent can strongly change the structure and properties of the system being studied.
+S0073	For condensed-phase chemistry, researchers should therefore include an appropriate solvent model.
+S0074	In DFT, the usual shortcut is a continuum solvation model, which represents the solvent as an averaged surrounding field in the Hamiltonian rather than as individual molecules.
+S0075	In other words, the calculation includes solvent effects without placing actual solvent molecules around the solute.
+S0076	Common continuum models include CPCM, SMD, COSMO, COSMO-RS, and DCOSMO-RS, and they differ in what physical solvent effects they include.
+S0077	CPCM and COSMO mainly treat electrostatics, so they miss cavity-formation costs and attractive van der Waals solvent interactions, which can cause serious errors when solvent-exposed surface area changes.
+S0078	SMD, COSMO-RS, and DCOSMO-RS include those extra solvent contributions, so the authors recommend them.
+S0079	The detailed example appears in Section 4.2.
+S0080	COSMO-RS cannot be used directly for geometry optimizations or frequency calculations, so DCOSMO-RS must replace it for those steps.
+S0081	Other implicit-solvent options include GBSA and ALPB, which can also be used with semi-empirical and force-field methods; however, some problems still require actual solvent molecules placed at the most important binding positions, especially when those solvent molecules participate strongly in the chemistry.
+S0082	A cheap test calculation on a representative model can help decide whether explicit solvent molecules matter.
+S0083	Explicit solvent is difficult because calculated properties may keep changing as more solvent molecules are added.
+S0084	The authors recommend matching the modeled aggregation state to the experiment, using good implicit solvent models for solution chemistry, treating highly charged systems cautiously, and adding explicit solvent only when necessary.
+S0085	CREST followed by CENSO is a useful semi-automated way to search molecular shapes and rank conformer-rotamer ensembles, meaning sets of low-energy arrangements from bond rotations and conformational changes.
+S0086	CREST also reports a flexibility index that can warn how flexible a molecule is.
+S0087	Other conformer-generation tools exist, including Molassembler, ConfGen, MS-DOCK, Frog2, OMEGA, RDKit, and related programs.
+S0088	The practical advice is to search conformational space, use automated tools such as CREST, verify the lowest-energy conformer, and consider Boltzmann averaging when properties depend on multiple shapes.
+S0089	One of the most important DFT choices is the exchange-correlation functional, usually shortened to functional.
+S0090	The functional is meant to capture complicated electron correlation and exchange effects inside a usable expression for electronic energy and potential.
+S0091	Hundreds of functionals exist, and they differ in philosophy, intended use, amount of fitting, and overall reliability [16,76].
+S0092	This paper does not review all functional theory; it focuses on which functionals are useful for thermochemical applications.
+S0093	Perdew's Jacob's ladder groups functionals by the physical information they use, from simple density information up to ingredients such as Fock exchange and MP2-like virtual-orbital correlation, with higher rungs generally expected to be more accurate.
+S0094	The main practical categories, from cheaper to more sophisticated, are GGA, meta-GGA, hybrid, and double-hybrid functionals.
+S0095	Higher rungs often improve accuracy, but functionals on the same rung can still perform very differently.
+S0096	Therefore, benchmark studies for the specific property of interest are essential.
+S0097	Even so, Jacob's ladder gives a rough sense of which systematic errors a functional may have.
+S0098	It also helps classify functionals by computational cost.
+S0099	The most important cost distinction is whether the functional includes Fock exchange, also called exact or nonlocal exchange.
+S0100	Functionals up through rung 3 are local or semi-local and do not use Fock exchange, while hybrid and double-hybrid functionals on rungs 4 and 5 do use it.
+S0101	Because Fock exchange is expensive to compute, semi-local functionals are usually faster than hybrid or double-hybrid methods.
+S0102	Two major DFT approximation errors are self-interaction error and the missing long-range correlation responsible for London dispersion.
+S0103	Missing dispersion can now be fixed with corrections such as D4, D3, or VV10, and the authors argue that essentially every DFT calculation should include such a correction unless dispersion itself is being studied.
+S0104	Section 3.7 and example 4.2 give details and numerical examples.
+S0105	Dispersion strongly affects energies but seems to have little effect on electron density, while self-interaction error comes from an electron incorrectly interacting with itself because approximate exchange-correlation does not cancel the electron's own Coulomb repulsion perfectly.
+S0106	Hartree-Fock avoids self-interaction error because its exact exchange term mathematically cancels an electron's self-Coulomb interaction.
+S0107	In DFT, self-interaction error often spreads electron density too much and makes delocalized electronic states artificially stable, with stretched H2+ as a classic example.
+S0108	All semi-local GGA and meta-GGA functionals, such as PBE and r2SCAN, contain this error.
+S0109	Hybrid functionals reduce self-interaction by replacing part of approximate DFT exchange with Fock exchange, for example 20% in B3LYP and 25% in PBE0.
+S0110	That replacement helps, but it does not remove the error completely.
+S0111	So even functionals containing Fock exchange can still suffer from self-interaction error.
+S0112	Using 100% Fock exchange is not a simple fix because it usually performs poorly overall.
+S0113	As a rough guide, 5-25% Fock exchange is small, 25-40% is moderate, and more than 40% is high.
+S0114	Range-separated hybrids vary the Fock-exchange amount with electron-electron distance; more generally, self-interaction is part of the broader delocalization-error problem, and double-hybrid functionals add a wavefunction-theory correction at the highest rung.
+S0115	Double hybrids usually add perturbation-theory correlation such as MP2 or a DFT variant, and their high Fock-exchange content makes them more resistant to self-interaction error while the correlation term compensates for problems caused by that much exchange.
+S0116	The tradeoff is that double hybrids cost more and are not universally applicable.
+S0117	For example, MP2-based double hybrids can struggle with small-gap systems, so those cases require caution.
+S0118	Hybrid and double-hybrid functionals can be more accurate, but their cost and scaling become a serious issue for large molecules.
+S0119	With density fitting, GGA and meta-GGA treatments formally scale roughly as N^3 with system size.
+S0120	For local GGA or meta-GGA functionals, density fitting can make calculations about 5-30 times faster, depending on the molecule and basis set.
+S0121	Hybrid methods scale roughly as N^4, and MP2-based double hybrids roughly as N^5.
+S0122	Because of that scaling, higher-rung functionals can become impractical for systems larger than about 200-300 atoms on ordinary hardware.
+S0123	The main reason is that density fitting does not speed up Fock exchange as effectively, so exchange dominates hybrid calculation time.
+S0124	Semi-numerical exchange methods such as COSX can speed hybrid calculations by about 3-10 times for triple-zeta or larger basis sets when combined with density fitting.
+S0125	The authors strongly recommend using RI and COSX when the software offers them, such as RIJCOSX in ORCA or SENEX in TURBOMOLE.
+S0126	Density fitting also accelerates the MP2 part of double hybrids, making them only somewhat more expensive than hybrids, so this safe approximation is strongly recommended.
+S0127	Besides reading benchmark studies, users should compare a few suitable functionals on a representative model to check whether conclusions are consistent.
+S0128	Those test functionals should come from classes appropriate for the problem, such as range-separated hybrids or double hybrids for barrier heights.
+S0129	This consistency check is especially important when the studied system differs strongly from the systems used in published benchmarks.
+S0130	Minnesota functionals, developed by the Truhlar group since 2005, are widely used and can perform very well on main-group benchmarks such as GMTKN55; their names encode year and purpose, such as HF, 2X, or L.
+S0131	They improved on B3LYP and solve some difficult correlation problems, but they can be sensitive to integration grids and basis sets, can create rough potential-energy surfaces, and can behave very differently across chemical systems.
+S0132	Their strong performance for normal main-group chemistry comes partly from extensive parameter fitting, which can fail for unusual systems and transition-metal chemistry; performance also depends on how much Fock exchange each Minnesota functional uses.
+S0133	Reference [16] discusses that dependence in more detail.
+S0134	A third caution is that Minnesota functionals can be problematic for noncovalent interactions.
+S0135	Although they include some dispersion-like behavior and can work near equilibrium distances, they do not reproduce the correct long-range London dispersion limit for large separations, which matters for big molecules, solids, and liquids.
+S0136	Sometimes a separate dispersion correction must be added to Minnesota functionals, but that can over-bind in other cases; overall, choose functionals for the system and task rather than popularity, and include dispersion corrections as standard.
+S0137	Hybrids are often more accurate but much costlier than GGA or meta-GGA methods, so users should compare functional classes, test different Fock-exchange amounts in critical cases, and use proven multi-level or composite approaches for large systems.
+S0138	The atomic-orbital basis set is another major part of the speed-versus-accuracy compromise.
+S0139	In principle, basis-set choice is technical because a calculation could be converged all the way to the complete-basis-set limit, where basis-set error disappears.
+S0140	In real work, finite basis sets are almost always used, so some basis-set error remains.
+S0141	DFT is usually less sensitive to basis-set errors than correlated wavefunction methods.
+S0142	That weaker dependence on basis-set size is one practical advantage of DFT.
+S0143	Still, even an excellent functional will give poor results if the basis set is too small.
+S0144	The key basis-set property is completeness, commonly described as basis-set size.
+S0145	Completeness reflects how many mathematical functions are available to describe each electron.
+S0146	If the function space is too small, basis set incompleteness error occurs because the orbital expansion cannot represent the true electron density well enough.
+S0147	Put simply, BSIE means the basis set is not flexible enough to describe fine details in the electron density.
+S0148	Valence electrons usually matter most, so basis sets are categorized by a cardinal number giving how many independent functions describe each occupied valence orbital.
+S0149	That size is called double-zeta, triple-zeta, quadruple-zeta, and so on, where zeta counts independent atomic functions for each occupied valence orbital.
+S0150	A second small-basis error is basis set superposition error: nearby atoms or fragments borrow each other's basis functions, which falsely stabilizes compact structures and weak complexes.
+S0151	This is another extraction artifact from the journal header.
+S0152	The previous sentence continues here: BSSE can be as large as the interaction energy for noncovalently bound intermolecular complexes.
+S0153	BSSE is not limited to weak intermolecular binding; small basis sets can also distort conformer energies and even optimized molecular structures.
+S0154	Therefore, users need to know which tasks are sensitive to basis-set size and when a larger basis set is worth the extra cost.
+S0155	Section 3 and Figure 5 focus on that decision.
+S0156	For separated fragments, the counterpoise correction can address BSSE, while cheaper approximate corrections such as gCP or adapted effective core potentials can also correct intramolecular BSSE and are easier to apply.
+S0157	Approximate counterpoise corrections can fix the worst BSSE problems, for example during geometry optimization with small basis sets.
+S0158	Using them is about as simple as applying a dispersion correction.
+S0159	The authors recommend Kruse and Grimme's gCP correction for small-basis geometry optimizations with HF or DFT across many basis sets.
+S0160	For accurate noncovalent interaction energies, they also recommend Witte and Head-Gordon's DFT-C approach for DFT/def2-SVPD, while warning that minimal basis sets should generally be avoided because their errors become uncontrollable.
+S0161	Common contracted Gaussian basis-set families include Pople, Dunning, Jensen, and Ahlrichs basis sets.
+S0162	For routine DFT, the authors do not recommend older Pople or Dunning sets such as 6-31G* or cc-pVXZ because Ahlrichs def2 basis sets are usually more efficient and available for more elements; extra polarization or diffuse functions can be added when anions, dipoles, or polarizabilities need more flexibility.
+S0163	For example, def2-TZVP can be enlarged with more polarization functions as def2-TZVPP or with diffuse functions as def2-TZVPD or maTZVP.
+S0164	The paper calls basis sets with extra diffuse or polarization functions large, while reduced def2 variants used in composite methods are called small.
+S0165	To check basis-set convergence, compare results after increasing the cardinal number, such as def2-TZVP to def2-QZVP, and after adding or removing polarization functions.
+S0166	For heavy elements, def2-XVP basis sets use matching Stuttgart-Cologne effective core potentials for elements beyond krypton to replace inner core electrons.
+S0167	That replacement lowers cost and improves accuracy by including scalar relativistic effects, which mainly affect core electrons.
+S0168	For most thermochemical properties, robust small-core effective core potentials are sufficient.
+S0169	For properties of very heavy nuclei or core-electron properties such as NMR shieldings, all-electron relativistic calculations with Hamiltonians such as X2C, ZORA, or DKH may be needed.
+S0170	Some approaches, including X2C, have specially adapted Ahlrichs basis sets, but detailed relativistic methods are outside this paper's scope.
+S0171	The basis-set recommendations are to watch for BSIE and BSSE, use at least about triple-zeta size for energy properties, add polarization or diffuse functions when needed, test convergence, and use effective core potentials for atoms heavier than krypton.
+S0172	A final major comparison issue is finite-temperature effects.
+S0173	Under the Born-Oppenheimer approximation, many calculations describe a molecule at 0 K in its nuclear equilibrium geometry.
+S0174	Because real experiments happen at finite temperature, optimized structures omit effects such as zero-point vibration, thermal bond stretching, and entropy.
+S0175	Therefore, a perfect match between a finite-temperature experimental structure and a 0 K optimized structure is not always expected or even desirable.
+S0176	For ordinary covalent bonds between common atoms, those temperature effects are usually small.
+S0177	For energies, bare electronic energies from DFT cannot be compared directly with measured reaction enthalpies or free energies.
+S0178	Even gas-phase measurements near 0 K include zero-point vibrational energy, which is part of every molecule's internal energy.
+S0179	When a reaction forms or breaks bonds, zero-point energy can change by several kcal mol-1, so it can be important.
+S0180	At room temperature, additional thermal corrections from vibration, translation, and rotation must be added to obtain internal energy at 298 K.
+S0181	To move from internal energy to enthalpy, programs usually add pressure-volume work, and to get Gibbs free energy they also include entropy through G = H - TS.
+S0182	When the number of separate particles changes, entropy can shift free energies by tens of kcal mol-1, and solution reactions also need solvent-model and solvation-free-energy corrections.
+S0183	Solvation also changes the standard state, usually from gas at 1 atm to solution at 1 mol L-1.
+S0184	With common default solvent models, users must add a standard-state free-energy correction of 1.89 kcal mol-1 per species at 298 K, in addition to the enthalpy pressure-volume term.
+S0185	This correction generally matters for solution reactions that are not unimolecular.
+S0186	Other gas or condensed-phase reference states are possible, so users must examine the solvation model carefully; overall, model the experiment closely, add zero-point and thermal corrections when needed, and use robust entropy models such as mRRHO for large flexible systems.
+S0187	Because computational chemistry uses many methods based on different physical ideas, the authors recommend further reading on both general and specialized topics.
+S0188	The extracted text begins a software overview: AMS is noted for Slater-type orbital basis sets up to quadruple-zeta quality, relativistic treatments, a broad toolbox, and a strong graphical interface.
+S0189	Most quantum-chemistry packages provide the same core DFT abilities; the practical differences are usability, speed, and whether they are free or commercial.
+S0190	Many advanced programs can use functional libraries such as LibXC or XCfun, greatly expanding the number of available density functionals.
+S0191	In some programs, native implementations still offer extra technical capabilities beyond those libraries.
+S0192	The paper then lists common molecular quantum-chemistry packages and briefly highlights their strengths.
+S0193	These are programs the authors' group has found reliable across many quantum-chemistry applications.
+S0194	The authors mention many additional packages, then summarize strengths of TURBOMOLE, ORCA, Q-Chem, Psi4, Molpro, and others, including fast DFT implementations, spectroscopy tools, scripting, noncovalent-interaction methods, and wavefunction-in-DFT capabilities.
+S0195	Some semi-empirical features exist inside large packages, but certain capabilities are only available in the original specialized codes.
+S0196	The main semi-empirical programs are xtb, DFTB+, and MOPAC, and methods such as single-point Hessian can use native semi-empirical implementations.
+S0197	The xtb program can also drive other software, for example combining xtb functionality with ORCA for DFT-based single-point Hessian workflows.
+S0198	Reference [163] gives detailed documentation.
+S0199	A central practical challenge is balancing computational cost against accuracy and robustness.
+S0200	To do that, users need to know each method's strengths and weaknesses, the system size, and which property they are trying to compute.
+S0201	The main systematic errors are self-interaction error, BSSE, BSIE, and missing London dispersion.
+S0202	How much those errors matter depends strongly on both the molecule and the task.
+S0203	It is therefore useful to discuss method choices by the common steps in a computational study, because each step targets a different property.
+S0204	This section aims to help users choose a method set and adapt it to the job.
+S0205	In plain terms, the authors want to show where one can safely save effort and where one cannot.
+S0206	A typical multi-level workflow uses cheap GGA, meta-GGA, or composite methods for geometry and frequency calculations, then computes final single-point energies with a higher-level hybrid or double-hybrid method and a larger basis set.
+S0207	The idea is that GGA or meta-GGA energies have weaknesses such as self-interaction error, but the structures they optimize are often good enough at much lower cost.
+S0208	Often, even for systems prone to self-interaction error, a hybrid single-point energy on a cheaper optimized structure is as accurate as fully optimizing at the hybrid level.
+S0209	The paper illustrates this with an anthracene-cyclopropenyl cation potential-energy surface from the r2SCAN-3c work shown in Figure 4.
+S0210	Although the meta-GGA composite method overestimates the interaction energy, it predicts the equilibrium distance very close to the high-level coupled-cluster reference.
+S0211	More generally, multi-level workflows rely on systematic differences: cheap structures may not match reference structures perfectly, but their deviations from high-level structures tend to be consistent.
+S0212	Because the deviations are consistent, energy differences between reactants and products often cancel reliably.
+S0213	Since that cancellation can involve large energies, every optimization detail - functional, basis set, convergence criteria, program, and technical settings - must be kept consistent across all species.
+S0214	The cheaper method still needs to describe the system reasonably well.
+S0215	If the low-level structures are fundamentally wrong because dispersion is missing, the basis set is too tiny, or fragments have the wrong spin or charge state, error cancellation will fail.
+S0216	The authors distinguish passive error cancellation from active error correction, such as adding D4 for dispersion or gCP for BSSE.
+S0217	Because structures are usually less sensitive to theory level than energies are, multi-level methods can save a great deal of computation without much loss of accuracy.
+S0218	Figure 5 summarizes recommended functional and basis-set combinations for typical computational tasks.
+S0219	The figure uses blue for the best cost-versus-robustness choices, green for accurate robust choices that may be expensive, and red for methods to avoid.
+S0220	Yellow marks intermediate cases that are not clearly good or bad.
+S0221	Yellow methods can work, but they are less dependable than green choices.
+S0222	When using yellow-level methods, users should check the listed systematic errors and often prefer the blue alternatives.
+S0223	The table also names the main systematic errors and drawbacks the authors expect.
+S0224	The following sections discuss the table task by task and explain the choices.
+S0225	For clarity, the authors separate theoretical tasks that are often combined in real workflows.
+S0226	For example, their discussion of conformational energies means electronic energies only, while vibrational and entropy terms are treated elsewhere.
+S0227	Most quantum-chemistry projects begin with geometry optimization, either from an experimental structure or from a lower-level guess such as a force-field or semi-empirical structure.
+S0228	At this stage, the most common mistakes are bad starting structures or wrong charge, spin, or protonation states, which can change results far more than the exact theoretical model.
+S0229	Therefore, the authors recommend checking the input carefully before launching expensive calculations.
+S0230	Self-consistent-field convergence problems often signal that something is wrong with the input.
+S0231	For structures, triple-zeta def2-TZVP is usually enough, and quadruple-zeta basis sets generally waste resources.
+S0232	Well-balanced double-zeta basis sets can also be useful when paired with gCP and dispersion corrections to reduce BSSE-related structural errors.
+S0233	Composite methods such as PBEh-3c and r2SCAN-3c combine compact basis sets with gCP and D3 or D4 corrections, making them well suited and strongly recommended for geometry optimization.
+S0234	For standard thermochemical studies, the authors rarely see a need to optimize structures beyond that level.
+S0235	For the functional, GGA or meta-GGA methods such as r2SCAN-D4, TPSS-D4, or even PBE-D4 are usually sufficient.
+S0236	They also benefit strongly from density fitting, making them much cheaper than hybrid functionals.
+S0237	That means GGA or meta-GGA methods can often use larger basis sets at the same or lower cost than hybrids with small basis sets such as B3LYP/6-31G*.
+S0238	The authors recommend hybrid functionals for geometry only when there is a clear reason, such as strong self-interaction error, transition-state searches, weakly bound anions, or heavy main-group elements.
+S0239	A practical first check is to compare r2SCAN-3c with PBEh-3c.
+S0240	PBE0-D4 with a triple-zeta basis is a very robust but more expensive benchmark-level choice for geometry optimization.
+S0241	B3LYP-D4 with a triple-zeta basis can be similarly accurate, but the authors find it less robust than PBE0-D4, especially for transition-metal systems.
+S0242	Range-separated hybrids and double hybrids can also give excellent structures, but double hybrids are usually unnecessary for routine geometry optimization because structural errors often cancel well.
+S0243	Even very large systems should not be optimized with anything smaller than a polarized double-zeta basis.
+S0244	The functional should be at least GGA or meta-GGA quality, such as PBE or TPSS, and should always include a dispersion correction such as D3, D4, or VV10.
+S0245	The authors do not recommend BLYP because it overestimates covalent bond lengths more strongly than the recommended GGA choices.
+S0246	Vibrational frequency calculations are needed to obtain zero-point energies and thermal corrections to enthalpy and free energy.
+S0247	They are also used to predict IR and Raman spectra, although spectra are not the focus here.
+S0248	Because second-derivative calculations become expensive for large systems, users should run them at the cheapest level that still gives reasonable results.
+S0249	The authors recommend efficient composite methods, or GGA/meta-GGA functionals with a double-zeta basis plus gCP correction.
+S0250	As with structures, error cancellation is stable, and thermal corrections are usually smaller than the electronic DFT energy, so using a lower level has limited impact.
+S0251	In many cases, semi-empirical methods such as GFN2-xTB are enough for thermal corrections, as example 4.2 shows.
+S0252	Low-level semi-empirical methods should be checked carefully for unusual bonds, transition metals, or heavy main-group elements; also, frequencies must be calculated at a geometry that is a true minimum at that same level.
+S0253	Otherwise, many artificial imaginary frequencies appear and make thermal corrections unreliable.
+S0254	Therefore, use the same level for geometry optimization and frequency calculation, or optimize a second structure at the cheaper frequency level.
+S0255	The single-point Hessian method can estimate frequencies for non-equilibrium structures by adding a biasing potential, and it can be used with xTB or DFT workflows; a few tiny imaginary frequencies in large systems are often numerical artifacts from the DFT integration grid.
+S0256	Tiny imaginary frequencies can be handled by converting them to real frequencies and treating them normally, as in xTB's mRRHO approach, while another common option is to delete low imaginary modes.
+S0257	Deleting modes can change the number of degrees of freedom inconsistently and may create sizable entropy errors.
+S0258	If a fully optimized structure has many imaginary modes or any large ones above about 100 cm-1, it is probably not a true minimum and should be distorted and reoptimized.
+S0259	If the goal is accurate individual frequencies or IR/Raman intensities, rather than just thermal corrections, a hybrid functional and larger basis set can improve spectral intensities.
+S0260	B3LYP and the cheaper dispersion-corrected B3LYP-3c have a strong track record for IR spectra.
+S0261	For a broader comparison of methods and Fock-exchange effects on vibrational frequencies, the authors point to Radom and co-workers.
+S0262	For conformers, reaction energies, barriers, and noncovalent interactions, electronic energy is central, so larger basis sets are needed than for structures or frequencies.
+S0263	Double-zeta basis sets such as 6-31G** or def2-SVP are not enough for these energy tasks unless they are part of a purpose-built composite method.
+S0264	Even with counterpoise or gCP corrections, double-zeta residual BSSE and BSIE can still be substantial.
+S0265	The authors generally recommend at least triple-zeta basis sets because they are often close enough to the basis-set limit.
+S0266	Users should still test representative cases against quadruple-zeta or a larger triple-zeta basis to check convergence.
+S0267	Before shrinking the basis set too far, it is usually better to switch from hybrids to cheaper meta-GGA or composite methods designed for smaller basis sets.
+S0268	Double hybrids are more demanding because their MP2-like part depends more strongly on basis-set size than the DFT part does.
+S0269	For double hybrids, extrapolating from triple-zeta to quadruple-zeta toward the complete-basis-set limit may be useful, although details are outside the paper.
+S0270	For consistency, the authors suggest using one method combination for related energy properties in a reaction network, such as omegaB97M-V/QZ single-point energies on r2SCAN-3c structures.
+S0271	The final choice therefore has to balance all requirements discussed in the next sections.
+S0272	Conformational energies are electronic energy differences among different shapes of the same molecule with the same covalent connectivity.
+S0273	Because those structures are similar, conformer energies benefit strongly from error cancellation.
+S0274	However, conformer energies must be very precise, about 0.1-0.2 kcal mol-1, to predict room-temperature Boltzmann populations well.
+S0275	That precision matters because different populated conformers can have very different properties, as example 4.3 shows.
+S0276	For conformers, use high numerical precision and at least triple-zeta basis sets; PBEh-3c is not recommended because it is based on a double-zeta basis.
+S0277	Conformer energies are especially sensitive to medium- and long-range electron correlation, so dispersion correction is crucial.
+S0278	For metal-organic systems, density- or charge-dependent corrections such as VV10 or D4 are preferred over charge-independent D3.
+S0279	Benchmark conformer subsets suggest r2SCAN-D4, r2SCAN-3c, and B97-3c are especially good for accurate conformer energies.
+S0280	For small systems where cost is manageable, hybrid functionals can also be used.
+S0281	The authors recommend omegaB97X-V and omegaB97M-V, or their D4/D3 analogues; B3LYP with dispersion and a suitable basis can work, but r2SCAN-3c recently outperformed it at much lower cost.
+S0282	Double hybrids are appropriate for small systems when maximum accuracy and robustness are needed.
+S0283	The best GMTKN55 performers include omegaB97M(2) and revDSD-PBEP86-D4.
+S0284	The authors also recommend the widely available PWPB95-D4 double hybrid, while warning that semi-empirical and force-field methods are unreliable for final conformer energies and should only be used early with broad energy windows followed by DFT re-ranking.
+S0285	Reaction energies compare the total electronic energies of reactants, products, and intermediates that are minima on the potential-energy surface.
+S0286	Because reactants and products can differ more in shape and electronic structure, reaction energies benefit less from error cancellation than conformer energies do.
+S0287	The acceptable error for reaction energies is also usually larger.
+S0288	An error of about 1-2 kcal mol-1 is often good enough and can be difficult even for experiment.
+S0289	Although details depend on the reaction, reaction energies generally need large triple-zeta or quadruple-zeta basis sets for convergence.
+S0290	Basis-set dependence should be checked by comparing single-point energies with the next smaller basis, such as def2-QZVP versus def2-TZVP.
+S0291	Even under tight computational limits, users should not go below triple-zeta quality for reaction energies.
+S0292	If cost is too high and self-interaction error is not central, switch to a semi-local meta-GGA rather than shrinking the basis set below triple-zeta.
+S0293	Surprisingly, r2SCAN-3c is very efficient and performs better for GMTKN55 reaction energies than B3LYP-D4/QZ and PW6B95/QZ hybrids.
+S0294	For nonmetal systems, adding some Fock exchange usually improves the accuracy and robustness of reaction energies.
+S0295	For global hybrids, about 25% Fock exchange is often optimal for reaction energies.
+S0296	Barrier heights often need even more Fock exchange, sometimes around 50%, depending on reaction type.
+S0297	If the same functional must handle both reaction energies and barriers, a global hybrid requires a compromise.
+S0298	The authors recommend PW6B95 with D3 or D4 correction because it gives accurate, robust thermochemistry and has been their default hybrid for mechanistic studies.
+S0299	Range-separated functionals such as omegaB97X-V and omegaB97M-V help resolve the conflict between low Fock exchange for reaction energies and high Fock exchange for barriers.
+S0300	Because their exchange fraction changes with distance, these functionals can perform well for both reaction energies and barrier heights.
+S0301	On GMTKN55, those two range-separated hybrids are the only hybrid functionals with WTMAD2 below 4 kcal mol-1.
+S0302	Double hybrids can be even more accurate and robust, but they are the most expensive and need larger basis sets.
+S0303	The ideal amount of Fock exchange also depends on the reaction class.
+S0304	The values above mainly apply to main-group chemistry; transition-metal compounds usually need lower Fock exchange, roughly half as much.
+S0305	Therefore, very high-exchange and range-separated functionals should be used cautiously for transition-metal systems.
+S0306	Examples such as M06-2X and PBEh-3c have shown larger errors in recent transition-metal reaction benchmarks.
+S0307	Barrier heights are electronic energy differences between a transition state and the relevant reactants or products.
+S0308	Transition states often contain stretched bonds and near-degenerate orbitals with weakly bound electrons, making the electronic structure difficult.
+S0309	Because of that, transition states are prone to self-interaction error, which makes GGA and meta-GGA functionals underestimate transition-state energies and barriers.
+S0310	The size of this error depends on how much one-electron character the breaking bond has in the transition state.
+S0311	Hydrogen-transfer and bond-dissociation reactions tend to show the largest errors.
+S0312	Heavy-atom pericyclic reactions show smaller errors, and inversion or conformational processes that keep covalent bonds intact show almost none.
+S0313	Cheap GGA or meta-GGA methods can be used for special barriers such as conformational or inversion barriers after testing, but generally the authors advise against semi-local functionals for barrier heights.
+S0314	Because barrier heights are especially challenging, Section 4.4 gives an extended example.
+S0315	Range-separated hybrids are strongly recommended for barriers because they reduce self-interaction-related errors.
+S0316	omegaB97M-V and omegaB97X-V perform particularly well on GMTKN55 barrier-height subsets and other benchmarks.
+S0317	If a global hybrid must be used, choose one with more than 30% Fock exchange and compare it against a range-separated hybrid.
+S0318	Barrier-focused global hybrids such as BMK and MPWB1K typically use about 40-50% Fock exchange.
+S0319	That much Fock exchange usually worsens reaction-energy performance.
+S0320	Double hybrids are also well suited for barriers because they use high Fock exchange while still giving accurate reaction energies.
+S0321	Transition states can also converge more slowly with basis-set size, so quadruple-zeta basis sets should be considered for barrier heights.
+S0322	London dispersion can strongly affect reaction energies and barriers, especially for molecules larger than about 20-30 atoms, so it should be included explicitly.
+S0323	Finding the transition-state structure is itself an important part of reaction-barrier work.
+S0324	Although program-specific transition-state search details are outside the paper, the same method-choice ideas apply to surface scans and related searches.
+S0325	Transition-state searches require many energy and gradient evaluations, so lower-level methods are often unavoidable for the search stage.
+S0326	Users can use hybrid composite methods with double-zeta basis sets, such as PBEh-3c, or carefully use semi-empirical methods to get transition-state guesses, then refine them at the recommended level.
+S0327	For detailed transition-state search procedures, the authors point to software manuals such as the ORCA manual.
+S0328	Noncovalent interaction energies compare a bound complex with its separated molecular fragments.
+S0329	Because no covalent bonds change when fragments bind, noncovalent interaction energies benefit very strongly from error cancellation.
+S0330	At the same time, these energies are often small for each atom pair.
+S0331	That small size means high numerical precision is often needed, sometimes more than for reaction energies.
+S0332	BSSE and self-interaction error can be similar in size to the noncovalent energy itself, so their influence must be checked.
+S0333	London dispersion is usually a major part of noncovalent binding, making dispersion corrections especially important.
+S0334	VV10 may help for unusual charged systems because it depends on density, but D3-ATM and D4 are often more accurate for highly polarizable small-gap systems because of better C6 coefficients and three-body dispersion terms.
+S0335	For efficient noncovalent interaction calculations, the authors recommend 3c composite methods, especially r2SCAN-3c for most systems.
+S0336	PBEh-3c can be better for highly polar systems where self-interaction error is more serious.
+S0337	However, PBEh-3c's small basis can create BSSE and BSIE problems in those same cases.
+S0338	Head-Gordon's DFT-C approach combines B97M-V with def2-SVPD and a tailored gCP-style correction, giving noncovalent interaction energies close to B97M-V/QZ in tests.
+S0339	Section 4.2 demonstrates that DFT-C approach for noncovalent interactions.
+S0340	Because error cancellation is strong for noncovalent energies, semi-empirical methods such as GFN2-xTB or PM6-D3H4 can sometimes give reasonable structures and interactions at much lower cost.
+S0341	For very large complexes, a good strategy is to use very cheap methods for structures and frequencies, then compute final energies with composite DFT.
+S0342	At the high-accuracy end, omegaB97M-V and omegaB97X-V give excellent noncovalent interaction energies with triple-zeta or quadruple-zeta basis sets.
+S0343	Double hybrids are also accurate and robust for noncovalent interactions, but they are more basis-set sensitive and expensive.
+S0344	Noncovalent interactions involving very small-gap systems such as metals need special treatment; the examples in this section were chosen to illustrate the earlier arguments about methods, basis sets, and multi-level workflows.
+S0345	The examples also show that one case is never as informative as a broad, well-designed benchmark.
+S0346	A low-level method may occasionally work surprisingly well, while a high-level method may miss by several kcal mol-1 in a specific case.
+S0347	Such outliers are expected in real work because DFT and other efficient methods are approximate.
+S0348	The authors repeat their main point: best-practice DFT is not about getting every number perfect to the final kcal mol-1.
+S0349	The goal is to avoid large systematic errors by choosing robust protocols suited to the actual physical system.
+S0350	Figure 6 examines a classic organic transformation: dimerizing 3,6-dimethylidenecyclohexa-1,4-diene to [2.2]paracyclophane and then isomerizing it to [2.2]metacyclophane.
+S0351	Experimental heats of formation can give reaction enthalpies, but the dimerization value has a large uncertainty because the monomer's heat of formation is uncertain: 41.9 +/- 10.6 kcal mol-1.
+S0352	The isomerization uncertainty is smaller, giving 17.9 +/- 2.9 kcal mol-1 after rounding.
+S0353	To get sharper reference values, the authors computed high-level W1-F12 coupled-cluster electronic energies and combined them with PBE0-D4/def2-TZVP zero-point and enthalpy corrections.
+S0354	Because W1-F12 has a much smaller estimated error than the experiment, the authors use it as the reference.
+S0355	They used geometries computed consistently at the same DFT level throughout.
+S0356	The calculated reference enthalpies are 48.7 and 19.0 kcal mol-1, both inside the experimental error bars.
+S0357	The dimerization is difficult computationally because it forms two strained single bonds and the product has strong intramolecular dispersion and exchange-correlation interactions between close aromatic rings.
+S0358	Plain B3LYP without dispersion badly underestimates the dimerization enthalpy, giving 25.2 kcal mol-1 at quadruple-zeta quality.
+S0359	Adding D4 dispersion greatly improves B3LYP, raising the value to 43.4 kcal mol-1.
+S0360	Even then, B3LYP-D4 remains 5.1 kcal mol-1 away from the W1-F12 reference.
+S0361	The PWPB95-D4/def2-QZVP double hybrid matches the reference better.
+S0362	It gives 48.5 kcal mol-1, almost identical to the high-level W1-F12 value.
+S0363	The isomerization is less sensitive to functional errors because the two isomers are chemically similar, so their errors cancel.
+S0364	As a result, all tested DFT methods are reasonably close, and PWPB95-D4/QZ again matches W1-F12 extremely well.
+S0365	For these reactions, enthalpy corrections are small compared with electronic-energy differences; the source sentence then accidentally merges into the next noncovalent-binding discussion.
+S0366	For binding free energies, several large contributions must each be accurate because they only partially cancel to produce the small experimental ΔG values, often around 1-15 kcal mol-1.
+S0367	The source text is truncated here; it is introducing the example complex discussed next.
+S0368	Noncovalent interactions are central in biological and supramolecular chemistry, so predicting binding free energies for such complexes is important.
+S0369	This is hard because chemically relevant host-guest systems are often large and flexible.
+S0370	To compare with solution-phase binding experiments, thermal and entropy terms must be included.
+S0371	This is especially important for bimolecular binding reactions.
+S0372	The standard binding free-energy expression combines gas-phase electronic energy, solvation free energy, and thermostatistical contributions from the mRRHO model.
+S0373	The example is a charged macrocyclic host, CBPQT4+, binding bromobenzene in water with an experimental ΔG of about 5 kcal mol-1; the first challenge is modeling the finite-temperature solution structure realistically.
+S0374	The authors handle that by searching conformers with CREST and CENSO.
+S0375	They previously showed that GFN2-xTB with the ALPB implicit solvation model is efficient and suitable for the initial conformer search.
+S0376	For this fairly rigid system, the main goal is to find the lowest-energy conformer, which is usually enough.
+S0377	For more flexible hosts or guests, users should consider other low-energy conformers too; even this relatively rigid example has twelve conformers within 2.5 kcal mol-1.
+S0378	Other conformers matter when binding strongly changes the accessible shapes, such as when a free alkyl chain becomes locked in the complex.
+S0379	The authors leave that more detailed conformer issue to references [67] and [214].
+S0380	For final geometry optimization and final energy calculation of the best conformer, the authors recommend r2SCAN-3c with DCOSMO-RS implicit solvation.
+S0381	SMD, CPCM, and COSMO can also be used, in that order of preference.
+S0382	The source sentence is partially broken, but its main point is that outdated popular methods are not justified and that solvation free energy is the hardest part of the workflow, especially for charged systems in polar hydrogen-bonding solvents.
+S0383	A 2-3 kcal mol-1 solvation error is realistic because ΔδGsolv is large and even the best implicit solvent models have about 10-20% intrinsic uncertainty.
+S0384	In the authors' experience, COSMO-RS is the most reliable implicit model for this, with SMD as a useful alternative.
+S0385	Purely electrostatic models such as COSMO and CPCM often do worse because they miss non-electrostatic solvent terms, especially when solvent-accessible surface area changes.
+S0386	Despite large individual errors, the standard workflow often predicts binding free energies within 1-3 kcal mol-1 because errors cancel fortuitously.
+S0387	For this example, many method combinations give a calculated ΔG of 5.4 kcal mol-1, close to the experimental value.
+S0388	The workflow is also fast: the shown example takes about 30 hours on a typical eight-core CPU.
+S0389	That speed comes from semi-empirical methods for frequencies and efficient meta-GGA composite DFT for structures and single-point energies.
+S0390	With this multi-level approach, useful affinity predictions are feasible for complexes of roughly 200-300 atoms.
+S0391	The Figure 7 workflow is automated in CREST and CENSO and can be run with two simple UNIX commands.
+S0392	Relative electronic energies can strongly affect property predictions when properties are averaged over molecular ensembles.
+S0393	The optical-rotation example for alpha- and beta-D-glucopyranose shows this because optical rotation depends strongly on structure and on correctly weighting populated conformers.
+S0394	The alpha and beta isomers have very different optical rotations, so the equilibrium between them must be described accurately.
+S0395	Because this problem requires many protocol decisions, the authors use it to demonstrate the Figure 2 flowchart.
+S0396	First, these sugars are normal organic molecules with no expected multireference character.
+S0397	Therefore, the authors use single-reference DFT, plus semi-empirical methods for the first conformer search.
+S0398	Second, because optical rotation was measured in solution, every step includes a solvation model.
+S0399	Technical limitations lead them to use DCOSMO-RS for geometry optimization, COSMO for optical rotation, and COSMO-RS for free-energy evaluation.
+S0400	COSMO-RS improves free energies but cannot be used for geometry optimizations.
+S0401	Therefore, the authors use DCOSMO-RS, an improved COSMO variant, during geometry optimization.
+S0402	Because DCOSMO-RS and COSMO-RS cannot calculate optical rotation directly, the simpler COSMO model is used for that property calculation.
+S0403	The third issue is conformers and molecular flexibility.
+S0404	This matters strongly here because both alpha- and beta-D-glucopyranose are flexible due to their many hydroxy groups.
+S0405	The authors therefore use a conformer search to find the low-energy shapes that contribute to the result.
+S0406	They use CREST together with CENSO.
+S0407	CREST quickly finds low-lying conformers with a semi-empirical method, and CENSO then refines their structures and energies with more accurate DFT.
+S0408	The next choice is the functional.
+S0409	As discussed in Section 3.4, r2SCAN-3c gives good geometries and conformational free energies.
+S0410	So the authors choose r2SCAN-3c as the default method here.
+S0411	They also test and discuss alternatives below.
+S0412	No relativistic treatment is needed because the molecules contain no heavy elements.
+S0413	The basis set is already fixed because a 3c composite method includes its built-in def2-mTZVPP basis.
+S0414	The final ensemble protocol uses r2SCAN-3c with DCOSMO-RS for geometries and r2SCAN-3c with COSMO-RS for energy ranking.
+S0415	Each anomer has 15-18 relevant low-energy conformers, and all are included in the Boltzmann average.
+S0416	The property being averaged is specific optical rotation, which requires special computational settings.
+S0417	For optical rotation itself, PBE with the diffuse double-zeta def2-SVPD basis and COSMO solvation is sufficient.
+S0418	Hybrids are usually recommended for optical rotation, but PBE was chosen here for technical reasons after comparison with B3LYP.
+S0419	A double-zeta basis is enough because optical rotation is not very sensitive to basis-set size.
+S0420	Diffuse functions are important for reliable optical rotation, and although the protocol has many decisions, the most visible one is which functional ranks the electronic energies.
+S0421	The authors next examine how that functional choice changes the final Boltzmann-weighted optical rotation.
+S0422	They re-rank the conformer ensembles using B3LYP variants, B3LYP with and without D4 and with 6-31G*, plus BP86-D4/QZ for the electronic energy contribution.
+S0423	All other terms, including zero-point, thermal, and solvation contributions, come from the earlier r2SCAN-3c calculation.
+S0424	Consistent with benchmarks, r2SCAN-3c ranks conformers well and gives a Boltzmann-weighted optical rotation close to the experimental value of 52.7 in standard optical-rotation units.
+S0425	B3LYP-D4/QZ ranking also works well, giving 54.6.
+S0426	Plain B3LYP/QZ gives a much worse value of 41.2, showing that dispersion correction matters even for fairly small molecules.
+S0427	B3LYP/6-31G* depends on an uncontrolled cancellation between missing dispersion and BSSE.
+S0428	Even with that cancellation, it overweights alpha-D-glucopyranose and gives a poor optical rotation of 61.7.
+S0429	BP86-D4/QZ performs even worse for this conformer-sensitive property, giving 72.2.
+S0430	The example shows that good results require including all relevant effects, especially London dispersion and basis-set completeness.
+S0431	It also shows that properties sensitive to conformers, such as optical rotation, can test whether theoretical approximations are good enough.
+S0432	Reliable reaction-barrier calculations are essential for studying complex reaction mechanisms.
+S0433	They help explain key reactions and support computer-aided catalyst design and reaction tuning; SN2 and Diels-Alder reactions are classic organic examples.
+S0434	Even these familiar reaction types require careful quantum-chemical method choices.
+S0435	Accurate reference activation energies are available for ethylene plus cyclopentadiene and for hydroxide attacking fluoromethane, and the authors keep the original benchmark geometries for fair comparison.
+S0436	For both examples, BP86-D3/QZ strongly underestimates the barrier.
+S0437	For the SN2 reaction specifically, it is 10.2 kcal mol-1 too low.
+S0438	The problem is charge delocalization in the transition state, which creates self-interaction error for the GGA method.
+S0439	M06-L does better, likely because it is heavily empirical and was trained partly on similar barrier-height cases.
+S0440	Still, hybrids such as PBE0 are expected to improve on GGA and meta-GGA methods because they describe the physics better.
+S0441	As expected, PBE0-D3/QZ improves substantially over BP86-D3/QZ, and M06-2X improves over M06-L.
+S0442	For M06-2X, the very high Fock-exchange fraction helps this case by reducing self-interaction error.
+S0443	But very high-exchange functionals should still be used cautiously.
+S0444	Section 2.5 explains that caution.
+S0445	Range-separated hybrids such as omegaB97X-V/QZ and omegaB97M-D4/QZ perform well for both reactions; omegaB97X-V is only 1.8 kcal mol-1 low for the SN2 barrier.
+S0446	It also matches the Diels-Alder barrier well, overestimating by only 1.8 kcal mol-1.
+S0447	Figure 11 gives another hard example: hydrogen-atom transfer.
+S0448	In this reaction, a hydrogen atom moves from a molybdenum hydride complex to a Gomberg-type radical, and experiment gives an activation free energy of 19.2 kcal mol-1.
+S0449	As discussed earlier, stretched-bond transition states are vulnerable to self-interaction error, so GGA and meta-GGA methods are expected to underestimate the barrier.
+S0450	This is especially true for hydrogen-transfer bonds because they often have strong one-electron character.
+S0451	Unlike the previous electronic-energy examples, the target here is a solution activation free energy, so zero-point, thermal, solvation, and entropy terms also matter.
+S0452	Although GGA and meta-GGA methods should be treated cautiously for transition-state electronic energies, they often still give reasonable geometries and thermal corrections.
+S0453	Therefore, the authors use B97-3c for geometry optimization and frequency calculation in this example.
+S0454	The source sentence is truncated at a method label, beginning a comparison of BP86-D4/QZ for the electronic energy.
+S0455	Continuing the hydrogen-transfer example, BP86-D4/QZ underestimates the activation free energy by almost 4 kcal mol-1.
+S0456	The underestimate gets worse with smaller basis sets, reaching more than 7 kcal mol-1 for BP86-D4 with a double-zeta basis.
+S0457	B3LYP-D4 slightly overestimates the activation free energy by 1.4 kcal mol-1, close to the usual 1 kcal mol-1 chemical-accuracy target.
+S0458	Even for hybrids, small basis sets underestimate the barrier in this sensitive case.
+S0459	The GGA calculation gives a negative electronic activation energy and the transition state is not a stationary point on that potential-energy surface.
+S0460	B3LYP-D4/QZ gives a small but reasonable electronic activation energy of 3.0 kcal mol-1.
+S0461	That small electronic barrier shows why solvation, enthalpy, and free-energy corrections are essential for comparison with experiment.
+S0462	Including all contributions raises the barrier from 3.0 kcal mol-1 electronically to 7.2 kcal mol-1 as enthalpy and finally 20.6 kcal mol-1 as free energy, close to experiment.
+S0463	The authors view the last 20-30 years of quantum chemistry, especially DFT, as a major success.
+S0464	It is remarkable that non-specialists can now run useful quantum-chemistry calculations for large chemical systems on desktop computers.
+S0465	Widely available computational tools have already strongly influenced chemistry, and their impact is likely to grow.
+S0466	The authors hope their recommendations make everyday DFT predictions more reliable for many chemists.
+S0467	They emphasize choosing the right compromise between speed and accuracy while still getting the right answer for the right physical reason.
+S0468	Fast methods can actually improve reliability by letting researchers explore conformers, dynamics, and explicit solvation more thoroughly.
+S0469	In the authors' experience, missing important low-energy conformers can cause larger errors than the functional or basis-set approximation itself.
+S0470	They encourage systematic conformer searches, molecular dynamics, more routine explicit-solvent treatments as methods improve, and efficient multi-level workflows for realistic models.
+S0471	Electronic-structure theory still has unresolved challenges.
+S0472	Standard DFT handles many important problems, but open-shell transition metals, highly charged strongly solvated systems, and entropy remain difficult.
+S0473	Those cases often require non-standard methods and expert input.
+S0474	The authors think peak accuracy of basic density functionals has begun to saturate after strong progress over the previous decade.
+S0475	Promising directions include local hybrids, non-self-consistent treatments using cheap GGA or meta-GGA densities to avoid potential-driven errors, and early machine-learned functionals, though these are empirical and not necessarily cheap.
+S0476	DFT is also the method used to generate huge molecular databases for machine learning, and the authors see room to make the best functionals much faster without losing robustness or numerical accuracy.
+S0477	Key speed targets are better approximations for nonlocal Fock exchange in hybrid and double-hybrid functionals and faster numerical integration for GGA and meta-GGA exchange-correlation energy.
+S0478	Because DFT is a general first-principles approach, the authors believe many conclusions also apply to molecular solids and liquids under periodic boundary conditions, even though those are not treated here.
+S0479	Special low-band-gap cases such as metallic solids may need extra technical settings to prevent the approximations from breaking down.
+S0480	The authors acknowledge German Science Foundation funding through a Leibniz prize to S.G. and SPP 2363 on molecular machine learning.
+S0481	They also acknowledge Max Planck Society support for S.G. and M.B. through the Max Planck fellow program.
+S0482	They thank the ORCA, TURBOMOLE, and AMS developer teams, along with Johannes Gorges for calculations and manuscript corrections.
+S0483	They also thank named colleagues for comments and discussions.
+S0484	They especially acknowledge Susi Lehtola's detailed feedback.
+S0485	They thank the Grimme group for broad experience and proofreading.
+S0486	Open-access funding was provided through Projekt DEAL.
+S0487	The conflict statement says S.G. is connected with ORCA and TURBOMOLE development teams and consults for FAccTs GmbH.
+S0488	The data supporting the study are available from the corresponding author on reasonable request.

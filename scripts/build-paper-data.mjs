@@ -1,6 +1,8 @@
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import { execFileSync } from "node:child_process";
+import { deflateSync, inflateSync } from "node:zlib";
 import * as cheerio from "cheerio";
 
 const ARTICLE_URL =
@@ -235,6 +237,11 @@ const extractFigureIdFromCaption = (text) => {
   return match ? Number(match[1]) : null;
 };
 
+const PDF_FIGURE_CAPTION_PATTERN =
+  /^(?:Fig\.?\s*\d+|Figure\s+\d+)(?:[.:]|\s+)/i;
+
+const isPdfFigureCaption = (text) => PDF_FIGURE_CAPTION_PATTERN.test(text);
+
 const loadManualTranslations = () => {
   if (!fs.existsSync(manualTranslationsPath)) {
     return new Map();
@@ -430,6 +437,17 @@ const SCIENCE_SKIP_LINES = [
   /^Edited by /i,
   /^Reviewed by /i,
   /^\(Back to Table of Contents\)$/i,
+  /^Scientific Perspective$/i,
+  /^Density Functional Theory$/i,
+  /^Angewandte$/i,
+  /^Chemie$/i,
+  /^www\.angewandte\.org$/i,
+  /^Angew\. Chem\. \d{4}, \d+, e\d+/i,
+  /^Zitierweise:/i,
+  /^Internationale Ausgabe:/i,
+  /^Deutsche Ausgabe:/i,
+  /^© \d{4} The Authors\. Angewandte Chemie published by Wiley-VCH GmbH/i,
+  /^15213757, \d{4}, \d+, Downloaded from https:\/\/onlinelibrary\.wiley\.com/i,
 ];
 
 const PDF_SKIP_PARAGRAPHS = [
@@ -456,6 +474,24 @@ const PDF_SKIP_PARAGRAPHS = [
   /^B\.\d+(?:\.\d+)*\s+.+\s+\. \./,
   /^A\s+In silico methods and results\s+\d+$/i,
   /^B\s+In vitro methods and results\s+\d+$/i,
+  /^\[\*\]\s+/,
+  /^\[\*\*\]\s+/,
+  /^Markus Bursch received his PhD/i,
+  /^Andreas Hansen received his PhD/i,
+  /^Jan-Michael Mewes studied chemistry/i,
+  /^Stefan Grimme studied Chemistry/i,
+  /^lanthanide-based OLEDs\.$/i,
+  /^Scientific Perspective$/i,
+  /^Density Functional Theory$/i,
+  /^Angewandte$/i,
+  /^Chemie$/i,
+  /^www\.angewandte\.org$/i,
+  /^Angew\. Chem\. \d{4}, \d+, e\d+/i,
+  /^Zitierweise:/i,
+  /^Internationale Ausgabe:/i,
+  /^Deutsche Ausgabe:/i,
+  /^© \d{4} The Authors\. Angewandte Chemie published by Wiley-VCH GmbH/i,
+  /^15213757, \d{4}, \d+, Downloaded from https:\/\/onlinelibrary\.wiley\.com/i,
   /^\d+$/,
   /^[A-F]$/,
 ];
@@ -480,6 +516,9 @@ const PDF_SECTION_TITLE_OVERRIDES = new Map([
   ["Data, Materials, and Software Availability.", "Data, Materials, and Software Availability"],
   ["ACKNOWLEDGMENTS", "Acknowledgments"],
   ["Acknowledgments", "Acknowledgments"],
+  ["Acknowledgements", "Acknowledgements"],
+  ["Conflict of Interest", "Conflict of Interest"],
+  ["Data Availability Statement", "Data Availability Statement"],
   ["SUPPLEMENTARY MATERIALS", "Supplementary Materials"],
   ["Introduction", "Introduction"],
   ["Multimodal protein generation with D ISCO", "Multimodal Protein Generation with DISCO"],
@@ -540,7 +579,7 @@ const isPdfHeading = (text) => {
   }
 
   return (
-    /^(?:Abstract|Significance|Introduction|Results|Discussion|Methods|Acknowledgments|References|Supplementary Information|Supplementary Materials)$/i.test(text) ||
+    /^(?:Abstract|Significance|Introduction|Results|Discussion|Methods|Acknowledgments|Acknowledgements|References|Conflict of Interest|Data Availability Statement|Supplementary Information|Supplementary Materials)$/i.test(text) ||
     (!PDF_TOC_LINE_PATTERN.test(text) &&
       /^[A-Z]\.\d+(?:\.\d+)*\s+[A-Z][A-Za-z0-9].+/.test(text)) ||
     /^Appendix:/i.test(text)
@@ -549,20 +588,25 @@ const isPdfHeading = (text) => {
 
 const parsePdfMetadata = (pdfPath) => {
   const info = execFileSync("pdfinfo", [pdfPath], { encoding: "utf8" });
-  const title = clean(info.match(/^Title:[ \t]*([^\r\n]*)$/m)?.[1] ?? "");
+  const title = clean(info.match(/^Title:[ \t]*([^\r\n]*)$/m)?.[1] ?? "").replace(/\*+$/, "").trim();
   const subject = clean(info.match(/^Subject:[ \t]*([^\r\n]*)$/m)?.[1] ?? "");
   const textHead = execFileSync("pdftotext", [pdfPath, "-"], {
     encoding: "utf8",
     maxBuffer: 32 * 1024 * 1024,
   });
+  const frontMatter = textHead.split("\f").slice(0, 2).join("\n");
   const doi =
-    clean(textHead.match(/doi\.org\/(10\.\d{4,9}\/[A-Za-z0-9._;()/:+-]+)/i)?.[1] ?? "") ||
+    clean(frontMatter.match(/doi\.org\/(10\.\d{4,9}\/[A-Za-z0-9._;()/:+-]+)/i)?.[1] ?? "") ||
     clean(subject.match(/\b(10\.\d{4,9}\/[A-Za-z0-9._;()/:+-]+)/)?.[1] ?? "") ||
-    clean(textHead.match(/\bDOI:\s*(10\.\d{4,9}\/[A-Za-z0-9._;()/:+-]+)/i)?.[1] ?? "");
+    clean(frontMatter.match(/\bDOI:\s*(10\.\d{4,9}\/[A-Za-z0-9._;()/:+-]+)/i)?.[1] ?? "");
+  const arxivId = clean(
+    frontMatter.match(/\barXiv:(\d{4}\.\d{4,5}v\d+)\b/i)?.[1] ?? ""
+  );
 
   return {
     title,
     doi: doi.replace(/[.)]+$/, ""),
+    arxivId,
   };
 };
 
@@ -591,15 +635,15 @@ const extractPdfTitleFromText = (rawText) => {
   return "";
 };
 
-const PDF_NUMBER_ONLY_PATTERN = /^\d+(?:\.\d+)*$/;
-const PDF_NUMBERED_HEADING_PATTERN = /^(\d+(?:\.\d+)*)\s+(.+)$/;
+const PDF_NUMBER_ONLY_PATTERN = /^\d{1,2}(?:\.\d+)*\.?$/;
+const PDF_NUMBERED_HEADING_PATTERN = /^(\d{1,2}(?:\.\d+)*\.?)\s+(.+)$/;
 const PDF_TOC_LINE_PATTERN = /\. \. \./;
 
 const isPdfHeadingTitle = (text) => {
   if (!text) {
     return false;
   }
-  if (/^Figure\s+\d+[:.]/i.test(text) || /^Fig\.?\s*\d+[:.]/i.test(text)) {
+  if (isPdfFigureCaption(text)) {
     return false;
   }
   if (/^(?:Method|Energy|Loss|ŷ Generation)$/i.test(text)) {
@@ -614,7 +658,7 @@ const isPdfHeadingTitle = (text) => {
   return (
     words.length > 0 &&
     words.length <= 16 &&
-    /^[A-Z0-9“"'][A-Za-z0-9'’“”()[\]\/\-–,:? ]+\.?$/.test(text)
+    /^[\p{Lu}0-9“"'][\p{L}\p{N}'’“”()[\]\/\-–,:? +.]+\.?$/u.test(text)
   );
 };
 
@@ -674,7 +718,12 @@ const normalizePdfBlocks = (page) => {
     let pendingLines = [];
     for (const line of lines) {
       const lineText = clean(line);
-      if (isPdfHeading(lineText) || /^(?:References|REFERENCES AND NOTES)$/i.test(lineText)) {
+      const numberedLineHeading = lineText.match(PDF_NUMBERED_HEADING_PATTERN);
+      if (
+        isPdfHeading(lineText) ||
+        (numberedLineHeading && isPdfHeadingTitle(numberedLineHeading[2])) ||
+        /^(?:References|REFERENCES AND NOTES)$/i.test(lineText)
+      ) {
         if (pendingLines.length > 0) {
           splitBlocks.push(joinPdfLines(pendingLines));
           pendingLines = [];
@@ -695,10 +744,11 @@ const normalizePdfBlocks = (page) => {
     const firstLine = clean(lines[0]);
     const remainingLines = lines.slice(1);
 
-    if (/^Abstract\s+/i.test(firstLine)) {
+    const abstractLineMatch = firstLine.match(/^Abstract:?\s+(.+)$/i);
+    if (abstractLineMatch) {
       return [
         "Abstract",
-        joinPdfLines([firstLine.replace(/^Abstract\s+/i, ""), ...remainingLines]),
+        joinPdfLines([abstractLineMatch[1], ...remainingLines]),
       ];
     }
 
@@ -789,6 +839,398 @@ const normalizePdfBlocks = (page) => {
   return blocks;
 };
 
+const extractPdfFigureCaptionsFromPage = (page) => {
+  const lines = page
+    .split(/\r?\n/)
+    .map((line) =>
+      clean(
+        line
+          .replace(/\u00ad/g, "")
+          .replace(/\u200b/g, "")
+          .replace(/­/g, "")
+      )
+    );
+  const captions = new Map();
+
+  for (let index = 0; index < lines.length; index += 1) {
+    const line = lines[index];
+    if (!isPdfFigureCaption(line)) {
+      continue;
+    }
+
+    const previousNonEmptyLine =
+      [...lines.slice(0, index)].reverse().find((candidate) => candidate) ?? "";
+    if (/\b(?:and|in|of|to|from|with|shown in|depicted in|summarized in)$/i.test(previousNonEmptyLine)) {
+      continue;
+    }
+
+    const figureId = extractFigureIdFromCaption(line);
+    if (!figureId || captions.has(figureId)) {
+      continue;
+    }
+
+    const captionLines = [line];
+    for (let nextIndex = index + 1; nextIndex < lines.length; nextIndex += 1) {
+      const nextLine = lines[nextIndex];
+      const captionText = joinPdfLines(captionLines);
+
+      if (!nextLine) {
+        if (/[.!?)]$/.test(captionText)) {
+          break;
+        }
+        continue;
+      }
+
+      if (
+        isPdfFigureCaption(nextLine) ||
+        /^Table\s+\d+/i.test(nextLine) ||
+        SCIENCE_SKIP_LINES.some((pattern) => pattern.test(nextLine)) ||
+        PDF_NUMBER_ONLY_PATTERN.test(nextLine) ||
+        PDF_NUMBERED_HEADING_PATTERN.test(nextLine) ||
+        isPdfHeading(nextLine)
+      ) {
+        break;
+      }
+
+      captionLines.push(nextLine);
+    }
+
+    captions.set(figureId, joinPdfLines(captionLines));
+  }
+
+  return captions;
+};
+
+const PNG_SIGNATURE = Buffer.from([
+  0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a,
+]);
+
+const PNG_CHANNELS_BY_COLOR_TYPE = new Map([
+  [0, 1],
+  [2, 3],
+  [4, 2],
+  [6, 4],
+]);
+
+const crc32Table = Array.from({ length: 256 }, (_, index) => {
+  let crc = index;
+  for (let bit = 0; bit < 8; bit += 1) {
+    crc = crc & 1 ? 0xedb88320 ^ (crc >>> 1) : crc >>> 1;
+  }
+  return crc >>> 0;
+});
+
+const crc32 = (buffer) => {
+  let crc = 0xffffffff;
+  for (const byte of buffer) {
+    crc = crc32Table[(crc ^ byte) & 0xff] ^ (crc >>> 8);
+  }
+  return (crc ^ 0xffffffff) >>> 0;
+};
+
+const writePngChunk = (type, data) => {
+  const typeBuffer = Buffer.from(type, "ascii");
+  const chunk = Buffer.alloc(12 + data.length);
+  chunk.writeUInt32BE(data.length, 0);
+  typeBuffer.copy(chunk, 4);
+  data.copy(chunk, 8);
+  chunk.writeUInt32BE(crc32(Buffer.concat([typeBuffer, data])), 8 + data.length);
+  return chunk;
+};
+
+const paethPredictor = (left, up, upLeft) => {
+  const estimate = left + up - upLeft;
+  const leftDelta = Math.abs(estimate - left);
+  const upDelta = Math.abs(estimate - up);
+  const upLeftDelta = Math.abs(estimate - upLeft);
+  if (leftDelta <= upDelta && leftDelta <= upLeftDelta) return left;
+  if (upDelta <= upLeftDelta) return up;
+  return upLeft;
+};
+
+const decodePngRows = ({ data, width, height, channels }) => {
+  const stride = width * channels;
+  const rows = Buffer.alloc(stride * height);
+  let sourceOffset = 0;
+
+  for (let y = 0; y < height; y += 1) {
+    const filter = data[sourceOffset];
+    sourceOffset += 1;
+    const rowOffset = y * stride;
+
+    for (let x = 0; x < stride; x += 1) {
+      const raw = data[sourceOffset];
+      sourceOffset += 1;
+      const left = x >= channels ? rows[rowOffset + x - channels] : 0;
+      const up = y > 0 ? rows[rowOffset + x - stride] : 0;
+      const upLeft = y > 0 && x >= channels ? rows[rowOffset + x - stride - channels] : 0;
+
+      let value = raw;
+      if (filter === 1) value = raw + left;
+      else if (filter === 2) value = raw + up;
+      else if (filter === 3) value = raw + Math.floor((left + up) / 2);
+      else if (filter === 4) value = raw + paethPredictor(left, up, upLeft);
+      else if (filter !== 0) return null;
+
+      rows[rowOffset + x] = value & 0xff;
+    }
+  }
+
+  return rows;
+};
+
+const encodePngRows = ({ rows, width, height, channels }) => {
+  const stride = width * channels;
+  const encoded = Buffer.alloc((stride + 1) * height);
+  let offset = 0;
+
+  for (let y = 0; y < height; y += 1) {
+    encoded[offset] = 0;
+    offset += 1;
+    rows.copy(encoded, offset, y * stride, (y + 1) * stride);
+    offset += stride;
+  }
+
+  return encoded;
+};
+
+const parsePng = (filePath) => {
+  const buffer = fs.readFileSync(filePath);
+  if (!buffer.subarray(0, PNG_SIGNATURE.length).equals(PNG_SIGNATURE)) {
+    return null;
+  }
+
+  let offset = PNG_SIGNATURE.length;
+  let ihdr = null;
+  const chunks = [];
+  const idatChunks = [];
+
+  while (offset + 12 <= buffer.length) {
+    const length = buffer.readUInt32BE(offset);
+    const type = buffer.toString("ascii", offset + 4, offset + 8);
+    const data = buffer.subarray(offset + 8, offset + 8 + length);
+    chunks.push({ type, data });
+    if (type === "IHDR") ihdr = data;
+    if (type === "IDAT") idatChunks.push(data);
+    offset += 12 + length;
+    if (type === "IEND") break;
+  }
+
+  if (!ihdr || !idatChunks.length) {
+    return null;
+  }
+
+  const width = ihdr.readUInt32BE(0);
+  const height = ihdr.readUInt32BE(4);
+  const bitDepth = ihdr[8];
+  const colorType = ihdr[9];
+  const interlace = ihdr[12];
+  const channels = PNG_CHANNELS_BY_COLOR_TYPE.get(colorType);
+
+  if (!channels || bitDepth !== 8 || interlace !== 0) {
+    return null;
+  }
+
+  const rows = decodePngRows({
+    data: inflateSync(Buffer.concat(idatChunks)),
+    width,
+    height,
+    channels,
+  });
+
+  return rows ? { chunks, colorType, channels, height, rows, width } : null;
+};
+
+const writePng = ({ chunks, height, rows, width, channels }) => {
+  const outputChunks = chunks
+    .filter((chunk) => chunk.type !== "IDAT" && chunk.type !== "IEND")
+    .map((chunk) => writePngChunk(chunk.type, chunk.data));
+
+  outputChunks.push(
+    writePngChunk(
+      "IDAT",
+      deflateSync(encodePngRows({ rows, width, height, channels }))
+    ),
+    writePngChunk("IEND", Buffer.alloc(0))
+  );
+
+  return Buffer.concat([PNG_SIGNATURE, ...outputChunks]);
+};
+
+const isNearBlackPixel = ({ rows, offset, colorType, channels }) => {
+  if (colorType === 0) {
+    return rows[offset] <= 16;
+  }
+
+  const red = rows[offset];
+  const green = rows[offset + 1];
+  const blue = rows[offset + 2];
+  const alpha = channels === 4 ? rows[offset + 3] : 255;
+  return alpha > 16 && red <= 16 && green <= 16 && blue <= 16;
+};
+
+const setPixelToWhite = ({ rows, offset, colorType, channels }) => {
+  if (colorType === 0) {
+    rows[offset] = 255;
+    return;
+  }
+
+  rows[offset] = 255;
+  rows[offset + 1] = 255;
+  rows[offset + 2] = 255;
+  if (channels === 4) {
+    rows[offset + 3] = 255;
+  }
+};
+
+const replaceDarkExteriorWithWhite = (filePath) => {
+  const png = parsePng(filePath);
+  if (!png) {
+    return false;
+  }
+
+  const { colorType, channels, height, rows, width } = png;
+  const visited = new Uint8Array(width * height);
+  const queue = [];
+  const enqueue = (x, y) => {
+    if (x < 0 || x >= width || y < 0 || y >= height) return;
+    const pixelIndex = y * width + x;
+    if (visited[pixelIndex]) return;
+    const offset = pixelIndex * channels;
+    if (!isNearBlackPixel({ rows, offset, colorType, channels })) return;
+    visited[pixelIndex] = 1;
+    queue.push(pixelIndex);
+  };
+
+  for (let x = 0; x < width; x += 1) {
+    enqueue(x, 0);
+    enqueue(x, height - 1);
+  }
+  for (let y = 0; y < height; y += 1) {
+    enqueue(0, y);
+    enqueue(width - 1, y);
+  }
+
+  for (let index = 0; index < queue.length; index += 1) {
+    const pixelIndex = queue[index];
+    const x = pixelIndex % width;
+    const y = Math.floor(pixelIndex / width);
+    enqueue(x + 1, y);
+    enqueue(x - 1, y);
+    enqueue(x, y + 1);
+    enqueue(x, y - 1);
+  }
+
+  if (queue.length < Math.max(100, width * height * 0.002)) {
+    return false;
+  }
+
+  for (const pixelIndex of queue) {
+    setPixelToWhite({
+      rows,
+      offset: pixelIndex * channels,
+      colorType,
+      channels,
+    });
+  }
+
+  fs.writeFileSync(filePath, writePng(png));
+  return true;
+};
+
+const extractPdfEmbeddedImages = (pdfPath) => {
+  let imageList = "";
+  try {
+    imageList = execFileSync("pdfimages", ["-list", pdfPath], {
+      encoding: "utf8",
+      maxBuffer: 8 * 1024 * 1024,
+    });
+  } catch {
+    return { imagesByPage: new Map(), cleanup: () => {} };
+  }
+
+  const imageRows = imageList
+    .split(/\r?\n/)
+    .map((line) => {
+      const match = line.match(/^\s*(\d+)\s+(\d+)\s+(\S+)\s+(\d+)\s+(\d+)\b/);
+      if (!match) {
+        return null;
+      }
+      return {
+        page: Number(match[1]),
+        num: Number(match[2]),
+        type: match[3],
+        width: Number(match[4]),
+        height: Number(match[5]),
+      };
+    })
+    .filter(
+      (row) =>
+        row &&
+        row.type === "image" &&
+        Number.isFinite(row.page) &&
+        Number.isFinite(row.num) &&
+        row.width >= 120 &&
+        row.height >= 120
+    );
+
+  if (!imageRows.length) {
+    return { imagesByPage: new Map(), cleanup: () => {} };
+  }
+
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "paper-reader-images-"));
+  const tmpPrefix = path.join(tmpDir, "image");
+
+  try {
+    execFileSync("pdfimages", ["-png", pdfPath, tmpPrefix], {
+      stdio: "ignore",
+    });
+  } catch {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+    return { imagesByPage: new Map(), cleanup: () => {} };
+  }
+
+  const imagesByPage = new Map();
+  for (const row of imageRows) {
+    const filePath = `${tmpPrefix}-${String(row.num).padStart(3, "0")}.png`;
+    if (!fs.existsSync(filePath)) {
+      continue;
+    }
+    const pageImages = imagesByPage.get(row.page) ?? [];
+    pageImages.push({
+      filePath,
+      width: row.width,
+      height: row.height,
+      area: row.width * row.height,
+    });
+    imagesByPage.set(row.page, pageImages);
+  }
+
+  for (const pageImages of imagesByPage.values()) {
+    pageImages.sort((a, b) => b.area - a.area);
+  }
+
+  return {
+    imagesByPage,
+    cleanup: () => fs.rmSync(tmpDir, { recursive: true, force: true }),
+  };
+};
+
+const renderPdfEmbeddedFigureImage = (embeddedImage, paperSlug, figureId) => {
+  const outDir = path.join(process.cwd(), "public", "figures", paperSlug);
+  const outFile = path.join(outDir, `fig-${figureId}.png`);
+
+  fs.mkdirSync(outDir, { recursive: true });
+  fs.copyFileSync(embeddedImage.filePath, outFile);
+  replaceDarkExteriorWithWhite(outFile);
+
+  return {
+    image: `/figures/${paperSlug}/fig-${figureId}.png`,
+    width: embeddedImage.width,
+    height: embeddedImage.height,
+  };
+};
+
 const renderPdfFigurePage = (pdfPath, paperSlug, pageNumber, figureId) => {
   const outDir = path.join(process.cwd(), "public", "figures", paperSlug);
   const outPrefix = path.join(outDir, `fig-${figureId}`);
@@ -804,7 +1246,9 @@ const renderPdfFigurePage = (pdfPath, paperSlug, pageNumber, figureId) => {
     );
   }
 
-  return `/figures/${paperSlug}/fig-${figureId}.png`;
+  return {
+    image: `/figures/${paperSlug}/fig-${figureId}.png`,
+  };
 };
 
 const parsePdfPaper = (pdfPath) => {
@@ -818,6 +1262,12 @@ const parsePdfPaper = (pdfPath) => {
     meta.doi || meta.title || inferredTitle || path.basename(pdfPath, path.extname(pdfPath))
   );
   const pages = rawText.split("\f");
+  const figureCaptionsByPage = pages.map((page) =>
+    extractPdfFigureCaptionsFromPage(page)
+  );
+  const { imagesByPage, cleanup: cleanupEmbeddedImages } =
+    extractPdfEmbeddedImages(pdfPath);
+  const imageUseCountByPage = new Map();
   const rawSections = [];
   const figures = [];
   const seenFigureIds = new Set();
@@ -887,13 +1337,45 @@ const parsePdfPaper = (pdfPath) => {
   const pushFigureCaption = (text) => {
     const normalized = clean(text);
     if (!normalized) return;
-    const section = {
-      id: `figure-captions-${rawSections.filter((item) => item.title === "Figure Captions").length + 1}`,
-      title: "Figure Captions",
-      paragraphs: [normalized],
-    };
-    rawSections.push(section);
     currentSection = lastNarrativeSection;
+  };
+
+  const addFigureFromCaption = (text, pageNumber) => {
+    const normalized = clean(text);
+    const figureId = extractFigureIdFromCaption(normalized);
+    if (!figureId || seenFigureIds.has(figureId)) {
+      return;
+    }
+
+    const pageImages = imagesByPage.get(pageNumber) ?? [];
+    const pageImageUseCount = imageUseCountByPage.get(pageNumber) ?? 0;
+    const embeddedImage = pageImages[pageImageUseCount] ?? null;
+    imageUseCountByPage.set(pageNumber, pageImageUseCount + 1);
+    const renderedFigure = embeddedImage
+      ? renderPdfEmbeddedFigureImage(embeddedImage, paperSlug, figureId)
+      : renderPdfFigurePage(pdfPath, paperSlug, pageNumber, figureId);
+
+    figures.push({
+      id: figureId,
+      ...renderedFigure,
+      caption: normalized,
+    });
+    seenFigureIds.add(figureId);
+  };
+
+  figureCaptionsByPage.forEach((captions, pageIndex) => {
+    for (const caption of captions.values()) {
+      addFigureFromCaption(caption, pageIndex + 1);
+    }
+  });
+
+  const isCaptionContinuationBlock = (pageIndex, blockText) => {
+    if (blockText.length < 24 || isPdfFigureCaption(blockText)) {
+      return false;
+    }
+    return [...(figureCaptionsByPage[pageIndex]?.values() ?? [])].some((caption) =>
+      caption.includes(blockText)
+    );
   };
 
   for (let pageIndex = 0; pageIndex < pages.length; pageIndex += 1) {
@@ -914,13 +1396,27 @@ const parsePdfPaper = (pdfPath) => {
         !/^Keywords:/i.test(blockText) &&
         !PDF_NUMBERED_HEADING_PATTERN.test(blockText) &&
         !isPdfHeading(blockText) &&
-        !/^(?:Fig\.?\s*\d+[.:]|Figure\s+\d+[.:])/i.test(blockText)
+        !isPdfFigureCaption(blockText)
       ) {
         continue;
       }
       if (/^Editor’s summary\b/i.test(blockText)) {
         reachedSupplementaryMaterials = true;
         break;
+      }
+
+      const keywordsIndex = blockText.search(/\bKeywords:/i);
+      if (
+        keywordsIndex !== -1 &&
+        (currentSection?.title === "Data Availability Statement" ||
+          /\bKeywords:.*\[\d+\]/i.test(blockText))
+      ) {
+        const beforeKeywords = clean(blockText.slice(0, keywordsIndex));
+        if (beforeKeywords) {
+          pushParagraph(beforeKeywords);
+        }
+        inReferences = true;
+        continue;
       }
 
       const referencesIndex = blockText.search(/\b(?:REFERENCES AND NOTES|References)\b/i);
@@ -948,7 +1444,7 @@ const parsePdfPaper = (pdfPath) => {
           /^ACKNOWLEDGMENTS$/i.test(blockText) ||
           /^SUPPLEMENTARY MATERIALS$/i.test(blockText) ||
           /^Appendix:/i.test(blockText) ||
-          /^Figure\s+\d+[.:]/i.test(blockText)
+          isPdfFigureCaption(blockText)
         ) {
           inReferences = false;
         } else {
@@ -974,17 +1470,19 @@ const parsePdfPaper = (pdfPath) => {
         continue;
       }
 
-      if (/^(?:Fig\.?\s*\d+[.:]|Figure\s+\d+[.:])/i.test(blockText)) {
+      if (isPdfFigureCaption(blockText)) {
         const figureId = extractFigureIdFromCaption(blockText);
-        if (figureId && !seenFigureIds.has(figureId)) {
-          figures.push({
-            id: figureId,
-            image: renderPdfFigurePage(pdfPath, paperSlug, pageIndex + 1, figureId),
-            caption: blockText,
-          });
-          seenFigureIds.add(figureId);
+        const caption = figureId ? figureCaptionsByPage[pageIndex]?.get(figureId) : null;
+        if (!caption) {
+          pushParagraph(blockText);
+          continue;
         }
-        pushFigureCaption(blockText);
+        addFigureFromCaption(caption, pageIndex + 1);
+        pushFigureCaption(caption);
+        continue;
+      }
+
+      if (isCaptionContinuationBlock(pageIndex, blockText)) {
         continue;
       }
 
@@ -1009,7 +1507,7 @@ const parsePdfPaper = (pdfPath) => {
 
       const numberedHeadingMatch = blockText.match(PDF_NUMBERED_HEADING_PATTERN);
       if (numberedHeadingMatch && isPdfHeadingTitle(numberedHeadingMatch[2])) {
-        const headingNumber = numberedHeadingMatch[1];
+        const headingNumber = numberedHeadingMatch[1].replace(/\.$/, "");
         const headingTitle = numberedHeadingMatch[2];
         if (
           /^(?:DISCO|Applications|S-S bonds)$/i.test(headingTitle) ||
@@ -1072,11 +1570,17 @@ const parsePdfPaper = (pdfPath) => {
     }
   }
 
+  cleanupEmbeddedImages();
+
   return {
     title:
       meta.title || inferredTitle || path.basename(pdfPath, path.extname(pdfPath)),
     doi: meta.doi || "",
-    sourceUrl: PAPER_SOURCE_URL || `file://${pdfPath}`,
+    sourceUrl:
+      PAPER_SOURCE_URL ||
+      (meta.arxivId
+        ? `https://arxiv.org/abs/${meta.arxivId.replace(/v\d+$/i, "")}`
+        : `file://${pdfPath}`),
     figures,
     rawSections,
   };

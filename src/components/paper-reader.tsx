@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { Fragment, useMemo, useState } from "react";
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { FigureEntry, PaperData, SentenceEntry } from "@/types/paper";
 
 type ReaderProps = {
@@ -212,6 +212,11 @@ const renderScriptText = (text: string) =>
     return <Fragment key={`txt-${idx}`}>{token.value}</Fragment>;
   });
 
+const formatFigureCaption = (caption: string) =>
+  caption.replace(/^(Figure\s+\d+)\s+(?=[A-Z])/i, "$1. ");
+
+const FIGURE_LIGHTBOX_EXIT_MS = 260;
+
 export function PaperReader({ data }: ReaderProps) {
   const [showSource, setShowSource] = useState(false);
 
@@ -229,6 +234,9 @@ export function PaperReader({ data }: ReaderProps) {
   const [activeFigureId, setActiveFigureId] = useState<number | null>(
     data.figures[0]?.id ?? null
   );
+  const [isFigureLightboxOpen, setFigureLightboxOpen] = useState(false);
+  const [isFigureLightboxClosing, setFigureLightboxClosing] = useState(false);
+  const figureLightboxCloseTimeout = useRef<number | null>(null);
 
   const sentenceById = useMemo(
     () => new Map<string, SentenceEntry>(allSentences.map((item) => [item.id, item])),
@@ -247,6 +255,62 @@ export function PaperReader({ data }: ReaderProps) {
     (activeFigureId ? figureById.get(activeFigureId) : null) ??
     data.figures[0] ??
     null;
+  const activeFigureIsWide =
+    activeFigure?.width && activeFigure.height
+      ? activeFigure.width / activeFigure.height > 1.65
+      : false;
+
+  const clearFigureLightboxCloseTimeout = useCallback(() => {
+    if (figureLightboxCloseTimeout.current !== null) {
+      window.clearTimeout(figureLightboxCloseTimeout.current);
+      figureLightboxCloseTimeout.current = null;
+    }
+  }, []);
+
+  const openFigureLightbox = () => {
+    clearFigureLightboxCloseTimeout();
+    setFigureLightboxClosing(false);
+    setFigureLightboxOpen(true);
+  };
+
+  const closeFigureLightbox = useCallback(() => {
+    if (!isFigureLightboxOpen) {
+      return;
+    }
+
+    clearFigureLightboxCloseTimeout();
+    setFigureLightboxClosing(true);
+    figureLightboxCloseTimeout.current = window.setTimeout(() => {
+      setFigureLightboxOpen(false);
+      setFigureLightboxClosing(false);
+      figureLightboxCloseTimeout.current = null;
+    }, FIGURE_LIGHTBOX_EXIT_MS);
+  }, [clearFigureLightboxCloseTimeout, isFigureLightboxOpen]);
+
+  useEffect(() => {
+    if (!isFigureLightboxOpen) {
+      return;
+    }
+
+    const previousOverflow = document.body.style.overflow;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        closeFigureLightbox();
+      }
+    };
+
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isFigureLightboxOpen, closeFigureLightbox]);
+
+  useEffect(() => {
+    return clearFigureLightboxCloseTimeout;
+  }, [clearFigureLightboxCloseTimeout]);
 
   const handleSentenceHover = (sentence: SentenceEntry) => {
     setActiveSentenceId(sentence.id);
@@ -277,7 +341,7 @@ export function PaperReader({ data }: ReaderProps) {
               checked={showSource}
               onChange={(event) => setShowSource(event.target.checked)}
             />
-            Show original source paragraph under each translated paragraph
+            <span>Show original source</span>
           </label>
         </section>
 
@@ -346,20 +410,46 @@ export function PaperReader({ data }: ReaderProps) {
           </article>
 
           <aside className="figure-panel">
-            <h2 className="panel-title">Hover Figure Preview</h2>
+            <h2 className="panel-title">Figure Preview</h2>
+            {data.figures.length > 1 && (
+              <div className="figure-tabs" aria-label="Figure selector">
+                {data.figures.map((figure) => (
+                  <button
+                    key={figure.id}
+                    type="button"
+                    className={`figure-tab${
+                      figure.id === activeFigure?.id ? " is-active" : ""
+                    }`}
+                    onClick={() => setActiveFigureId(figure.id)}
+                  >
+                    Fig. {figure.id}
+                  </button>
+                ))}
+              </div>
+            )}
             {activeFigure ? (
               <article className="figure-card">
                 <p className="figure-kicker">Fig. {activeFigure.id}</p>
-                <div className="figure-image-wrap">
+                <button
+                  type="button"
+                  className="figure-image-wrap figure-image-button"
+                  onClick={openFigureLightbox}
+                  aria-label={`Open Figure ${activeFigure.id} larger`}
+                >
                   <Image
                     src={activeFigure.image}
                     alt={`Figure ${activeFigure.id}`}
-                    fill
+                    width={activeFigure.width ?? 1200}
+                    height={activeFigure.height ?? 900}
                     sizes="(max-width: 1024px) 100vw, 34vw"
-                    className="figure-image"
+                    className={`figure-image${
+                      activeFigureIsWide ? " is-wide" : ""
+                    }`}
                   />
-                </div>
-                <p className="figure-caption">{activeFigure.caption}</p>
+                </button>
+                <p className="figure-caption">
+                  {formatFigureCaption(activeFigure.caption)}
+                </p>
               </article>
             ) : (
               <article className="figure-card figure-empty">
@@ -397,6 +487,49 @@ export function PaperReader({ data }: ReaderProps) {
             </article>
           </aside>
         </section>
+
+        {isFigureLightboxOpen && activeFigure && (
+          <div
+            className={`figure-lightbox${
+              isFigureLightboxClosing ? " is-closing" : ""
+            }`}
+            role="dialog"
+            aria-modal="true"
+            aria-label={`Figure ${activeFigure.id} enlarged`}
+          >
+            <button
+              type="button"
+              className="figure-lightbox-backdrop"
+              onClick={closeFigureLightbox}
+              aria-label="Close enlarged figure"
+            />
+            <article className="figure-lightbox-panel">
+              <header className="figure-lightbox-header">
+                <p className="figure-lightbox-title">Fig. {activeFigure.id}</p>
+                <button
+                  type="button"
+                  className="figure-lightbox-close"
+                  onClick={closeFigureLightbox}
+                >
+                  Close
+                </button>
+              </header>
+              <div className="figure-lightbox-image-wrap">
+                <Image
+                  src={activeFigure.image}
+                  alt={`Figure ${activeFigure.id}`}
+                  width={activeFigure.width ?? 1200}
+                  height={activeFigure.height ?? 900}
+                  sizes="95vw"
+                  className="figure-lightbox-image"
+                />
+              </div>
+              <p className="figure-lightbox-caption">
+                {formatFigureCaption(activeFigure.caption)}
+              </p>
+            </article>
+          </div>
+        )}
       </main>
     </div>
   );
